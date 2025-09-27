@@ -1,0 +1,200 @@
+## Ricerca Non Informata: Inquadramento del Problema e Componenti Fondamentali
+- Problema dell'agente basato su goal:
+  - Obiettivo: raggiungere uno stato goal con costo di percorso minimo.
+  - Strategie non informate usano solo la formulazione del problema.
+- Elementi della formulazione del problema:
+  - Spazio degli stati e stato iniziale.
+  - Funzione azione: elenca le azioni applicabili da uno stato.
+  - Funzione di transizione: restituisce lo stato successore dato uno stato e un'azione.
+  - Test goal: determina se uno stato è un goal; possibili più stati goal.
+  - Funzione costo passo: costo di eseguire un'azione da uno stato al successore.
+## Ricerca ad Albero vs Ricerca su Grafo: Gestione degli Stati Ripetuti
+- Ricerca ad albero:
+  - Frontiera inizializzata con il nodo iniziale.
+  - Ciclo: seleziona nodo → test goal → se non goal, espandi tramite azioni → aggiungi figli in frontiera.
+  - In contesti deterministici, stati ri-incontrati implicano espansioni identiche future; possono causare loop infiniti e lavoro ridondante.
+- Ricerca su grafo:
+  - Aggiunge una lista raggiunti (closed set) per tracciare gli stati visitati.
+  - Regola base per i figli: se lo stato del figlio non è in raggiunti, aggiungi in frontiera.
+  - Regola di aggiornamento per preservare l'ottimalità:
+    - Se un nuovo percorso verso uno stato già raggiunto ha costo minore, aggiorna il percorso migliore registrato (decrease-key) e considera la via più economica.
+    - Critico per l'ottimalità nelle ricerche sensibili al costo (es. UCS, A*).
+## Criteri di Valutazione delle Strategie di Ricerca
+- Completezza: trova una soluzione se esiste.
+- Ottimalità (costo): restituisce una soluzione con costo di percorso minimo.
+- Complessità tempo e spazio: dipende dalla topologia della ricerca e dalle scelte algoritmiche.
+- Fattori chiave:
+  - Fattore di ramificazione (b): successori per nodo; b grande aumenta i nodi esponenzialmente per livello.
+  - Profondità del goal più superficiale (d): azioni minime per la prima soluzione incontrata.
+## Ricerca Breadth-First (BFS): Definizione, Comportamento e Proprietà
+- Strategia:
+  - Esplora livello per livello; espande tutti i nodi a profondità k prima di k+1.
+  - Seleziona sempre il nodo più superficiale; tipico tie-break da sinistra a destra.
+- Implementazione:
+  - Frontiera come coda FIFO; bookkeeping minimo.
+- Test goal anticipato:
+  - BFS può testare il goal alla generazione del figlio prima di inserirlo in coda.
+  - Riduce le espansioni nel caso peggiore da b^(d+1) a b^d.
+  - Valido solo per BFS con costi unitari.
+- Ottimalità:
+  - Assume costo passo uniforme (es. ogni azione costa 1).
+  - Restituisce soluzione ottimale in numero di passi; tutte le soluzioni alla stessa profondità hanno lo stesso costo.
+- Completezza:
+  - Completo se b è finito.
+- Complessità (caso peggiore):
+  - Tempo: O(b^(d+1)) senza test goal anticipato; O(b^d) con test goal anticipato.
+  - Spazio: stesso ordine del tempo per memorizzare tutti i nodi di un livello.
+- Espansione caso peggiore:
+  - Se il goal è l'ultimo nodo a profondità d, BFS espande tutti i nodi a profondità d e inserisce i figli di livello d+1 prima di trovare il goal (a meno del test goal anticipato).
+- Equivalenza best-first:
+  - BFS può essere implementato come Best-First Search con f(n) = profondità(n); la coda FIFO specializzata è più efficiente.
+## Concetti Chiave: Uniform Cost Search vs Breadth-First Search
+- Terminologia:
+  - BFS: costi azione uniformi; espande per livelli di profondità.
+  - UCS: costi azione positivi e diversi (ognuno ≥ ε > 0); espande per livelli di costo cumulativo (“isolinee di costo”).
+- Comportamento frontiera:
+  - UCS ordina i nodi per costo percorso cumulativo g(n), producendo isolinee di costo: tutti i nodi con costo totale c, poi c+Δ, ecc.
+  - Con costi azione uguali, UCS si riduce a BFS (livelli di costo coincidono con livelli di profondità).
+## Uniform Cost Search (UCS): Definizione, Relazione con Dijkstra e Proprietà
+- Strategia:
+  - Generalizza BFS a costi passo positivi e non uniformi.
+  - Frontiera come coda di priorità ordinata per g(n).
+  - Seleziona il nodo con g(n) più piccolo; non necessariamente il più superficiale.
+  - Può restituire soluzioni con più azioni se il costo totale è minore.
+- Implementazione:
+  - Template best-first con f(n) = g(n).
+  - Richiede costi passo strettamente positivi (ε > 0); nessun costo zero o negativo.
+- Relazione con Dijkstra:
+  - UCS e Dijkstra producono soluzioni equivalenti con pesi positivi.
+  - Dijkstra opera tipicamente su un grafo esplicito e noto; UCS esplora spazi di stato impliciti o grandi incrementando la frontiera.
+- Completezza:
+  - Completo se b è finito e i costi passo sono strettamente positivi.
+- Ottimalità:
+  - Garantita: il primo goal estratto ha costo minimo.
+- Complessità:
+  - Tempo/spazio nel caso peggiore dipendono dalla granularità dei costi; se il costo passo minimo è ε e il costo ottimale è C*, le espansioni scalano con C*/ε.
+  - Si riduce a BFS quando tutti i costi azione sono uguali.
+## Depth-First Search (DFS): Algoritmo e Proprietà
+- Principio base:
+  - Seleziona sempre il nodo più profondo da espandere; tie-break da sinistra a destra.
+  - Frontiera è uno stack LIFO; adatto alla ricorsione.
+- Evoluzione frontiera:
+  - Push radice; pop più profondo; push figli; esplora un solo percorso; backtrack su vicoli ciechi.
+- Dettagli implementativi:
+  - DFS ricorsivo:
+    - Se il nodo iniziale manca, crealo dallo stato iniziale.
+    - Test goal: restituisci nodo se goal.
+    - Rilevamento cicli sul percorso: se il percorso corrente contiene uno stato ripetuto, restituisci fallimento (evita loop infiniti).
+    - Per ogni figlio: cerca ricorsivamente; restituisci il primo successo; altrimenti fallimento.
+  - Tipicamente nessuna lista raggiunti globale; si basa su controlli sugli antenati.
+- Proprietà:
+  - Completezza: non completa in generale; può ciclare su cicli.
+  - Ottimalità: non ottimale; può restituire una soluzione più profonda/costosa.
+  - Complessità (caso peggiore):
+    - Tempo: O(b^m), con profondità massima m.
+    - Spazio: O(m) (lineare in profondità), vantaggio chiave.
+- Nota pratica:
+  - Usata ampiamente per il basso uso di memoria, nonostante garanzie più deboli.
+## Depth-Limited Search (DLS)
+- Definizione:
+  - DFS con limite massimo di profondità L; interrompe esplorazione più profonda.
+  - Completezza:
+  - Completa se L ≥ profondità della soluzione più superficiale d; evita loop infiniti.
+  - Ottimalità:
+  - Non garantita; può restituire una soluzione più profonda di una migliore superficiale a L dato.
+  - Semantica risultato:
+  - Successo (goal trovato), fallimento (nessuna soluzione nel sottoalbero), cutoff (limite raggiunto; soluzione può esistere più in profondità).
+  - Casi d'uso:
+  - Utile quando la conoscenza del dominio fornisce un limite ragionevole su profondità o costo soluzione.
+## Iterative Deepening Depth-First Search (IDDFS)
+- Meccanismo:
+  - Esegue ripetutamente DLS con L = 0, 1, 2, … finché trova una soluzione o raggiunge un limite.
+- Vantaggi:
+  - Completezza: trova una soluzione quando L raggiunge d (goal più superficiale).
+  - Ottimalità: ottimale con costi passo uguali (trova prima la soluzione più superficiale).
+  - Spazio: mantiene il vantaggio lineare di DFS, O(d).
+- Complessità:
+  - Tempo: O(b^d); overhead di ri-espansione piccolo rispetto ai nodi totali a profondità d.
+  - Spazio: O(d).
+- Nota:
+  - Con costi non uniformi, IDDFS non è ottimale sul costo.
+## Direzioni di Ricerca: Forward, Backward e Bidirezionale
+- Ricerca forward:
+  - Espande dallo stato iniziale usando azioni applicabili; fa crescere la frontiera verso il goal.
+- Ricerca backward:
+  - Parte dal goal; ragiona sui predecessori: quali azioni potrebbero portare qui?
+  - Spesso più semplice quando i vincoli goal potano efficacemente le opzioni.
+- Ricerca bidirezionale:
+  - Esegue forward e backward simultaneamente.
+  - Termina quando le frontiere si incontrano; collega i percorsi per ricostruire la soluzione.
+- Scelta di modellazione:
+  - Dipende se la dinamica forward o backward consente specifica e potatura più facile; bidirezionale richiede entrambi i modelli.
+## Quando Usare Ricerca ad Albero vs Ricerca su Grafo
+- Spazi di stato ad albero:
+  - Bassa probabilità di rivisitare stati tramite percorsi diversi; DFS con controllo cicli sul percorso funziona bene.
+- Spazi di stato a grafo generali:
+  - Alta probabilità di più percorsi verso lo stesso stato; ricerca su grafo con lista raggiunti globale è vantaggiosa.
+- Compromessi lista raggiunti:
+  - Vincoli di memoria possono richiedere politiche tipo caching: limiti di dimensione, strategie di rimozione, lookup efficienti.
+## Note Pratiche: Frontiera, Lista Raggiunti e Aggiornamenti Percorso
+- Gestione frontiera:
+  - BFS: coda FIFO; overhead minimo; test goal anticipato permesso con costi unitari.
+  - UCS: coda di priorità per costo percorso; nessun test goal anticipato; bisogna estrarre il nodo a costo minimo per testare.
+  - DFS/DLS/IDDFS: stack o ricorsione; uso memoria lineare.
+- Lista raggiunti e miglioramento percorso:
+  - Essenziale per evitare loop ed espansioni ridondanti nella ricerca su grafo.
+  - Se si trova un percorso più economico verso uno stato raggiunto, decrease-key/aggiorna e propaga il miglioramento per preservare l'ottimalità nelle ricerche basate sul costo.
+## Esempi e Note Didattiche
+- Esempio di pianificazione percorso (dipartimento → Piazzale Piola):
+  - Più percorsi verso la stessa destinazione.
+  - Senza aggiornamenti costo percorso, percorsi più economici verso lo stesso stato possono essere ignorati, violando l'ottimalità.
+  - Con aggiornamenti, l'algoritmo adotta la via più economica.
+- Otto Regine e crescita frontiera:
+  - Rappresentazione ingenua (qualsiasi regina su una delle 64 caselle) causa esplosione frontiera con BFS/DFS.
+  - Inserire vincoli per potare stati non validi riduce la ramificazione; motiva approcci CSP.
+- Aneddoto d'esame:
+  - Gli studenti usano spesso Dijkstra quando viene chiesto UCS; le soluzioni coincidono con costi positivi, ma mostrare l'evoluzione della frontiera verifica il ragionamento algoritmico.
+## Contesto dei Constraint Satisfaction Problems (CSP)
+- Distinzione dalla ricerca di percorso:
+  - I CSP si concentrano sull'assegnazione di valori per soddisfare vincoli; la sequenza di azioni è irrilevante (es. Sudoku, n-Queens).
+- Vantaggio:
+  - Sfruttare i vincoli riduce drasticamente la ricerca, evitando l'enumerazione esaustiva tipica di BFS/DFS ingenui in spazi grandi.
+- Relazione con DFS:
+  - Molti solver CSP usano backtracking stile DFS con controlli vincoli (forward checking, arc consistency) per potare precocemente, mantenendo memoria lineare.
+## Riepilogo delle Caratteristiche di Complessità
+- BFS:
+  - Tempo: O(b^d) con test goal anticipato; altrimenti O(b^(d+1)).
+  - Spazio: O(b^d) (dimensione dominante del livello).
+  - Completo; ottimale se costi passo uguali.
+- UCS:
+  - Tempo/spazio scala con C*/ε nel caso peggiore; si riduce a BFS con costi uguali.
+  - Completo con b finito e costi positivi; ottimale sul costo.
+- DFS:
+  - Tempo: O(b^m); Spazio: O(m).
+  - Non completa o ottimale in generale; basso uso memoria.
+- DLS:
+  - Tempo: O(b^L); Spazio: O(L).
+  - Completa se L ≥ d; non ottimale in generale.
+- IDDFS:
+  - Tempo: O(b^d); Spazio: O(d).
+  - Completa; ottimale con costi passo uguali; combina ottimalità BFS con efficienza spazio DFS.
+## Formule e Relazioni Chiave
+- BFS:
+  - Tempo/spazio caso peggiore: O(b^(d+1)); test goal anticipato: O(b^d).
+  - Ottimale per costi unitari; completo se b finito.
+- UCS:
+  - Espansioni caso peggiore scalano con C*/ε (costo passo minimo ε, costo ottimale C*).
+  - Si riduce a BFS quando tutti i costi azione sono uguali.
+## 📅 Prossimi Passi e Azioni
+- [ ] Applicare ricerca su grafo con lista raggiunti e regola di aggiornamento costo percorso per preservare l'ottimalità.
+- [ ] Usare BFS con test goal anticipato solo con costi passo unitari; evitare test goal anticipati in UCS e ricerche sensibili al costo.
+- [ ] Implementare BFS tramite coda FIFO per efficienza; evitare overhead best-first non necessario.
+- [ ] Implementare UCS come Best-First Search con f(n) = g(n), assicurando costi azione strettamente positivi; supportare decrease-key.
+- [ ] Verificare ed eseguire miglioramenti percorso quando si trova una via più economica verso uno stato raggiunto.
+- [ ] Preferire formulazioni consapevoli dei vincoli (CSP) per problemi come n-Queens e Sudoku per ridurre la ramificazione.
+- [ ] Implementare DFS ricorsivo con rilevamento cicli sul percorso; aggiungere semantica risultato DLS (successo/fallimento/cutoff).
+- [ ] Costruire IDDFS per iterare limiti di profondità e restituire subito in caso di successo.
+- [ ] Preparare esempi che mostrino isolinee costo UCS ed equivalenza con BFS a costi uguali.
+- [ ] Creare template di ricerca forward, backward e bidirezionale; confrontare facilità di modellazione ed efficacia potatura.
+- [ ] Esplorare strategie di caching per liste raggiunti (limiti dimensione, politiche rimozione) nella ricerca su grafo.
+- [ ] Richiedere diagrammi evoluzione frontiera in insegnamento/valutazione per confermare applicazione corretta degli algoritmi.

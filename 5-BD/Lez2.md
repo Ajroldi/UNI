@@ -1,0 +1,225 @@
+## Focus e contesto del corso
+- Piano di oggi: rapido ripasso sui modelli dati relazionali.
+- Traiettoria del corso: enfasi su database non relazionali per il resto del corso.
+- Realtà industriale:
+  - Il 90–95% delle aziende si basa ancora su database relazionali.
+  - I contesti big data e innovativi usano approcci non relazionali.
+  - La competenza relazionale resta essenziale e fondamentale per comprendere i modelli non relazionali in questo corso.
+## Struttura dell'esame e valutazione
+- Componenti della valutazione finale e distribuzione punti:
+  - Parte pratica: 25 punti su 33
+    - Formato: esercizi pratici, programmazione e query
+  - Parte teorica: 6 punti su 33
+  - Progetto opzionale:
+    - Ammissibilità: solo per chi raggiunge almeno 29 punti tra pratica + teoria
+    - Scopo: possibilità di arrivare a 30 o 30 e lode
+    - Punto aggiuntivo opzionale: il progetto può aggiungere 1 punto, per un totale massimo di 33 (32 da attività + 1 progetto)
+- Test intermedi:
+  - Quantità: 2 test durante il corso
+  - Peso: 0,5 punti ciascuno, totale 1 punto
+  - Natura: opzionale; nessun recupero/ripetizione se persi
+  - Impatto: perdere un test significa semplicemente perdere il relativo 0,5 o 1 punto
+- Esame orale:
+  - Possibile previa verifica di esame e preparazione
+  - Deciso dai docenti per studenti selezionati
+  - Può modificare il voto finale; considerato eccezionale e non standard
+- Regole e documentazione:
+  - Regole d'esame, assegnazione punti e attività disponibili su WeBeat (documento dedicato)
+  - Saranno ribadite nella prima esercitazione
+## Processo di progettazione dati e livelli di specifica
+- Approccio top-down:
+  - Livello concettuale:
+    - Scopo: specificare il contesto del problema, il business e i concetti rilevanti indipendentemente dalla tecnologia database
+    - Strumento: modello Entità-Relazione (ER)
+  - Livello logico:
+    - Scopo: specificare lo schema dati per il database
+    - Strumento: relazioni/tabelle per database relazionali (o schema rilevante per sistemi non relazionali)
+  - Livello fisico:
+    - Scopo: dettagli di implementazione per ottimizzazione storage/accesso, replica, distribuzione, indicizzazione, sicurezza
+    - Ambito corso: non trattato in dettaglio
+- Flusso di progettazione:
+  - Concettuale (ER) → Logico (schema relazionale) → Fisico (dettagli implementativi)
+  - Puntare all'automazione dove possibile nelle trasformazioni
+## Modello ER: concetti chiave, uso e sfumature
+- Componenti modello ER:
+  - Entità:
+    - Rappresentano tipi/modelli (non insiemi)
+    - Nominati al singolare (es. Dipendente)
+    - Istanza corrisponde a una tupla nei dati
+    - Attributi: proprietà delle istanze
+    - Chiavi:
+      - Attributi chiave identificano univocamente le istanze
+      - Chiavi composte possibili (es. Data+Ora+Luogo)
+      - Scenari di ereditarietà (ISA): entità figlia identificata dall'ID del genitore (es. Tirocinante/Professionista/Dipendente)
+  - Relazioni:
+    - Associazioni semantiche tra entità (stesso o diverso tipo)
+    - Tipicamente binarie; relazioni n-arie sconsigliate per complessità e rischio errore
+    - Ruoli: ogni relazione leggibile in entrambe le direzioni (es. Dipendente lavora in Dipartimento; Dipartimento include Dipendenti)
+    - Attributi relazione: solo se non appartengono intrinsecamente a nessuna entità (es. "da" su lavora_in)
+    - Vincoli di cardinalità:
+      - Espressione min/max connessioni per ruolo
+      - Minimo: 0 o 1
+      - Massimo: 1 o n
+      - Notazione (numerica vicino agli archi):
+        - Esempio: Corso a EdizioneCorso è 0..n; EdizioneCorso a Corso è 1..1
+- Scopo e benefici:
+  - Chiarisce copertura concettuale e ambito (cosa è dentro/fuori dal dominio)
+  - Guida la progettazione specifica del dominio; contesti diversi richiedono ER modellati ad hoc
+- Variabilità tra contesti:
+  - Lo stesso concetto può essere entità, attributo o relazione a seconda dell'applicazione
+    - Esempio: Indirizzo
+      - Attributo di Studente in sistema universitario
+      - Entità in applicazione mappe (es. Google Maps)
+  - Scelte alternative di modellazione:
+    - Durata impiego come entità/attributo separato vs relazione ternaria con Da/A
+      - Relazioni ternarie valide ma pericolose se fraintese
+- Indipendenza modello ER:
+  - Concettuale—nessun riferimento diretto a database
+  - Base per implementazione successiva (relazionale o non relazionale)
+## Modello relazionale: fondamenti, tabelle e identificazione
+- Contesto storico:
+  - Modello relazionale (1970; E. F. Codd) precede il modello ER (1976; inventori diversi)
+  - "Relazione" nel modello relazionale è concetto matematico distinto da "relazione" ER
+- Definizione matematica:
+  - Dati n domini, una relazione è un sottoinsieme del prodotto cartesiano di questi domini
+  - Trasformazione pratica:
+    - Le tabelle corrispondono alle relazioni
+    - Schemi: nome tabella, colonne con nomi e tipi
+    - Estensioni: righe (tuple) che rappresentano istanze
+  - Intuizione di Codd:
+    - I nomi delle colonne danno semantica e permettono flessibilità non posizionale (le colonne possono essere riordinate perché i nomi portano significato)
+- Struttura e rigidità:
+  - Schemi fissi garantiscono integrità dati (vincoli di tipo e colonna)
+  - Chiavi:
+    - Superchiavi: insiemi di attributi che danno identificazione unica
+    - Chiavi: superchiavi minime
+    - Chiave primaria: identificatore principale scelto; mai nulla
+- Valori null:
+  - Natura: rappresentano stato sconosciuto, inesistente o indeterminato
+  - Sfide:
+    - Non semantici: non si possono confrontare, abbinare o referenziare null in modo significativo
+    - Causano problemi di integrità e confusione
+    - Le chiavi primarie non devono mai essere null per evitare ambiguità di identità
+  - Aneddoto: targa "NULL" mostra complicazioni reali dovute alla gestione dei null nei sistemi
+## Integrità relazionale e riferimenti
+- Chiavi esterne:
+  - Definizione: attributi che referenziano chiavi primarie in altre tabelle
+  - Implementazione: si memorizza l'ID della riga referenziata (nessun puntatore reale)
+  - Esempio dominio:
+    - Tabelle: Auto, Poliziotti, Violazioni (Infrazioni)
+    - Chiavi primarie: Targa+Dipartimento (Auto), MatricolaPoliziotto (Poliziotto), CodiceInfrazione (Infrazione)
+    - Chiavi esterne: Poliziotto in Infrazione punta a Poliziotto; Auto in Infrazione punta ad Auto tramite Targa+Dipartimento
+## Mappatura ER in schema relazionale
+- Regole generali di mappatura:
+  - Per ogni entità ER: crea una tabella
+  - Per ogni attributo entità: crea una colonna
+- Gestione relazioni:
+  - Molti-a-molti:
+    - Crea tabella intermedia (ponte) con chiavi esterne per ciascun lato
+    - Esempio: iscrizione Studente–Corso richiede tabella join con ID Studente e ID Corso
+  - Uno-a-molti:
+    - Ottimizzazione: aggiungi colonna chiave esterna sul lato "molti" che referenzia il lato "uno"
+    - Esempio: Vendita–Cliente
+      - Ogni Vendita ha esattamente un Cliente → aggiungi CustomerID in Vendita (nessuna tabella relazione separata)
+  - Uno-a-uno:
+    - Crea entrambe le tabelle; valuta chiavi esterne in base a dettagli di cardinalità e opzionalità
+    - Approccio varia:
+      - Se entrambi i lati obbligatori e uno-a-uno, si può condividere lo stesso valore chiave primaria tra le tabelle o aggiungere chiave esterna in una tabella che punta all'altra
+      - Scelta guidata da pattern di accesso, semantica di proprietà e necessità di normalizzazione
+- Considerazioni prestazionali:
+  - Meno tabelle e join dove la cardinalità permette embedding diretto della chiave esterna
+  - Tabelle ponte necessarie per molti-a-molti per mantenere normalizzazione e flessibilità
+## Principi di progettazione schema relazionale
+- Eliminare la ridondanza negli schemi relazionali per evitare stati dati incoerenti/disallineati nel tempo.
+  - Esempio: avere sia tabella Vendita che Ricevuta che si referenziano reciprocamente duplica informazioni; modificare solo un lato rischia disallineamento.
+  - Best practice: mantenere riferimento unidirezionale quando la relazione è uno-a-uno o uno-a-molti a cardinalità massima.
+- Normalizzare gli schemi per garantire correttezza ed evitare duplicazione attributi tra entità.
+  - Errore: tabella Dipendente con DepartmentID e DepartmentName nel record Dipendente introduce ridondanza e rischio denormalizzazione.
+  - Design corretto: tabelle Dipendente e Dipartimento separate, collegate tramite relazione (Dipendente assegnato a Dipartimento), DepartmentName solo in Dipartimento.
+- Processo top-down ER→relazionale previene errori schema e impone normalizzazione/struttura.
+  - Regola pratica: seguire modellazione ER→logica→design finale per risultati guidati e garantiti.
+## Gestione relazioni opzionali e null
+- Quando la cardinalità minima è zero su un lato (es. ogni Vendita ha Ricevuta, ma alcune Ricevute non si riferiscono a una Vendita), posiziona la chiave esterna per evitare null dove possibile.
+  - Motivazione: i valori null creano complicazioni di modellazione/integrità; evitare scelte schema che permettono o richiedono chiavi esterne null se esiste alternativa.
+## Evoluzione schema reale e normalizzazione
+- Database longevi (spesso 1–40 anni) accumulano cambiamenti: colonne aggiunte/rimosse, nuove tabelle, percorsi alterati; schemi grandi (100–500+ tabelle) diventano difficili da comprendere.
+- Risultato: denormalizzazione e ridondanza si insinuano per errore umano e requisiti evolutivi.
+- La normalizzazione può essere applicata post hoc per pulire/riprogettare schemi errati; molte forme normali (1NF–5NF) migliorano progressivamente la qualità schema.
+  - Nota corso: le slide contengono info sulla normalizzazione, ma non sarà trattata qui; riconoscerne il ruolo per le riparazioni.
+## Schema e vincoli nei database relazionali
+- Schema fortemente tipizzato definisce tabelle, colonne, tipi dati e vincoli (business, referenziale).
+- Tutti i dati devono rispettare schema e vincoli; dati non conformi vengono rifiutati.
+- Benefici: forma dati uniforme, coerenza, integrazione tramite chiavi e chiavi esterne.
+## Transazionalità e controllo concorrenza
+- Ambienti multiutente richiedono accesso parallelo sicuro; problemi di concorrenza sorgono se più utenti modificano gli stessi dati.
+- Locking: blocco temporaneo dei dati durante scrittura per evitare conflitti.
+- Transazioni: raggruppano operazioni tra begin e commit per garantire atomicità di cambi multipli.
+  - Esempio: bonifico bancario di 10 unità comporta addebito e accredito; deve completarsi (commit) o annullarsi (rollback) per evitare creazione/perdita denaro.
+  - Stati intermedi sono temporanei e non visibili come finali finché non si fa commit; rollback riporta allo stato iniziale coerente.
+- Strategia esecuzione: transazioni potenzialmente parallele su dati sovrapposti sono serializzate (ordine di arrivo) per evitare risultati indeterminati.
+- I sistemi relazionali garantiscono tipicamente proprietà transazionali forti; i non relazionali spesso le rilassano per scalabilità/performance.
+- Realtà business: circa il 95% delle operazioni aziendali si basa ancora su database relazionali transazionali per stato consistente/affidabile (es. saldo bancario).
+## Architetture dati distribuite: partizionamento e replica
+- Necessità: sistemi su larga scala non possono ospitare tutti i dati su una sola macchina; distribuiscono su più server.
+- Partizionamento dati:
+  - Partizionamento orizzontale: divisione per righe; ogni partizione mantiene schema completo ma solo subset di istanze.
+  - Partizionamento verticale: divisione per colonne; ogni server ha tutte le istanze ma solo subset di colonne; serve chiave primaria su tutte le partizioni e join per ricostruire le righe.
+  - Pratica comune: prevale partizionamento orizzontale; verticale usato in casi specifici.
+  - Obiettivi: scalabilità (crescita con i dati) e distribuzione (carico su più server); throughput migliorato distribuendo letture/scritture.
+- Replica dati:
+  - Creare copie multiple per tolleranza guasti, affidabilità e backup.
+  - Pro: letture più veloci da più repliche; resilienza ai guasti.
+  - Contro: aggiornamenti costosi—le modifiche devono propagarsi su tutte le repliche; overhead storage per copie multiple.
+- Strategie combinate:
+  - Sistemi moderni usano partizionamento e replica per architetture scalabili/tolleranti ai guasti.
+  - Configurazione esempio: dati divisi in partizioni (A, B, C), ogni partizione replicata su più server (A, A; B, B; C, C).
+  - Complessità architetturale: i sistemi gestiscono trasparentemente routing, replica, consistenza e aggiornamenti per ridurre il carico sullo sviluppatore.
+## Scalabilità ed elasticità
+- Dimensioni della scalabilità:
+  - Crescita volume dati: possibilità di aggiungere partizioni/server con l'aumentare dei dati (es. 5 TB/giorno).
+  - Variazione domanda computazionale: gestire picchi stagionali/evento (es. retail in festività) e ridurre capacità quando la domanda cala.
+- Elasticità:
+  - Espansione/contrazione dinamica risorse (storage/computing) in base alle necessità.
+  - Esempio: archiviazione dati decennali riduce storage attivo; riduzione fuori stagione fa risparmiare.
+## Ingestione dati e data wrangling
+- Architetture di ingestione dati: bus comuni per ricevere dati multi-sorgente ad alta velocità e instradare su storage appropriato secondo regole; devono supportare integrazione dinamica nuove sorgenti.
+- Processi di wrangling:
+  - Acquisire, interpretare e assegnare significato ai dati in ingresso.
+  - Pulire valori errati, mancanti, inattesi; gestire outlier.
+  - Arricchire i dati riempiendo valori mancanti o aggiungendo dettagli ausiliari.
+  - Creare attributi derivati/arricchiti per task downstream, soprattutto ML, per rappresentare meglio l'informazione rispetto agli input grezzi.
+  - Formattare e persistere i dati nelle strutture target; strumenti specializzati si concentrano sui workflow di wrangling.
+## Paradigmi relazionale vs non relazionale (introduzione ai contenuti futuri)
+- Assunzioni relazionali di base da rivedere nei sistemi non relazionali:
+  - Schema fortemente tipizzato/rigido richiesto prima dell'inserimento dati.
+  - Proprietà transazionali forti con vincoli stretti e integrità referenziale.
+- Prossimo punto di transizione: i database non relazionali mettono in discussione questi pilastri, in particolare la necessità di schema predefinito ("schema-less" o schema flessibile) e le garanzie transazionali.
+## Logistica corso e argomenti futuri
+- Prossime lezioni:
+  - Introduzione alle architetture NoSQL e framework big data.
+  - Esplorazione di come i sistemi non relazionali implementano o rilassano schema e garanzie transazionali.
+- Calendario lezioni:
+  - Le lezioni teoriche sempre nella stessa aula.
+  - Una seconda aula assegnata per esercitazioni; gli studenti saranno divisi tra le due esercitazioni la prossima settimana.
+  - Quando il calendario mostra "esercitazione", vai alla tua esercitazione assegnata; quando mostra "teoria", vai in aula teoria.
+## Concetti chiave e conclusioni
+- Mantenere la conoscenza relazionale anche in contesti non relazionali; è alla base di molta progettazione dati e resta dominante nell'industria.
+- Usare il modello ER per catturare la semantica del dominio con precisione, poi tradurlo in schemi relazionali con regole chiare.
+- Applicare la cardinalità per guidare l'ottimizzazione schema (ponte vs embedding chiave esterna).
+- Imporre vincoli di identità forti (chiavi primarie non nulle); trattare i null con cautela per ambiguità semantica.
+- Riconoscere la modellazione guidata dal contesto; lo stesso concetto reale può mappare su diversi costrutti ER a seconda dell'applicazione.
+- Normalizzare ed evitare ridondanza per mantenere schemi coerenti; usare design top-down ER→relazionale.
+## Prossimi passi
+- [ ] Rivedere le slide aggiornate d'esame e la lista formale di regole (punti, attività) su WeBeat.
+- [ ] Prepararsi per le componenti pratica (25 punti) e teorica (6 punti) dell'esame finale.
+- [ ] Decidere se partecipare ai test intermedi opzionali (due test, 0,5 punti ciascuno; nessun recupero).
+- [ ] Puntare ad almeno 29/33 tra pratica+teoria per accedere al punto progetto opzionale (verso 30 o 30 e lode).
+- [ ] Monitorare comunicazioni per possibili assegnazioni esame orale (deciso dal docente, casi eccezionali).
+- [ ] Partecipare alla prima esercitazione dove saranno ribadite le regole d'esame.
+- [ ] Esercitarsi con la modellazione ER con attenzione a cardinalità, chiavi e ruoli relazione.
+- [ ] Esercitarsi con design schema relazionale, selezione chiavi, implementazione chiavi esterne e gestione valori null.
+- [ ] Preparare esempi di mappatura ER→relazionale (molti-a-molti tramite tabelle ponte; uno-a-molti tramite chiavi esterne; uno-a-uno tramite PK condivisa o FK).
+- [ ] Partecipare alle lezioni teoriche nell'aula designata come da calendario.
+- [ ] Verificare assegnazione a una delle due esercitazioni; partecipare alla esercitazione assegnata la prossima settimana.
+- [ ] Prepararsi ai prossimi contenuti su architetture NoSQL e framework big data.
+- [ ] Tenere a mente concetti schema vs transazionalità per confronto con approcci non relazionali nella prossima lezione.

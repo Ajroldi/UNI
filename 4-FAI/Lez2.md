@@ -1,0 +1,194 @@
+## Fondamenti della Ricerca AI: Problemi, Rappresentazioni e Algoritmi
+- Ambito e sequenza
+  - Inizio del modulo sulla ricerca, continuato più avanti con la modellazione logica.
+  - Oggi: modellazione base dei problemi tramite stati e azioni esplorati con alberi di ricerca; più avanti: rappresentazioni logiche per formulazioni avanzate.
+- Idea centrale dei problemi di ricerca
+  - Modella un problema con:
+    - Stato: descrizione della situazione attuale.
+    - Azioni: operazioni valide in uno stato.
+    - Funzione risultato: mappa (stato, azione) allo stato successore.
+    - Test obiettivo: verifica se uno stato soddisfa le condizioni di goal.
+    - Costo passo: costo per azione/transizione.
+  - Obiettivo: trovare una soluzione (sequenza di azioni) dallo stato iniziale a quello obiettivo; preferire un percorso ottimale (costo totale minimo).
+- Intuizione umana vs. apprendimento automatico
+  - La ricerca valuta percorsi alternativi (es. porte, scale) simulando gli esiti.
+  - Il machine learning apprende politiche dai dati invece di enumerare stati.
+- Scelte di rappresentazione
+  - Stati: codifiche compatte (array/vettori).
+  - Azioni: preferire codifiche minime (es. "spazio vuoto su/giù/sinistra/destra") rispetto a tuple complesse per ridurre ramificazioni e calcoli.
+- Meccanica di azione e risultato
+  - actions(S): restituisce le azioni applicabili in S.
+  - result(S, A): restituisce lo stato successore S’ per A ∈ actions(S).
+  - Deterministico: ogni (S, A) → singolo S’.
+  - Stocastico: il risultato è una distribuzione (trattato più avanti).
+- Albero di ricerca ed esplorazione
+  - Costruire un albero espandendo i successori dallo stato iniziale fino a raggiungere un goal.
+  - Pianificare simulando sequenze di azioni; selezionare percorsi con meno passi o costo minore.
+- Spazio degli stati come grafo orientato
+  - Nodi: stati; archi: transizioni indotte da azioni.
+  - L'enumerazione completa è infattibile in domini complessi (scacchi, Go); la ricerca pratica esplora sottoinsiemi rilevanti in modo efficiente.
+- Funzione test obiettivo vs. enumerazione
+  - I test obiettivo funzionali sono essenziali quando l'enumerazione è infattibile (es. vittorie negli scacchi).
+  - L'enumerazione può funzionare in piccoli puzzle ma è generalmente intrattabile per domini più ricchi.
+- Costi e ottimalità
+  - Costo percorso: somma dei costi passo.
+  - Soluzione ottimale: percorso con costo totale minimo.
+  - Costi unitari nei puzzle vs. costi non uniformi nella navigazione.
+- Risolvibilità e goal irraggiungibili
+  - Alcuni stati non possono raggiungere certi goal con le azioni date (regioni disconnesse).
+  - Esempio: 15-puzzle con le tessere 14 e 15 scambiate è irrisolvibile.
+- Crescita combinatoria
+  - 8-puzzle: ~9! (insieme raggiungibile ridotto dalla parità).
+  - 15-puzzle: ~16! ≈ 10^12.
+  - 24-puzzle: ~25! ≈ 10^25.
+  - Implicazione: brute force è proibitivo; la ricerca intelligente privilegia l'esplorazione parziale.
+- Vincoli di tempo e memoria
+  - Anche a 100M stati/sec: 8-puzzle è questione di secondi; 15-puzzle ~4 ore; 24-puzzle impraticabile.
+  - Memoria: gli spazi degli stati completi sono raramente memorizzabili (scacchi ~10^170).
+  - Strategia: assumere l'intrattabilità; usare algoritmi per finestre di informazione parziale.
+- Ambienti statici vs. dinamici
+  - Focus: problemi completamente osservabili, statici, deterministici e a singolo agente.
+  - Ambienti dinamici/multi-agente e parzialmente osservabili richiedono ragionamento probabilistico e ripianificazione continua (trattati più avanti).
+- Astrazione e generalizzazione
+  - I giochi illustrano regole semplici con complessità esplosiva; le intuizioni si trasferiscono a domini non ludici.
+- Contesto storico
+  - La complessità degli scacchi supera gli atomi dell'universo; gli agenti riflessi semplici falliscono.
+  - Go è ancora più complesso; AlphaGo ha ottenuto prestazioni forti, ma lo status "risolto" formale è diverso.
+- Architetture di agente e ricerca
+  - Agenti riflessi semplici, basati su modello, basati su goal, basati su utilità si basano su modelli di azione (actions(S), result(S, A)).
+  - Agenti goal/utility pianificano usando previsioni dai modelli di azione.
+- Caratteristiche di esecuzione
+  - Puzzle statici e deterministici permettono esecuzione una tantum.
+  - Ambienti dinamici (es. guida) richiedono ripianificazione continua.
+## Tipi di Problemi e Prospettiva di Game Design
+- Classificazione
+  - Problemi focalizzati sulla configurazione: conta solo la disposizione finale (es. Sudoku, layout parcheggi).
+  - Problemi focalizzati su percorso/sequenza: contano la sequenza e il numero di mosse (es. 8-puzzle, navigazione).
+- Distinzioni di game design
+  - Agenzia e vincoli sulle mosse alterano la natura del gioco anche se le posizioni convergono.
+  - Decisioni adiacenti vs. non adiacenti cambiano rappresentazione e complessità.
+## Problema delle Otto Regine: Modellazione, Soddisfacimento Vincoli e Ricerca
+- Definizione del problema
+  - Posizionare otto regine su una scacchiera 8×8 in modo che nessuna regina attacchi un'altra (righe, colonne, diagonali).
+- Rappresentazione dello stato
+  - Matrice binaria 8×8 completa o vettore compatto (una posizione di colonna per riga).
+- Posizionamento ingenuo
+  - Considerare tutte le caselle per ogni regina: ~1,8 × 10^14 configurazioni; validare solo alla fine—altamente inefficiente.
+- Posizionamento incrementale migliorato
+  - Posizionare le regine in sequenza solo su caselle non attaccate; potare le opzioni non valide precocemente.
+- Componenti formali
+  - Stato iniziale: zero regine.
+  - Azioni: posizionare una regina su una qualsiasi casella vuota e non attaccata (o una per riga/colonna).
+  - result(S, A): aggiungi regina; aggiorna vincoli.
+  - test obiettivo: otto regine posizionate senza attacchi.
+  - costo passo: unitario per ogni posizionamento.
+- Riformulazione come soddisfacimento vincoli
+  - Focalizzato sulla configurazione: conta solo la disposizione finale; la sequenza è irrilevante dopo il successo.
+  - Conoscenza dominio: imporre una regina per colonna (o riga) per ridurre la ramificazione.
+  - Processo: posizionare colonna per colonna; se nessuna posizione fattibile, backtrack.
+  - Riduzione costi: da fino a 64 scelte a massimo 8 iniziali e meno successivamente; esempio spazio stati ~2.057 con rappresentazione vincolata.
+  - Intuizione: rappresentazione e vincoli riducono drasticamente la complessità; il forward checking è fondamentale.
+## Esempi e Illustrazioni
+- Pianificazione delle vie di uscita
+  - Stati: posizione e contesto (porte, terrazze, rampe, scale).
+  - Azioni: scegliere il prossimo movimento; simulare sequenze; valutare affollamento e comodità; selezionare il percorso ottimale.
+- Navigazione 8-puzzle
+  - Stati: configurazione tessere 3×3.
+  - Azioni: muovere lo spazio vuoto su/giù/sinistra/destra.
+  - Test obiettivo: verifica funzionale dell'ordine delle tessere; preferire rappresentazione azioni minima.
+- Domini avversari
+  - Tris: funzione di vittoria semplice.
+  - Scacchi: enumerazione infattibile; usare verifiche funzionali e valutazione nella ricerca.
+- Configurazioni irrisolvibili
+  - Parità 15-puzzle: certi scambi di tessere creano stati irraggiungibili.
+## Pianificazione del Percorso e Discretizzazione dell'Ambiente
+- Mappatura continuo-discreto
+  - Stati: nodi di griglia/grafo discretizzati.
+  - Azioni: movimenti in 4 o 8 direzioni.
+  - Risultato: funzione di transizione verso i successori.
+  - Test obiettivo: raggiungere la posizione target.
+- Navigazione basata su mappa
+  - Usare grafi precomputati di punti decisionali legali; navigazione offline possibile.
+- Videogiochi e robotica
+  - Stati basati su area (centri di regione): traiettorie vincolate, artefatti visibili (es. camminare lungo i muri).
+  - Waypoint geometrici: stati lungo punti navigabili; traiettorie vicino ai bordi per euristiche waypoint.
+  - Compromessi: scegliere la discretizzazione per ridurre il numero di stati/azioni mantenendo la navigabilità.
+## Fondamenti dell'Albero di Ricerca
+- Contenuto del nodo
+  - Rappresentazione dello stato, collegamento al genitore, azione eseguita, costo percorso g(n).
+  - Lo stesso stato può apparire in più nodi tramite percorsi diversi.
+- Frontiera
+  - Nodi generati ma non espansi; implementazione tramite coda di priorità.
+  - Frontiera vuota senza goal → fallimento.
+- Espansione del nodo
+  - Applicare azioni allo stato; generare successori; incapsulare come nodi figli; inserire in frontiera.
+- Assunzione statica
+  - In contesti statici a singolo agente, eseguire i piani senza rivalutazione; i contesti dinamici richiedono adattamento.
+## Stati Ripetuti: Ricerca ad Albero vs Ricerca su Grafo
+- Problema degli stati ripetuti
+  - Espansioni ridondanti; potenziali loop.
+- Lista visitati (closed)
+  - Tracciare gli stati visti; aggiungere in frontiera solo stati nuovi o con percorso più economico.
+- Scelta della strategia
+  - Ricerca ad albero: nessun tracciamento visitati; va bene se i ripetuti sono rari.
+  - Ricerca su grafo: la closed list previene rivisitazioni; preferita se reversibilità/cicli sono comuni.
+  - Indicazioni dominio: pochi ripetuti nelle Otto Regine vincolate; molti ripetuti in navigazione robot e puzzle reversibili → ricerca su grafo.
+## Ricerca Best-First: Schema Unificante
+- Schema
+  - Frontiera come coda di priorità; espandere il nodo con priorità migliore.
+- Varianti per ordinamento
+  - Depth-first: nodi più profondi (tipo stack).
+  - Breadth-first: nodi più superficiali (tipo coda).
+  - Uniform-cost: g(n) più basso.
+  - Greedy best-first: h(n) più basso.
+  - A*: f(n) più basso = g(n) + h(n).
+- Schema di implementazione
+  - Inizializzare con nodo iniziale; ciclo: espandi il migliore, genera figli, gestisci visitati, inserisci per priorità.
+- Perché non sempre ricerca su grafo?
+  - Limiti di memoria: i set visitati possono esplodere.
+  - Compromessi caching: usare cache limitate (es. LRU).
+  - Overhead: mantenere grandi strutture dati è costoso; la ricerca ad albero può essere meglio se i ripetuti sono minimi.
+## Architetture di Agente AI per la Ricerca
+- Tipi di agente
+  - Basato su goal: cerca lo stato obiettivo tramite ricerca/pianificazione.
+  - Basato su utilità: massimizza l'utilità; più costoso mantenere modelli completi.
+  - Agente di apprendimento: apprende politiche/euristiche (es. reinforcement learning).
+- Reinforcement learning
+  - Le ricompense allineano l'utilità agli obiettivi; può risolvere problemi di ricerca; compromessi rispetto alla ricerca classica.
+  - Studio comparativo: modificare algoritmi classici per competere con RL.
+## Dati, Fatti e Note Quantitative
+- Azioni e generazione successori devono essere computazionalmente economiche.
+- Dati di complessità:
+  - 8-puzzle: ~9! (vincoli di parità).
+  - 15-puzzle: ~16! ≈ 10^12.
+  - 24-puzzle: ~25! ≈ 10^25.
+  - Scacchi: ~10^170 stati.
+- Tempi di enumerazione (100M stati/sec):
+  - 8-puzzle: secondi.
+  - 15-puzzle: meno di 4 ore.
+  - 24-puzzle: impraticabile.
+- Vincoli di memoria di solito più stringenti del tempo; i grafi completi sono raramente memorizzabili.
+## Conclusioni e Principi
+- La ricerca efficace si basa su:
+  - Rappresentazioni compatte di stati/azioni.
+  - Generazione azioni e calcolo risultati efficienti.
+  - Test obiettivo funzionali per domini complessi.
+  - Potatura e pianificazione per esplorare solo i sottoinsiemi necessari.
+- Ambienti statici, completamente osservabili e deterministici permettono esecuzione una tantum.
+- I giochi servono da esempi pedagogici; le intuizioni si generalizzano a domini industriali (assemblaggio, pianificazione).
+## Prossimi Passi e Azioni
+- Implementare rappresentazioni compatte degli stati per i puzzle; usare azioni centrate sullo spazio vuoto per l'8-puzzle.
+- Definire actions(S) e result(S, A) in modo efficiente; assicurarsi che vengano restituite solo azioni applicabili.
+- Implementare test obiettivo funzionali invece di enumerazioni.
+- Impostare funzioni costo passo appropriate al dominio (unitario vs variabile).
+- Costruire alberi di ricerca; esplorare successori con potatura; evitare l'enumerazione completa.
+- Preparare esempi di 8-puzzle; includere controlli di parità per configurazioni irrisolvibili.
+- Modellare Otto Regine con posizionamento incrementale per colonna e controllo vincoli; esercitarsi con il backtracking.
+- Implementare sia ricerca ad albero che su grafo su puzzle reversibili; confrontare il comportamento degli stati ripetuti.
+- Sperimentare con BFS, DFS, Uniform-Cost, Greedy Best-First e A*; osservare le differenze di performance.
+- Costruire una demo di pianificazione percorso su griglia (mosse in 4/8 direzioni, ostacoli).
+- Analizzare la navigazione NPC usando centri di area vs waypoint geometrici; documentare le differenze.
+- Progettare la gestione della lista visitati con caching limitato (es. LRU) per spazi grandi.
+- Prepararsi alle lezioni su ricerca non informata e informata; implementare il template best-first in codice.
+- Studiare le basi del reinforcement learning; confrontare RL con la ricerca classica modificando gli algoritmi.
+- Integrare moduli modello d'azione in agenti goal/utility-based; scegliere architetture in base alle caratteristiche del problema.

@@ -1,0 +1,244 @@
+## Introduzione a Python: Panoramica del progetto e obiettivi
+- Obiettivo: Implementare la generazione della sequenza di Fibonacci e sviluppare competenze di base in ricorsione, comprensione delle liste ed efficienza iterativa.
+- Competenze enfatizzate:
+  - Esistenti: range, slicing, indicizzazione (inclusi indici negativi come list[-1])
+  - Nuovo focus: ricorsione, comprensione delle liste, basi di NumPy, grafici con Matplotlib
+- Definizione della sequenza: Fibonacci inizia con [0, 1]; ogni elemento successivo è la somma dei due precedenti.
+## Implementazione ricorsiva di Fibonacci (RecFib)
+- Comportamento della funzione:
+  - Aspettativa di input: n è 0 o un intero positivo (nessuna validazione implementata).
+  - Caso base: se n <= 1, restituisce n.
+  - Caso ricorsivo: restituisce RecFib(n-1) + RecFib(n-2).
+- Caratteristiche:
+  - Python supporta la ricorsione di default (in contrasto con Fortran che richiede dichiarazione esplicita).
+  - Esempio: Il decimo elemento di Fibonacci è 55.
+- Svantaggio computazionale:
+  - Ricomputazione esponenziale con sottoproblemi ripetuti (ad esempio, F(0), F(1) ricalcolati molte volte).
+  - Inefficiente per n grandi (ad esempio, n = 15 comporta chiamate ridondanti).
+## List Comprehension: Tecnica fondamentale e applicazioni
+- Scopo: Costruzione di liste concisa ed espressiva con trasformazioni inline.
+- Esempi:
+  - Quadrati: [n*n for n in range(10)] → [0^2, 1^2, ..., 9^2].
+  - Fibonacci tramite list comprehension: [RecFib(n) for n in range(15)] costruisce i primi 15 elementi (computazionalmente costoso per via della ricorsione).
+- Liste come contenitori eterogenei: Possono contenere tipi misti; gli esempi usano interi.
+- Costruzione di matrici (matrice di Hilbert):
+  - H(i, j) = 1 / (i + j − 1).
+  - Costruita tramite list comprehension annidate per definire matrici numeriche strutturate.
+## Fibonacci iterativo (implementazione efficiente non ricorsiva)
+- Approccio:
+  - Inizializza la lista con [0, 1].
+  - Ciclo dall'indice 2 a n, aggiungendo fib[-1] + fib[-2].
+- Promemoria sull'indicizzazione:
+  - Le liste sono indicizzate da zero; l'ultimo elemento è fib[-1], il penultimo è fib[-2].
+- Vantaggio prestazionale:
+  - Evita la ricomputazione; tempo O(n) con accesso diretto alla lista.
+- Estrazione dell'n-esimo elemento:
+  - Calcola la lista completa con fib(n) e seleziona l'ultimo con fib(n)[-1] (ad esempio, restituisce 610 per un certo n).
+## Esercizio 1: Convergenza del rapporto verso il rapporto aureo
+- Compito: Calcolare R1 = F(n) / F(n+1) lungo la sequenza e osservare il comportamento al crescere di n.
+- Implementazione suggerita:
+  - Calcolare i primi 40 elementi di Fibonacci con il metodo iterativo.
+  - Inizializzare R1 come lista vuota; ciclo sugli indici per aggiungere F(n)/F(n+1).
+- Comportamento osservato:
+  - I rapporti convergono a una costante legata al rapporto aureo (ϕ ≈ 1,618...), tendendo verso 1/ϕ (a seconda della definizione).
+- Implementazione alternativa:
+  - List comprehension: [RecFib(n) / RecFib(n+1) for n in range(...)] (costoso se ricorsivo).
+## Esercizio 2: Costruzione della sequenza di Recamán
+- Definizione:
+  - a0 = 0.
+  - Per n ≥ 1: a_n = a_{n-1} − n se il risultato ≥ 0 e non già presente nella sequenza; altrimenti a_n = a_{n-1} + n.
+- Verifiche chiave:
+  - Non negatività: valore ≥ 0.
+  - Appartenenza: usare “in” per verificare se il candidato è già presente.
+  - Combinazione logica: usare “and” per assicurarsi di entrambe le condizioni prima di sottrarre n.
+- Guida all'implementazione:
+  - Inizializzare con [0].
+  - Per i da 1 a N−1:
+    - candidate_minus = ultimo − i
+    - Se candidate_minus ≥ 0 e candidate_minus non è nella sequenza: aggiungi candidate_minus
+    - Altrimenti: aggiungi ultimo + i
+- Validazione dell'output:
+  - Per N = 10 (indici da 0 a 9), restituisce i primi dieci elementi corretti.
+## Stima di π con Monte Carlo: concetto e implementazione di base
+- Impostazione geometrica:
+  - Quadrato di lato 2 centrato nell'origine (area = 4).
+  - Cerchio inscritto di raggio 1 (area = π).
+- Campionamento:
+  - Genera N punti casuali uniformemente nel quadrato.
+  - Determina se sono nel cerchio tramite distanza d = sqrt(x^2 + y^2) ≤ 1.
+- Stimatore:
+  - Probabilità di essere dentro ≈ π/4 → Stima π come 4 × (punti_dentro / punti_totali).
+- Note di implementazione:
+  - Usa math per sqrt e random per il campionamento uniforme.
+  - Funzione compute_pi(N): conta i punti dentro; stima π come 4 × dentro / N.
+- Risultati di esempio:
+  - N = 10.000 → π ≈ 3,13
+  - N = 11.000 → π ≈ 3,11
+- Nota sulla casualità:
+  - Non riproducibile senza seed.
+  - Convergenza in media per N → ∞; non monotona con N.
+## Stima di π con Monte Carlo: Strutture dati, aggiornamenti e output
+- Operazione principale: Classificare i punti dentro/fuori dal cerchio unitario nel quadrato; tracciare la storia delle stime di π.
+- Strutture dati:
+  - Liste di coordinate: x_in, y_in per i punti dentro; x_out, y_out per quelli fuori.
+  - Stime di π memorizzate in un vettore preallocato; aggiornamento ad ogni iterazione.
+- Metodi di aggiornamento delle liste:
+  - Concatenazione: lista = lista + [valore]
+  - Append: lista.append(valore)
+  - Equivalenti per aggiunte singole; append è generalmente più veloce.
+- Tracciamento delle iterazioni:
+  - Contatore i incrementa per ogni punto per rappresentare il totale dei punti calcolati finora.
+  - La stima di π usa l'i corrente per costruire la storia delle stime.
+- Assegnazione al vettore:
+  - pi_estimates[i] = valore attuale di π memorizza la storia per indice.
+  - Coordinate aggiunte incrementando; vettore di π riempito per efficienza.
+- Prestazioni e design:
+  - Preferire array preallocati quando N è noto; riempire per indice è più veloce della crescita dinamica.
+  - Array/vettori sono migliori per dati numerici con dimensioni note.
+- Output delle funzioni:
+  - compute_pi_MCG (variante grafica) restituisce una tupla:
+    - Stima finale di π (float)
+    - Liste di coordinate dentro/fuori
+    - Vettore della storia delle stime di π
+- Gestione dell'output:
+  - Usa segnaposto (ad esempio, underscore) per scartare parti della tupla non desiderate quando serve solo il valore finale di π.
+- Nota:
+  - N grandi producono stime più significative; N = 10 non è significativo.
+## Visualizzazione della stima di π con Monte Carlo e strutture dati
+- Obiettivo:
+  - Visualizzare i punti: colorare quelli dentro (ad esempio, rosso) e quelli fuori (ad esempio, verde).
+  - Tracciare le stime di π rispetto al numero di iterazioni; sovrapporre il vero valore di π come riferimento.
+- Cambiamenti nella memorizzazione dei dati:
+  - Memorizzare tutte le stime di π per ogni iterazione per la visualizzazione.
+  - Memorizzare le coordinate dei punti classificati come dentro/fuori.
+- Uso di NumPy:
+  - Motivazione: array n-dimensionali per calcolo numerico efficiente e operazioni vettoriali.
+  - Alias import: import numpy as np.
+  - Inizializzazione array:
+    - np.empty(n): riserva memoria senza inizializzare i valori.
+    - np.zeros(n) o np.zeros((righe, colonne)): array riempiti di zeri.
+  - Matrici:
+    - Costruite tramite liste annidate: np.array([[1, 2], [3, 4]]).
+    - Errori su forme non omogenee.
+  - Operazioni:
+    - Elemento per elemento: A * B (prodotto di Hadamard)
+    - Moltiplicazione di matrici: A @ B o np.dot(A, B)
+    - Somma vettoriale, prodotto scalare (np.dot), prodotto vettoriale (np.cross), prodotti matrice-vettore (A @ v)
+    - Compatibilità delle dimensioni richiesta.
+- Modifiche all'implementazione:
+  - Importare math, random, numpy.
+  - Mantenere:
+    - Stime di π in un array NumPy per la visualizzazione.
+    - Coordinate dentro/fuori in liste (dimostra la versatilità delle liste).
+  - Aggiornamenti nel ciclo:
+    - Calcolare la distanza; classificare dentro/fuori.
+    - Aggiungere coordinate tramite concatenazione o append.
+    - Aggiornare la memorizzazione delle stime di π ad ogni iterazione.
+## Panoramica delle librerie di plotting e criteri di selezione
+- Matplotlib: generica, fondamentale; sufficiente per la maggior parte delle esigenze.
+- Seaborn: visualizzazioni statistiche (distribuzioni, grafici categoriali).
+- Bokeh: grafici interattivi (slider, parametri interattivi); più semplice per interattività avanzata.
+## Fondamenti di NumPy per sequenze numeriche e funzioni vettoriali
+- linspace vs range/arange:
+  - range(start, stop, step): stop escluso.
+  - np.arange(start, stop, step): stop tipicamente escluso; restituisce un array.
+  - np.linspace(start, stop, num): include lo stop di default (endpoint=True); impostare endpoint=False per escluderlo.
+- Funzioni trigonometriche vettoriali:
+  - math.cos: solo per scalari.
+  - np.cos / np.sin: vettoriali; accettano array e restituiscono array elemento per elemento.
+- Esempio di workflow:
+  - x = np.linspace(0, 10, 100)
+  - y_cos = np.cos(x)
+  - y_sin = np.sin(x)
+## Utilizzo di Matplotlib: grafici base in stile MATLAB
+- Import: import matplotlib.pyplot as plt
+- Sintassi di plot:
+  - plt.plot(x, y, style_string)
+  - Serie multiple tramite ulteriori triplette x, y, stile.
+- Stili/Colori delle linee:
+  - Stringhe di stile (ad esempio, 'r--' per rosso tratteggiato).
+  - Parole chiave: color='blue' o abbreviazione c='g'.
+## Sottoplot e handle degli assi per layout complessi
+- Creare grafici affiancati:
+  - fig, (ax1, ax2) = plt.subplots(1, 2)
+  - fig: handle della figura; ax1, ax2: handle degli assi.
+- Plot con handle degli assi:
+  - ax1.plot(...) e ax2.plot(...) per grafici mirati.
+## Visualizzazione di cerchio e scatter per i punti Monte Carlo
+- Plot del cerchio:
+  - θ = np.linspace(0, 2π, 100); xs = cos(θ), ys = sin(θ).
+  - Rapporto d'aspetto uguale: ax1.set_aspect('equal').
+  - Specifica colore: color='blue'.
+- Conversione delle liste in array:
+  - Converti x_in, y_in, x_out, y_out in array NumPy per la visualizzazione.
+- Scatter vs linee:
+  - Usa ax1.scatter per nuvole di punti; c='r' (rosso) per dentro, c='g' (verde) per fuori.
+- Griglia: ax1.grid(True).
+## Grafico di convergenza delle stime di π
+- Traccia la storia delle stime di π sul secondo sottoplot:
+  - Asse X: indice di iterazione implicito; ax2.plot(pi_vector) è sufficiente.
+- Regolazione del rapporto d'aspetto:
+  - ax2.set_aspect(250) per espandere visivamente l'asse y rispetto all'intervallo x.
+- Comportamento visivo:
+  - All'aumentare di N, la curva si avvicina a un'asintoto orizzontale vicino a π.
+## Fondamenti del grafico di superfici 3D
+- Obiettivo: Tracciare z = f(x, y) su x, y ∈ [-5, 5].
+- Costruzione della mesh:
+  - x_vals = np.arange(-5, 5, 0.2); y_vals = x_vals
+  - X, Y = np.meshgrid(x_vals, y_vals)
+- Valutazione della funzione:
+  - Definire f per vettori/matrici; calcolare Z = f(X, Y).
+  - La funzione di esempio può avere più minimi locali identici (test comune per l'ottimizzazione).
+- Grafico 3D:
+  - from mpl_toolkits.mplot3d import Axes3D
+  - fig = plt.figure(); ax = fig.add_subplot(111, projection='3d')
+  - ax.plot_surface(X, Y, Z, cmap=...)
+  - Salva la figura: plt.savefig('filename.png').
+## Grafici a contorno per la visualizzazione dell'ottimizzazione
+- Motivazione:
+  - I grafici a contorno sono spesso migliori per visualizzare i percorsi di ottimizzazione rispetto alle superfici 3D.
+- Utilizzo:
+  - plt.contour(X, Y, Z) per disegnare le curve di livello di Z sul dominio XY.
+  - Tracciare i percorsi dai punti iniziali ai minimi su una mappa 2D.
+## Logistica del corso e contenuti futuri
+- Materiali a breve termine:
+  - Il notebook fino alla parte sui grafici sarà pubblicato entro questa sera.
+- Prossime lezioni:
+  - Lunedì: introduzione a SciPy (minimizzazione, integrazione, ODE, calcolo scientifico) e Pandas (gestione e analisi dei dati).
+  - Martedì: inizio della parte teorica del libro.
+- Laboratori:
+  - Approfondimento su NumPy e Matplotlib oltre le basi.
+## Esempi pratici e concetti chiave
+- Monte Carlo π:
+  - Usare array preallocati quando N è noto per prestazioni migliori.
+  - Memorizzare le stime di π per ogni iterazione per analisi di convergenza.
+- Grafici:
+  - Matplotlib è la principale; usare sottoplot per visualizzazioni affiancate.
+  - Scatter per i punti; plot per le linee continue.
+  - Regolare i rapporti d'aspetto per migliorare la leggibilità.
+- NumPy:
+  - Preferire np.cos/np.sin per gli array; math.cos è per scalari.
+  - Scegliere linspace per includere l'endpoint; modificarlo secondo necessità.
+- Scelte di visualizzazione:
+  - Matplotlib per grafici generali; Seaborn per statistiche; Bokeh per esigenze interattive.
+  - Grafici a contorno per traiettorie di ottimizzazione; grafici di superficie per la forma della funzione.
+- Contenitori Python:
+  - Le liste sono eterogenee e flessibili (concatenazione con “+”, append per efficienza).
+  - Gli array NumPy sono contenitori numerici omogenei con operazioni vettoriali efficienti.
+## Prossimi passi e attività da svolgere
+- [ ] Implementare la funzione iterativa di Fibonacci che restituisce i primi n elementi come lista; verificare l'n-esimo elemento tramite list[-1].
+- [ ] Costruire esempi di list comprehension: quadrati tramite range(10) e Fibonacci tramite [RecFib(n) for n in range(k)] (solo per k piccoli).
+- [ ] Costruire la matrice di Hilbert di ordine n usando list comprehension annidate con H[i][j] = 1 / (i + j − 1).
+- [ ] Completare l'Esercizio 1: Calcolare R1 = F(n) / F(n+1) per i primi 40 numeri di Fibonacci; confermare la convergenza verso il valore legato al rapporto aureo.
+- [ ] Completare l'Esercizio 2: Implementare il generatore della sequenza di Recamán con controlli di appartenenza e condizioni logiche; produrre i primi N elementi e validare.
+- [ ] Implementare la funzione di stima Monte Carlo di π compute_pi(N) e testare con N variabili; osservare la variabilità.
+- [ ] Predefinire array/vettori di dimensione N per coordinate e stime di π; riempire per indice per migliorare le prestazioni.
+- [ ] Implementare l'unpacking delle tuple con segnaposto quando serve solo il valore finale di π.
+- [ ] Creare sottoplot affiancati in Matplotlib per visualizzare il cerchio con punti scatter e la storia di convergenza di π.
+- [ ] Convertire le liste di coordinate in array NumPy prima di visualizzare; assicurare rapporto d'aspetto uguale per il cerchio.
+- [ ] Usare np.linspace con impostazione endpoint appropriata; preferire np.cos/np.sin per operazioni su array.
+- [ ] Preparare uno snippet di grafico di superficie 3D usando meshgrid e plot_surface; opzionalmente aggiungere grafici a contorno per la visualizzazione dell'ottimizzazione.
+- [ ] Pubblicare il notebook attuale fino alla sezione sui grafici entro questa sera.
+- [ ] Coprire le introduzioni a SciPy e Pandas nella lezione di lunedì.
+- [ ] Iniziare la parte teorica del libro martedì.
+- [ ] Pianificare esercizi di laboratorio per esplorare funzionalità avanzate di NumPy e Matplotlib oltre l'uso in stile MATLAB.

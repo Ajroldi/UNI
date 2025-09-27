@@ -1,0 +1,214 @@
+## Logistica e Partecipazione alla Lezione
+- Streaming remoto eccezionale abilitato a causa degli impatti residui del maltempo di lunedì; inteso come un'accomodamento una tantum.
+- Gli studenti con problemi in corso e a lungo termine che richiedono lo streaming devono inviare un messaggio che spiega la necessità.
+- La prassi standard rimane: partecipazione di persona, con registrazioni delle lezioni disponibili online in seguito.
+- Contesto del programma:
+  - Prima lezione parzialmente incompleta; rimane da coprire una piccola parte (possibilmente oggi o un altro giorno), non essenziale per l'argomento attuale.
+  - Seconda lezione tenuta dal Professor Rossi a causa dell'impegno di viaggio dell'istruttore.
+  - La sessione attuale continua dal materiale di Rossi, focalizzandosi sull'ingegneria dei requisiti.
+## Argomento Principale: Ingegneria dei Requisiti — Quadro Mondo e Macchina (Jackson & Zave)
+- Scopo: Chiarire i confini del sistema e le interazioni tra il sistema (“macchina”) e l'ambiente esterno (“mondo”).
+- Definizioni:
+  - Macchina: La parte da sviluppare (tipicamente software; può includere hardware).
+  - Mondo: Contesto reale influenzato e che interagisce con la macchina.
+- Principio: L'ingegneria dei requisiti analizza i fenomeni che si verificano nel mondo e al confine macchina-mondo, non i fenomeni interni di implementazione.
+- Risultato: I modelli dei requisiti sono modelli del mondo; si concentrano sui fenomeni condivisi al confine che la macchina può influenzare o osservare.
+## Classificazione dei Fenomeni e Direzionalità
+- Categorie di fenomeni:
+  - Solo mondo: Si verificano nel mondo; spesso non direttamente osservabili dalla macchina.
+    - Esempi: Occorrenza di incidenti, chiamate di emergenza pubblica, movimento delle ambulanze, comunicazioni radio, guasti delle ambulanze.
+  - Solo macchina: Dettagli interni di implementazione; nascosti al mondo ed esclusi dall'analisi dei requisiti.
+    - Esempi: Creazione di oggetti nel codice, aggiornamenti del database.
+  - Confine condiviso: Interazioni in cui i dati attraversano il confine tra mondo e macchina; critici per i requisiti.
+    - Esempi: Codifica della chiamata da parte dell'operatore (mondo→macchina), messaggio di assegnazione dell'ambulanza all'equipaggio (macchina→mondo), aggiornamenti sulla posizione dell'ambulanza (mondo→macchina), aggiornamenti sulla disponibilità dell'ambulanza (mondo→macchina).
+- Direzionalità e ruoli:
+  - Codifica della chiamata:
+    - Produttore: Operatore (mondo).
+    - Osservatore/ricevente: Macchina (il sistema ingerisce l'informazione).
+  - Assegnazione dell'ambulanza:
+    - Produttore: Macchina (il sistema decide e invia l'assegnazione).
+    - Osservatore/ricevente: Equipaggio dell'ambulanza (mondo), tramite terminale dati mobile.
+  - Arrivo dell'ambulanza all'incidente:
+    - Evento solo mondo; tipicamente non direttamente osservabile dal sistema ma centrale per l'obiettivo generale.
+## Esempio di Dominio: Sistema di Invio Ambulanza
+- Scopo nel mondo: Supportare la risposta alle emergenze per garantire l'arrivo tempestivo dell'ambulanza e risultati salvavita.
+- Il confine di rilevanza si sposta con il contesto: Solo la porzione del mondo impattata dalla spedizione dell'ambulanza e dalle interazioni correlate è modellata.
+## Dai Fenomeni agli Obiettivi, Assunzioni e Requisiti
+- Insiemi concettuali:
+  - Obiettivi: Affermazioni prescrittive formulate in termini di fenomeni mondiali (non necessariamente condivisi).
+  - Proprietà/assunzioni del dominio: Affermazioni descrittive che si assumono valide nel mondo; la macchina non può farle rispettare.
+  - Requisiti: Affermazioni prescrittive formulate esclusivamente in termini di fenomeni del confine condiviso; implementabili dalla macchina.
+- Requisito di collaborazione: Il raggiungimento dell'obiettivo generale dipende sia dalle azioni del mondo che dalle funzioni della macchina. La macchina da sola non può soddisfare l'obiettivo.
+## Formalizzazioni per il Caso d'Uso dell'Ambulanza
+- Obiettivo a livello mondiale (prescrittivo): Inviare un'ambulanza per ogni incidente segnalato in modo che arrivi sulla scena dell'incidente entro 15 minuti.
+- Fenomeni condivisi chiave alla base del requisito:
+  - Codifica della chiamata (l'operatore inserisce i dettagli dell'incidente nel sistema).
+  - Aggiornamenti sulla posizione dell'ambulanza (via GPS).
+  - Aggiornamenti sulla disponibilità dell'ambulanza (equipaggio che notifica lo stato tramite terminale dati mobile).
+  - Assegnazione dell'ambulanza (il sistema invia l'ambulanza disponibile più vicina e notifica l'equipaggio).
+- Requisito a livello di macchina (prescrittivo, basato su fenomeni condivisi): Quando una chiamata che segnala un nuovo incidente è codificata, il sistema deve inviare l'ambulanza disponibile più vicina in base alle informazioni disponibili dagli aggiornamenti sulla posizione e dalle notifiche di disponibilità.
+- Proprietà/assunzioni del dominio (a livello mondiale, descrittive):
+  - Per ogni chiamata che segnala un incidente, i dettagli dell'incidente sono correttamente codificati dall'operatore (indirizzo preciso, numero di feriti, ecc.).
+  - Quando un'ambulanza viene inviata, l'equipaggio procede verso il luogo dell'incidente nel minor tempo possibile (nessuna sosta inutile; nessun ritardo dovuto a guasti).
+  - Gli aggiornamenti sulla posizione sono forniti accuratamente dal sistema GPS dell'ambulanza.
+  - Gli equipaggi delle ambulanze notificano correttamente la disponibilità dell'ambulanza tramite il terminale dati mobile.
+## Invio di Ambulanze di Emergenza: Obiettivi, Vincoli e Analisi
+- Definizione degli obiettivi:
+  - Inviare un'ambulanza per ogni segnalazione di incidente ricevuta.
+  - Comportamento operativo: Dopo aver codificato una chiamata che segnala un incidente, il sistema deve inviare l'ambulanza disponibile più vicina.
+- Vincoli, incertezze e fattibilità:
+  - Aspettativa di arrivo in 15 minuti:
+    - Non è possibile fornire garanzie nelle condizioni attuali.
+    - La fattibilità dipende dalla geografia (piccola città vs. area vasta) e dalla disponibilità di ambulanze.
+  - Scenario di zero disponibilità:
+    - Se non ci sono ambulanze disponibili, il sistema non può assegnarne una indipendentemente dalla completezza delle informazioni esterne.
+  - Opzioni di gestione del rischio:
+    - Introdurre un obiettivo di livello di servizio probabilistico (es. raggiungere l'obiettivo nel ≥99% dei casi; accettare fino all'1% di fallimento).
+- Strategia: Requisiti vs. Assunzioni di Dominio
+  - Due leve per raggiungere l'obiettivo:
+    - Aggiungere requisiti (aumentare le responsabilità della macchina/software).
+    - Aggiungere assunzioni di dominio (aumentare le responsabilità del mondo esterno; semplificare il software).
+  - Approcci esemplificativi:
+    - Requisiti: Implementare la priorità dinamica, il coordinamento multi-agenzia, la messa in scena predittiva, la logica di escalation quando nessuna è disponibile.
+    - Assunzioni di dominio: Garantire una dimensione minima della flotta o una distribuzione, copertura di ambulanze di terze parti, regole di priorità del traffico che consentano viaggi più rapidi.
+- Negoziazione con il cliente:
+  - Proporre di rivedere o rimuovere il vincolo dei 15 minuti in contesti di grandi dimensioni/flotta ridotta.
+  - Esplorare SLA specifici per contesto basati sulla dimensione dell'area, densità delle ambulanze e condizioni del traffico.
+## Definizione del Confine tra Mondo e Macchina
+- Confine attuale:
+  - Gli incidenti si verificano nel mondo e non sono direttamente osservabili dalla macchina.
+  - La macchina osserva la codifica delle informazioni sull'incidente da parte di un operatore.
+  - L'azione di invio è controllata dalla macchina (selezionare l'ambulanza disponibile più vicina e impartire il comando).
+- Confine alternativo (sensori estesi):
+  - Macchina collegata a telecamere cittadine; il riconoscimento delle immagini rileva direttamente gli incidenti.
+  - Implicazione: Gli incidenti diventano fenomeni osservati dalla macchina; il confine si sposta più in profondità nel mondo.
+  - Compromessi: Capacità aumentata vs. privacy, complessità e costi.
+## Quadro di Completezza e Correttezza dei Requisiti
+- Obiettivo formale:
+  - Criterio di completezza: L'insieme dei requisiti R è completo se e solo se R garantisce la soddisfazione dell'obiettivo G nel contesto delle assunzioni di dominio D.
+  - Relazione obiettivo: R e D implicano G (R ∧ D ⊨ G).
+- Rischi di allineamento:
+  - Se G non riesce a catturare i veri bisogni degli stakeholder, il successo in R ∧ D ⊨ G manca comunque l'obiettivo.
+  - Se le assunzioni di dominio D sono invalide, il comportamento del sistema può fallire nonostante i requisiti corretti.
+- Analogia alla correttezza del programma:
+  - A livello di implementazione: Il programma P in esecuzione sul computer C implica l'insieme dei requisiti R (P ∧ C ⊨ R).
+  - Focus attuale: Implicazione a livello di progettazione (R ∧ D ⊨ G), successivamente spostandosi alla correttezza dell'implementazione.
+## Caso di Studio: Incidente di Inversione di Spinta A320 (1993, Lufthansa Francoforte–Varsavia)
+- Contesto e comportamento del sistema:
+  - Atterraggio sotto forte pioggia e vento forte.
+  - Il software automatizza la frenata; l'inversione di spinta dovrebbe attivarsi quando l'aereo è in movimento sulla pista.
+  - Osservazioni:
+    - Inversione di spinta attivata con un ritardo di 9 secondi dopo il contatto con la pista.
+    - Cause combinate: logica del software e ritardo nell'intervento manuale del pilota.
+    - Risultato: Pista insufficiente rimanente; l'aereo è uscito sulla banchina erbosa; 2 morti, 54 feriti.
+- Fenomeni e assunzioni:
+  - Fenomeni mondiali: Ruote che girano; aereo in movimento sulla pista.
+  - Fenomeni condivisi:
+    - Inversione abilitata: La macchina invia un segnale di controllo al sistema frenante.
+    - Pulsazioni delle ruote accese: Il sensore indica la rotazione delle ruote; osservato dalla macchina.
+  - Obiettivo G: Inversione di spinta abilitata se e solo se l'aereo è in movimento sulla pista.
+  - Assunzioni di Dominio D:
+    - Pulsazioni delle ruote accese se e solo se le ruote stanno girando.
+    - Ruote che girano se e solo se l'aereo è in movimento sulla pista.
+  - Requisito R:
+    - Abilitare l'inversione di spinta se e solo se le pulsazioni delle ruote sono accese (il sensore indica la rotazione).
+- Validazione logica e modalità di guasto:
+  - Derivazione: Da R e D, inversione di spinta abilitata se e solo se in movimento sulla pista (R ∧ D ⊨ G).
+  - Assunzioni di dominio invalide in condizioni meteorologiche avverse:
+    - Aquaplaning: L'aereo si muove sulla pista mentre le ruote non ruotano.
+    - Conseguenza: Nessuna pulsazione delle ruote; inversione di spinta non abilitata; frenata ritardata.
+  - Lezione chiave: Il ragionamento rigoroso fallisce se le assunzioni di dominio non reggono sotto tutte le condizioni rilevanti; è essenziale una comprensione approfondita del dominio.
+## Sistema di Controllo Accessi Fisici (Barriera con Token)
+- Obiettivo: Consentire l'ingresso ai clienti paganti; prevenire l'ingresso di individui non paganti.
+- Catalogo dei fenomeni (insieme iniziale):
+  - Il visitatore acquista un token.
+  - Il visitatore scansiona un token.
+  - Il token viene riconosciuto come valido.
+  - Il visitatore spinge le porte della barriera.
+  - Le porte si aprono a battente.
+  - Il visitatore entra nell'area.
+  - Le porte si chiudono.
+- Classificazione e controllo Mondo vs. Macchina:
+  - Il visitatore acquista un token: Solo mondo (al di fuori della portata del controllo dell'ingresso; la biglietteria può essere un sistema separato).
+  - Il visitatore scansiona un token: Condiviso; controllato dall'ambiente. Lo scanner produce dati sul token per il software.
+  - Token riconosciuto come valido: Solo macchina (interno), o condiviso se il sistema comunica la validità (es. luci/display).
+  - Il visitatore spinge le porte della barriera: Condiviso; controllato dall'ambiente. La macchina deve osservare la spinta per decidere l'azione della porta.
+  - Le porte si aprono a battente: Condiviso; controllato dalla macchina (attivazione su token valido).
+  - Il visitatore entra nell'area: Solo mondo in un design semplice; può essere condiviso se sono inclusi sensori di passaggio.
+  - Le porte si chiudono:
+    - Mondiale/meccanico: Chiusura automatica dopo un ritardo.
+    - Condiviso; controllato dalla macchina: Il software chiude le porte dopo un ritardo o il rilevamento del passaggio.
+- Implicazioni per il confine e il design:
+  - L'inclusione/esclusione dell'hardware (scanner, sensori delle porte, attuatori) sposta il confine.
+  - Diverse interpretazioni portano a requisiti diversi (es. feedback all'utente per la validità, chiusura basata su eventi vs. basata su tempo).
+## Sistema di Ingresso con Token: Obiettivi, Assunzioni, Requisiti e Validazione
+- Obiettivi principali:
+  - G1 (Sicurezza): In qualsiasi momento, Ingressi (E) ≤ Token validi scansionati (S); garantisce che nessuno entri senza un token valido.
+  - G2 (Vivacità): Chiunque abbia un token valido scansionato è autorizzato a entrare.
+- Concetti e variabili chiave:
+  - E: Numero di ingressi.
+  - S: Numero di token scansionati e validi.
+  - O: Numero di volte che le porte si aprono.
+  - DE: Ritardo minimo richiesto per chiudere le porte, evitando che due persone entrino in rapida successione.
+- Assunzioni di dominio:
+  - DA1: I visitatori entrano solo quando le porte sono aperte; nessun bypass fisico.
+  - DA2: Quando un visitatore spinge e le porte si aprono, il visitatore procede ed entra.
+  - DA3: Con le porte aperte, due visitatori non possono entrare con un ritardo inferiore a DE tra di loro.
+  - DA4: Il tempo di apertura/chiusura meccanico è trascurabile rispetto a DE (semplificazione; i sistemi reali devono considerare la meccanica).
+- Formalizzazione raffinata di G1:
+  - Strategia: Garantire E ≤ O e O ≤ S, quindi E ≤ S.
+  - Focalizzazione del controllo: Il software influisce su O (apertura/chiusura), non su S (scansione).
+- Requisiti:
+  - R1: Alla spinta del visitatore, se O < S, il sistema deve aprire le porte.
+  - R2: Alla spinta del visitatore, se O = S, il sistema deve tenere le porte chiuse.
+  - R3: Il sistema deve aprire le porte solo alla spinta di un visitatore, e solo se O < S è vero.
+  - R4: Dopo l'apertura delle porte, il sistema deve chiuderle entro DE unità di tempo per evitare che una seconda persona entri.
+  - R5: Stato iniziale del sistema: le porte sono chiuse.
+  - R6: Lo stato iniziale del sistema imposta il contatore dei token validi scansionati S a 0.
+- Validazione di G1 (Sicurezza):
+  - Dimostrare E ≤ O:
+    - R5 + DA1: Nessun ingresso con porte chiuse; gli ingressi coincidono con le aperture.
+    - DA2 + R3: Ogni apertura corrisponde a una spinta e a un ingresso.
+    - R4 + DA3 + DA4: La chiusura entro DE evita l'ingresso doppio per apertura.
+  - Dimostrare O ≤ S:
+    - R6: S inizia da 0.
+    - R1–R3: Le aperture si verificano solo quando O < S; se O = S, nessuna apertura.
+  - Conclusione: E ≤ O e O ≤ S ⇒ E ≤ S in ogni momento.
+- Implicazioni per il design:
+  - Decisione sul confine: Lo scanner del token è esterno; il sistema si basa su S come input esterno.
+  - Strategia dei sensori: Controllo basato sul tempo (DE) vs. aggiunta di sensori di passaggio.
+  - Compromessi: Spostare le responsabilità tra macchina e mondo influisce su complessità e affidabilità.
+  - Scoperta iterativa: L'analisi può far emergere nuove assunzioni o requisiti (es. R6).
+## Implicazioni Analitiche e Condizioni per il Successo
+- La sufficienza dei requisiti dipende dal mantenimento delle assunzioni:
+  - L'accuratezza, la tempestività dell'input dei dati e degli aggiornamenti dei sensori sono necessarie per una corretta selezione del più vicino disponibile.
+  - La conformità dell'equipaggio e la funzionalità del veicolo impattano il raggiungimento dell'obiettivo di arrivo in 15 minuti.
+- Se una qualsiasi assunzione fallisce:
+  - L'esecuzione corretta del requisito può ancora essere insufficiente per raggiungere l'obiettivo (es. indirizzo sbagliato, GPS inaccurato, disponibilità non segnalata, ritardi dell'equipaggio).
+- Prossimo passo analitico:
+  - Validare se i requisiti e le assunzioni attuali abilitano collettivamente l'obiettivo in condizioni realistiche.
+  - Identificare ulteriori requisiti o mitigazioni (es. controlli di validazione dei dati, ridondanza GPS, conferma della disponibilità in tempo reale).
+- Conclusioni:
+  - Le assunzioni di dominio devono essere validate attraverso le condizioni del mondo reale, soprattutto nei casi limite (meteo, carenze di risorse).
+  - La completezza dei requisiti è significativa solo con obiettivi corretti e assunzioni di dominio valide.
+  - La definizione del confine tra mondo e macchina è una scelta di design con conseguenze operative e di verifica.
+  - La negoziazione con gli stakeholder è essenziale per allineare i vincoli (es. obiettivo di 15 minuti) con le realtà operative.
+## Riferimenti e Preparazione
+- Riferimento: Documento di Jackson e Zave (Conferenza Internazionale sull'Ingegneria del Software); disponibile online.
+- Preparazione: Breve compito e video focalizzati sull'elicitatione e modellazione dei requisiti; rivedere prima della prossima sessione.
+## 📅 Prossimi Accorgimenti e Azioni
+- [ ] Studenti con esigenze di partecipazione remota in corso: inviare un messaggio che spiega i problemi a lungo termine e la giustificazione per l'accesso allo streaming.
+- [ ] Istruttore per coprire la rimanente piccola parte della prima lezione (non essenziale per l'argomento attuale) quando il tempo lo permette.
+- [ ] Assicurarsi che le registrazioni delle lezioni siano caricate e accessibili dopo ogni sessione.
+- [ ] Valutare la copertura geografica, la dimensione della flotta e le condizioni del traffico per valutare la fattibilità di un obiettivo di arrivo di 15 minuti.
+- [ ] Preparare una proposta di negoziazione con gli stakeholder per rivedere o rimuovere il vincolo di 15 minuti in aree di grandi dimensioni/flotta ridotta; definire SLA (es. ≥99% di adempimento).
+- [ ] Decidere se aggiungere requisiti o assunzioni di dominio per raggiungere l'obiettivo di invio; documentare la razionale e gli impatti.
+- [ ] Modellare i confini mondo-macchina per la rilevazione degli incidenti (codifica da parte dell'operatore vs. basata su telecamera) e selezionare l'ambito preferito.
+- [ ] Validare le assunzioni di dominio contro condizioni avverse (es. analoghi all'aquaplaning per l'invio, indisponibilità delle risorse).
+- [ ] Formalizzare R, D e G per il sistema delle ambulanze e dimostrare R ∧ D ⊨ G; assicurarsi che G rifletta i bisogni degli stakeholder.
+- [ ] Nel sistema di controllo accessi, finalizzare le scelte di confine (inclusione dello scanner, sensori di passaggio, attuazione delle porte) e derivare i requisiti corrispondenti.
+- [ ] Specificare le regole di validazione del token (validità della data, applicazione dell'uso singolo) e i meccanismi di feedback per l'utente (se esito di validità condiviso).
+- [ ] Progettare la logica di chiusura delle porte: scegliere un ritardo basato sul tempo DE o una chiusura attivata da sensori; verificare i vincoli anti-tailgating; rivedere DA4 con le realtà meccaniche.
+- [ ] Stabilire procedure di monitoraggio e escalation per scenari di assenza di ambulanze disponibili (es. code, richieste interagenzia).
+- [ ] Validare G2 (vivacità) per il sistema di ingresso con token utilizzando un simile quadro di ragionamento.
+- [ ] Completare il pre-lavoro assegnato: guardare i brevi video sull'elicitatione e modellazione dei requisiti; recuperare e studiare il documento di Jackson e Zave.
