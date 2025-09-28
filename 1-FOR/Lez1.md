@@ -420,6 +420,8 @@ s.t. 2x + 3y ≤ 9
 **Soluzione ottimale:**
 > "L'ultima curva di livello che tocca la regione ammissibile è quella che passa per questo punto. Questo punto è l'intersezione tra i due vincoli attivi. Risolvendo il sistema: x = 1, y = 3. Il valore ottimale è 5 × 1 + 8 × 3 = 29."
 
+<img width="1348" height="815" alt="image" src="https://github.com/user-attachments/assets/ff1543da-7be8-40dc-88cf-d7c873c76405" />
+
 ---
 
 ## ORGANIZZAZIONE DEL CORSO {#organizzazione-corso}
