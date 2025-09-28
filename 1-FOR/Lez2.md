@@ -168,6 +168,8 @@ Il professore elenca le principali sfide che affronteranemo:
 **[09:40 - 10:20]**
 > "Un'altra possibile applicazione è quando introduciamo perturbazioni. Per esempio, quando ogni anno riprogrammano i treni, rilasciano un nuovo orario dei treni, di solito in autunno. Non partono da zero."
 
+<img width="647" height="239" alt="image" src="https://github.com/user-attachments/assets/cec7c9d2-1cda-4568-9405-ea94ce4cea5b" />
+
 **Il Processo:**
 > "Prendono la vecchia soluzione e perturbano il tempo di viaggio e l'orario di arrivo alle stazioni."
 
