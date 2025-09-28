@@ -221,7 +221,7 @@ Il professore introduce uno scenario molto importante:
 
 **Forma standard del solver:**
 ```
-Massimizzare: c^T x
+Massimizzare: cx
 Soggetto a: Ax ≤ b
 Con: x ≥ 0 (variabili non negative)
 ```
