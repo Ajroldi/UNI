@@ -225,6 +225,7 @@ Massimizzare: c^T x
 Soggetto a: Ax ≤ b
 Con: x ≥ 0 (variabili non negative)
 ```
+<img width="423" height="143" alt="image" src="https://github.com/user-attachments/assets/05545db1-56ba-4030-aa62-2dfe780d896b" />
 
 > "Questa è la nostra scatola nera, la nostra macchina che risolve problemi di ottimizzazione. La macchina prende in input i parametri c, A, b e fornisce in output la soluzione ottimale x*."
 
