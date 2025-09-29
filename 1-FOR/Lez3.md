@@ -188,6 +188,8 @@ A·x ≥ b  →  A·x - s = b  (con s ≥ 0)
 **[25:56 - 26:01]**
 > "Il significato è cosa manca per raggiungere il confine del vincolo."
 
+<img width="375" height="437" alt="image" src="https://github.com/user-attachments/assets/723cb80c-5f75-4c64-876b-635ef6667f31" />
+
 #### Trasformazione = → {≤, ≥}
 **[27:12 - 29:46]**
 **Interpretazione geometrica:**
