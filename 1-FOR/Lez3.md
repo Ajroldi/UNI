@@ -362,6 +362,7 @@ dove a > 0 e b > a
 
 #### Esempio: Campo Petrolifero
 **[73:12 - 74:29]**
+<img width="731" height="443" alt="image" src="https://github.com/user-attachments/assets/1d5c2209-05e9-4c62-b7ad-9bb27baaf150" />
 
 **Componenti del sistema:**
 - 2 pozzi (disponibilità: 10.000 e 15.000 unità)
