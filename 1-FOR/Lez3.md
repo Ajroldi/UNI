@@ -158,6 +158,8 @@ x_fagioli, x_salmone, x_pollo, x_salsa ≥ 0
 - **Output:** Soluzione ottimale X* e valore
 - **Forma standard:** Tutti i vincoli devono essere ≤
 
+<img width="335" height="127" alt="image" src="https://github.com/user-attachments/assets/bd29567f-bb79-4e83-8785-adf51b17e2a9" />
+
 #### Trasformazione ≥ → ≤
 **[22:38 - 22:57]**
 > "È sufficiente moltiplicare per meno uno qui e meno uno qui, entrambi i lati per meno uno. E essendo una disuguaglianza, devo invertire la disuguaglianza."
