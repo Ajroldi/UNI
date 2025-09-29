@@ -347,6 +347,7 @@ dove M è una costante sufficientemente grande
 #### Esercizio per la Settimana Successiva
 **[71:11 - 72:12]**
 > "Dovete scrivere questo vincolo qui, che è scritto a parole. O la variabile continua come salmone è uguale a zero o è all'interno di un dato intervallo dove il lato sinistro è diverso da zero."
+<img width="298" height="365" alt="image" src="https://github.com/user-attachments/assets/dde9f845-2559-4fbd-ae27-8d7fb4dab1cc" />
 
 **Problema da risolvere:**
 ```
