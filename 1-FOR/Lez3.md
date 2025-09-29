@@ -195,10 +195,7 @@ A·x ≥ b  →  A·x - s = b  (con s ≥ 0)
 **Interpretazione geometrica:**
 > "L'uguaglianza è una linea. Questa è una linea. La linea è l'intersezione di due semipiani."
 
-```
-A·x = b  →  {A·x ≤ b
-           {A·x ≥ b
-```
+<img width="522" height="212" alt="image" src="https://github.com/user-attachments/assets/b4fa2789-824c-404f-b476-49c3b30fc9bd" />
 
 ### 🏭 PARTE V: VINCOLI DI MISCELAZIONE {#vincoli-miscelazione}
 *Timing: 30:15 - 36:06*
