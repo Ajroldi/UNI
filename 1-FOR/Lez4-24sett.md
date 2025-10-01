@@ -24,7 +24,7 @@
     - Se a1^T x* ≤ b1 ⇒ x* è fattibile per il sistema originale.
     - Se a1^T x* > b1 ⇒ originale infattibile (contraddizione con ottimalità).
 - Nota: Ricerca binaria e idee correlate funzionano anch'esse; il messaggio centrale è sfruttare il risolutore per inferire la fattibilità.
-<img width="508" height="639" alt="image" src="https://github.com/user-attachments/assets/02aeb80a-49ce-4cbb-b8f4-6e936b61648e" />
+<img width="552" height="725" alt="image" src="https://github.com/user-attachments/assets/08a642e0-4b78-4927-be9e-331876dfc83e" />
   
 ### Obiettivo Collo di Bottiglia (Min–Max) nella Pianificazione Rete Cellulare — Versione 1
 - Contesto:
