@@ -1,0 +1,137 @@
+## Note Amministrative e Logistica del Corso
+- La registrazione della sessione precedente non è stata avviata per distrazione; l'istruttore recupererà un'edizione precedente che copre contenuti simili e la caricherà su WeBeep.
+- Tutti gli esercizi e le domande settimanali sono pubblicati su WeBeep; gli studenti dovrebbero leggere il testo condiviso lì.
+- Protocollo di commenti su WeBeep:
+  - Aggiungere "corretto," "sbagliato," o "controlla" nei commenti sotto la propria consegna.
+  - Usare "controlla" solo quando necessario; l'istruttore lo esaminerà. Se marcato "sbagliato," il file non verrà aperto. Se non è scritto nulla, implica che non ti sei auto-confrontato con la soluzione; l'istruttore farà un controllo attento.
+- I laboratori sono fissi nel calendario e non cambieranno. Il piano del corso è provvisorio e può variare a causa di eventi imprevisti.
+- Convenzione di classificazione usata nei problemi: progetti classificati in prestazioni decrescenti per indice, con l'indice minimo (1) che è il migliore.
+- Gli studenti possono aprire i microfoni per domande durante gli esercizi.
+- Brevi pause sono intercalate per aiutare a ripristinare la concentrazione.
+- Pratica aggiuntiva suggerita: esercizio multi-periodo del rivenditore di gas naturale (su WeBeep), che combina inventario multi-periodo e logica di attivazione simile al problema della panetteria.
+- La prossima lezione inizia con i grafi.
+## Tecnica di Modellazione: Vincoli Logici con Variabili Continue
+- Obiettivo: imporre "o x = 0 o x ∈ [a, b]" (con 0 ∉ (a, b)) usando vincoli lineari e una variabile binaria.
+- Formulazione lineare corretta:
+  - Introdurre y ∈ {0,1}, dove y = 1 se x ∈ [a, b], y = 0 se x = 0.
+  - Vincoli: a·y ≤ x ≤ b·y.
+- Attenzioni chiave:
+  - Non moltiplicare x per y nei vincoli (xy è non lineare).
+  - Una variabile binaria y è sufficiente. Se si usano più binarie per codificare significati separati (es. "x ≠ 0" e "x ∈ [a, b]"), aggiungere vincoli di consistenza per evitare contraddizioni.
+- Promemoria Big-M:
+  - Assicurare linearità e correttezza se si usa Big-M. Usare la M valida più piccola per mantenere la formulazione stretta.
+- Sulle disuguaglianze strette:
+  - Evitare disuguaglianze strette nei modelli MILP; usare ≤ o ≥ con uguaglianza ammessa per mantenere gli insiemi ammissibili chiusi e gli algoritmi stabili.
+- Vincoli ridondanti:
+  - Vincoli come x_i ≤ M·y_i sono non necessari se il vincolo di intervallo già limita x_i per R_i·y_i.
+- Selezione Big-M:
+  - Usare la M valida più piccola (es. M = 1 per rapporti normalizzati) per migliorare la forza del rilassamento LP.
+## Esercizio 1: Selezione Finanziamenti di Ricerca (Modello Base)
+- Dati:
+  - Budget B.
+  - N proposte; per ciascuna i: finanziamento minimo r_i, finanziamento massimo R_i (con 0 ≤ r_i ≤ R_i).
+- Variabili:
+  - y_i ∈ {0,1}: 1 se la proposta i è finanziata, 0 altrimenti.
+  - x_i ≥ 0: finanziamento allocato alla proposta i.
+- Vincoli:
+  - Budget: Σ_i x_i ≤ B.
+  - Intervallo/attivazione: r_i·y_i ≤ x_i ≤ R_i·y_i per tutti gli i.
+- Obiettivo:
+  - Massimizzare il numero di proposte finanziate: massimizzare Σ_i y_i.
+- Note:
+  - Il vincolo x_i ≤ y_i·M è ridondante se R_i serve come M tramite x_i ≤ R_i·y_i.
+### Variante: Rapporti di Finanziamento Rispettosi della Classifica
+- Regola di classifica aggiuntiva:
+  - Se i è classificata meglio di j e entrambe sono finanziate, imporre x_i/R_i ≥ x_j/R_j.
+- Problema da gestire:
+  - Quando una i meglio classificata non è finanziata (x_i = 0) ma una j classificata peggio è finanziata (x_j > 0), la disuguaglianza deve essere rilassata.
+- Linearizzazione con Big-M:
+  - Per i meglio di j: x_i/R_i ≥ x_j/R_j − M·(1 − y_i).
+  - Poiché 0 ≤ x_j/R_j ≤ 1, scegliere M = 1 (stretto e sufficiente).
+  - Effetto: Se y_i = 0, RHS ≤ 0, rendendo il vincolo non vincolante per x_i = 0.
+- Guida sull'ambito:
+  - Mantenere vincoli per tutte le coppie rilevanti (i, j) per ordine di classifica; limitarsi solo alle coppie adiacenti rischia di perdere casi transitivi se le proposte intermedie non sono finanziate.
+## Esercizio 2: Produzione Panetteria Multi-Periodo con Setup e Inventario
+- Orizzonte: T giorni.
+- Dati:
+  - Domanda d_t per ogni giorno t.
+  - Limiti di produzione per ciclo: q (min), Q (max).
+  - Costo di produzione c_t per unità al giorno t.
+  - Costo di inventario g per unità per giorno.
+  - Costo di setup S per giorno quando la produzione è attivata.
+- Variabili:
+  - x_t ≥ 0: quantità di produzione al giorno t.
+  - y_t ∈ {0,1}: 1 se la produzione avviene al giorno t (per vincolare l'intervallo), altrimenti 0.
+  - z_t ≥ 0: livello di inventario alla fine del giorno t; porre z_0 = 0 (inizialmente vuoto).
+- Vincoli:
+  - Bilancio inventario (soddisfacimento esatto della domanda): z_t = z_{t−1} + x_t − d_t per tutti i t.
+  - Intervallo/attivazione: q·y_t ≤ x_t ≤ Q·y_t per tutti i t.
+- Obiettivo:
+  - Minimizzare il costo totale: Σ_t (c_t·x_t) + Σ_t (g·z_t) + Σ_t (S·y_t).
+### Variante: Costo di Setup Solo Quando Si Riaccende Dopo una Pausa
+- Cambiamento nella logica di setup: pagare S al giorno t solo se la produzione è nuovamente attivata dopo essere stata spenta a t−1.
+- Variabile aggiuntiva:
+  - y'_t ∈ {0,1}: 1 se la produzione a t è attivata dopo una pausa; 0 altrimenti.
+- Obiettivo modificato:
+  - Minimizzare Σ_t (c_t·x_t) + Σ_t (g·z_t) + Σ_t (S·y'_t).
+- Logica di collegamento (implicazione):
+  - Se y_t = 1 e y_{t−1} = 0, allora y'_t deve essere 1; altrimenti y'_t può essere 0.
+  - Vincolo lineare: y'_t ≥ y_t − y_{t−1} per tutti i t.
+  - Condizione iniziale: impostare y_0 per riflettere lo stato dell'impianto prima di t = 1 (0 se spento, 1 se acceso).
+- Note:
+  - Poiché S > 0 e l'obiettivo minimizza il costo, y'_t sarà impostato a 1 solo quando richiesto; altrimenti rimane a 0.
+## Esercizio 3: Attivazione Corsi (Set Covering con Variante Preferenze)
+- Classificazione problema: Set covering; strettamente correlato alla soddisfacibilità ("madre di tutti i problemi"), con set covering descritto come "padre" per l'ampia applicabilità nel riformulare molti problemi.
+- Insiemi:
+  - C: corsi (indice j).
+  - S: studenti (indice i).
+- Dati:
+  - Costo di attivazione c_j per il corso j.
+  - Per ogni studente i: F_i ⊆ C (corsi di prima scelta), S_i ⊆ C (corsi di seconda scelta).
+  - Gli insiemi di preferenza degli studenti (S_i, F_i) sono input; non sono variabili decisionali e non devono essere vincolati dal modello.
+- Variabili:
+  - x_j ∈ {0,1}: 1 se il corso j è attivato, 0 altrimenti.
+- Requisito base (copertura):
+  - Ogni studente i deve avere almeno un corso attivo in F_i ∪ S_i.
+- Obiettivo:
+  - Minimizzare il costo totale di attivazione: Σ_j c_j·x_j.
+- Vincoli:
+  - Per ogni studente i: Σ_{j∈F_i} x_j + Σ_{j∈S_i} x_j ≥ 1.
+### Variante: Tasso Minimo di Soddisfazione Prima Scelta
+- Requisito: almeno il 50% degli studenti deve avere almeno un corso attivo da F_i.
+- Variabili aggiuntive:
+  - y_i ∈ {0,1}: 1 se lo studente i ha almeno un corso attivo di prima scelta; 0 altrimenti.
+- Vincoli:
+  - Collegamento prima scelta: Σ_{j∈F_i} x_j ≥ y_i per tutti gli i.
+    - Se y_i = 1, forza almeno un corso di prima scelta attivo per lo studente i.
+    - Se y_i = 0, nessun corso di prima scelta è richiesto per quello studente.
+  - Soglia aggregata: Σ_i y_i ≥ |S| / 2.
+  - Mantenere i vincoli di copertura originali per assicurare che ogni studente sia coperto da prima o seconda scelta.
+- I vincoli si applicano alle decisioni, non agli input:
+  - I vincoli devono governare le decisioni x_j e y_i.
+  - Nessun vincolo è imposto sugli insiemi dati S_i, F_i o le loro intersezioni; sono input fissi.
+- Uguaglianza vs disuguaglianza:
+  - Usare l'uguaglianza (somma = 1) non è appropriato perché le scelte di attivazione sono combinatorie e un corso può soddisfare più studenti; la disuguaglianza (somma ≥ 1) mantiene flessibilità e ottimalità.
+- Prospettiva di applicazione selettiva:
+  - Sostituire il RHS fisso "≥ 1" con una variabile y_i disattiva selettivamente i vincoli quando applicarli tutti sarebbe infattibile o subottimale, analogo al recupero di fattibilità in sistemi inconsistenti di disuguaglianze.
+## Chiarimenti Tecnici ed Esempi
+- Accoppiamento combinatorio:
+  - Un singolo corso appartenente agli insiemi di prima scelta di molti studenti può soddisfare più studenti simultaneamente; i vincoli di uguaglianza possono bloccare tali interazioni benefiche.
+- Scenario di applicazione tipico:
+  - In sistemi di disuguaglianze che sono congiuntamente inconsistenti, disattivare selettivamente un sottoinsieme (tramite variabili come y_i) ripristina la fattibilità, rispecchiando la variante set covering.
+## Processo della Lezione e Prossimi Argomenti
+- Struttura per il futuro:
+  - All'inizio di ogni lezione: un esercizio di modellazione.
+  - Dopo l'esercizio: continuazione con nuovi argomenti.
+- Contenuto prossimo:
+  - La prossima lezione inizia con i grafi.
+## 📅 Prossimi Arrangiamenti e Azioni
+- [ ] Caricare la registrazione precedente recuperata su WeBeep coprendo il contenuto dell'ultima sessione.
+- [ ] Gli studenti devono accedere e rivedere il testo condiviso e gli esercizi su WeBeep.
+- [ ] Gli studenti devono sottoporre soluzioni con un commento: "corretto," "sbagliato," o "controlla" (usare "controlla" con parsimonia quando è necessaria una revisione).
+- [ ] Gli studenti devono tentare la formulazione multi-periodo del rivenditore di gas naturale prima della prossima classe.
+- [ ] Impostare esplicitamente lo stato y_0 nella variante panetteria per riflettere lo stato iniziale dell'impianto (spento/acceso).
+- [ ] Mantenere vincoli di classifica a coppie completi (i, j) nella variante finanziamento piuttosto che solo coppie adiacenti; applicare M = 1 nella formulazione Big-M del vincolo di classifica.
+- [ ] Rivedere l'esercizio sul trascurare vincoli (disattivazione selettiva usando variabili come y_i) e tentarlo indipendentemente prima della prossima classe.
+- [ ] Iniziare il nuovo argomento sui grafi nella sessione di domani.
+- [ ] Mantenere disciplina di modellazione: applicare vincoli solo alle variabili decisionali (x_j, y_i), non agli insiemi di input (S_i, F_i) o alle loro intersezioni.

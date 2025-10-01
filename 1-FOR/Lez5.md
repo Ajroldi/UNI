@@ -1,0 +1,121 @@
+## Riassunto: Puzzle di Modellazione, Tecniche di Ottimizzazione e Formulazioni Applicate
+### Riepilogo Puzzle: Variabile in Intervallo o Zero (Modellazione con Variabile 0–1)
+- Obiettivo: Modellare x_sal ∈ [A, B] (A, B ≥ 0) o x_sal = 0 con una variabile binaria.
+- Variabili:
+  - y_sal ∈ {0,1}: y_sal = 1 se x_sal ∈ [A, B]; y_sal = 0 se x_sal = 0.
+- Vincoli:
+  - x_sal ≥ A · y_sal
+  - x_sal ≤ B · y_sal
+- Correttezza:
+  - Se y_sal = 0 ⇒ x_sal = 0 (data la non negatività).
+  - Se y_sal = 1 ⇒ A ≤ x_sal ≤ B.
+- Guida per la consegna:
+  - Se il tuo modello corrisponde: commenta "corretto."
+  - Se chiaramente sbagliato: "sbagliato."
+  - Usa "per favore controlla" solo quando genuinamente incerto dopo aver valutato l'equivalenza.
+### Uso di un Risolutore di Ottimizzazione per Testare la Fattibilità (Nessuna Funzione Obiettivo)
+- Problema: Determinare se esiste x che soddisfa A x ≤ b usando un risolutore che richiede min c^T x s.t. A x ≤ b.
+- Trucco:
+  - Scegliere un vincolo a1^T x ≤ b1 come obiettivo: minimizzare a1^T x.
+  - Mantenere altri vincoli a2^T x ≤ b2, …, am^T x ≤ bm.
+- Risultati:
+  - Se i vincoli 2..m sono infattibili ⇒ originale infattibile.
+  - Se viene trovata una soluzione ottimale x*:
+    - Se a1^T x* ≤ b1 ⇒ x* è fattibile per il sistema originale.
+    - Se a1^T x* > b1 ⇒ originale infattibile (contraddizione con ottimalità).
+- Nota: Ricerca binaria e idee correlate funzionano anch'esse; il messaggio centrale è sfruttare il risolutore per inferire la fattibilità.
+### Obiettivo Collo di Bottiglia (Min–Max) nella Pianificazione Rete Cellulare — Versione 1
+- Contesto:
+  - Attivare stazioni base candidate e assegnare clienti alle stazioni attive.
+  - Capacità: ogni stazione attiva serve al massimo M clienti.
+  - Obiettivo: minimizzare la potenza di emissione massima sulle assegnazioni attive.
+- Insiemi/indici:
+  - S: siti candidati (j), C: clienti (i).
+- Parametri:
+  - M: capacità uniforme della stazione; p_ij: potenza di emissione per il cliente i tramite la stazione j.
+- Variabili decisionali:
+  - y_j ∈ {0,1}: stazione j attiva.
+  - x_ij ∈ {0,1}: cliente i assegnato alla stazione j.
+- Vincoli:
+  - Capacità: ∑_i x_ij ≤ M · y_j, ∀ j.
+  - Copertura (caso copertura completa): ∑_j x_ij = 1, ∀ i. (Forma generale ≤ 1.)
+  - Collegamento alternativo: y_j ≥ x_ij, ∀ i, j (implicazione logica).
+- Obiettivo collo di bottiglia:
+  - Non lineare: minimizzare max_{i,j} p_ij x_ij.
+  - Linearizzazione:
+    - Introdurre d ≥ 0.
+    - p_ij x_ij ≤ d, ∀ i, j.
+    - Minimizzare d.
+- Nota computazionale: Gli obiettivi collo di bottiglia possono indurre molte soluzioni equivalenti sotto d, creando plateau/simmetrie che possono rallentare i risolutori.
+### Estensione Multi-Obiettivo — Versione 2 (Copertura vs Costo di Installazione)
+- Modifiche:
+  - Copertura parziale consentita.
+  - Costo di installazione c_j per attivare la stazione j.
+- Parametri/variabili/vincoli:
+  - Come sopra, con capacità: ∑_i x_ij ≤ M · y_j, ∀ j.
+  - Restrizione assegnazione: ∑_j x_ij ≤ 1, ∀ i.
+- Obiettivi:
+  - Minimizzare costo di installazione: ∑_j c_j y_j.
+  - Massimizzare copertura: ∑_{i,j} x_ij.
+- Conversioni mono-obiettivo:
+  - Funzione utilità (scalarizzazione):
+    - Scegliere α (ricavo per cliente coperto).
+    - Massimizzare α ∑_{i,j} x_ij − ∑_j c_j y_j.
+    - Variare α per esplorare compromessi.
+  - Vincolato al budget:
+    - ∑_j c_j y_j ≤ β (budget).
+    - Massimizzare copertura soggetto a β (o fissare target copertura e minimizzare costo).
+    - Variare β per mappare compromessi.
+- Analisi Pareto:
+  - Dominanza: Per stesso costo, copertura inferiore è dominata; per stessa copertura, costo maggiore è dominato.
+  - Pareto-ottimale: non può migliorare un obiettivo senza peggiorare l'altro.
+  - Frontiera efficiente: curva di punti Pareto-ottimali per supporto decisionale.
+- Analogia mondo reale: la pianificazione radioterapica bilancia dose al tumore vs organi.
+### Pianificazione Produzione con Costi Setup Robot: Panoramica Modellazione
+- Contesto:
+  - Fabbrica produce N prodotti usando N robot.
+  - Obiettivo: massimizzare profitto netto (ricavo meno costi setup fissi per coppia robot–prodotto).
+- Insiemi/indici:
+  - Prodotti P (i), Robot R (j).
+- Parametri:
+  - a_ij: tempo sul robot j per unità del prodotto i.
+  - b_j: tempo disponibile per il robot j.
+  - r_i: ricavo per unità del prodotto i.
+  - c_ij: costo setup fisso per il robot j per produrre il prodotto i.
+- Variabili decisionali:
+  - x_ij ≥ 0: quantità del prodotto i sul robot j (intero se necessario).
+  - y_ij ∈ {0,1}: 1 se il robot j è impostato per il prodotto i (implica x_ij > 0).
+- Obiettivo:
+  - Massimizzare Σ_{i,j} (r_i x_ij) − Σ_{i,j} (c_ij y_ij).
+- Vincoli:
+  - Capacità robot: Σ_i a_ij x_ij ≤ b_j, ∀ j.
+  - Collegamento (applicare costo setup quando si produce):
+    - x_ij ≤ M_ij y_ij, ∀ i, j.
+    - Scegliere M_ij stretto (es. b_j / a_ij se applicabile) per rafforzare il modello.
+- Note e miglioramenti:
+  - Usare vincoli indicatori (x_ij = 0 se y_ij = 0) se supportati per evitare Big-M.
+  - Considerare limiti domanda/mercato per prodotto e vincoli compatibilità secondo necessità.
+  - La natura MILP deriva dalle y_ij binarie.
+### Note Aggiuntive, Logistica e Azioni
+- Logistica puzzle:
+  - Scadenza alle 10:00; soluzione rivelata dopo la scadenza.
+  - Evitare uso eccessivo di "per favore controlla"; prima valutare la correttezza.
+- Nota in aula: l'umorismo della "colonna sonora del Politecnico" continua.
+- Piano a breve termine: breve pausa, poi esercizi; più metodi multi-obiettivo nelle sessioni future.
+- Materiali:
+  - Materiali esercizi su WeBeep (HTML). Segnalare link non funzionanti.
+  - Nove testi di modellazione (iniziare con Esercizio 6).
+  - Raccolta esercizi con ~40–50 formulazioni e schemi di soluzione.
+### Azioni
+- [ ] Rispondenti puzzle: marcare la consegna "corretto" se corrisponde; "sbagliato" se no; usare "per favore controlla" con parsimonia.
+- [ ] Praticare il trucco fattibilità: convertire un vincolo nell'obiettivo e verificare risultati.
+- [ ] Implementare linearizzazione collo di bottiglia: aggiungere d e vincoli p_ij x_ij ≤ d; minimizzare d.
+- [ ] Costruire entrambe le opzioni di collegamento (capacità con y_j e implicazione y_j ≥ x_ij) e confrontare comportamento risolutore.
+- [ ] Formulare la variante multi-obiettivo usando:
+  - (a) Funzione utilità con parametro α.
+  - (b) Versione vincolata al budget con parametro β.
+- [ ] Eseguire esperimenti parametrici su α e β; tracciare la frontiera Pareto (costo vs copertura) e identificare soluzioni dominate vs Pareto-ottimali.
+- [ ] Rivedere i nove esercizi WeBeep, tentare individualmente e prepararsi a confrontare soluzioni.
+- [ ] Iniziare con Esercizio 6 e portare formulazioni preliminari alla prossima sessione.
+- [ ] Esplorare la raccolta esercizi e consultare schemi di soluzione secondo necessità.
+- [ ] Segnalare qualsiasi link HTML non funzionante/inaccessibile all'istruttore.
