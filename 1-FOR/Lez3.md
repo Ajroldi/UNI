@@ -158,6 +158,8 @@ x_fagioli, x_salmone, x_pollo, x_salsa ≥ 0
 - **Output:** Soluzione ottimale X* e valore
 - **Forma standard:** Tutti i vincoli devono essere ≤
 
+<img width="335" height="127" alt="image" src="https://github.com/user-attachments/assets/bd29567f-bb79-4e83-8785-adf51b17e2a9" />
+
 #### Trasformazione ≥ → ≤
 **[22:38 - 22:57]**
 > "È sufficiente moltiplicare per meno uno qui e meno uno qui, entrambi i lati per meno uno. E essendo una disuguaglianza, devo invertire la disuguaglianza."
@@ -186,15 +188,14 @@ A·x ≥ b  →  A·x - s = b  (con s ≥ 0)
 **[25:56 - 26:01]**
 > "Il significato è cosa manca per raggiungere il confine del vincolo."
 
+<img width="375" height="437" alt="image" src="https://github.com/user-attachments/assets/723cb80c-5f75-4c64-876b-635ef6667f31" />
+
 #### Trasformazione = → {≤, ≥}
 **[27:12 - 29:46]**
 **Interpretazione geometrica:**
 > "L'uguaglianza è una linea. Questa è una linea. La linea è l'intersezione di due semipiani."
 
-```
-A·x = b  →  {A·x ≤ b
-           {A·x ≥ b
-```
+<img width="522" height="212" alt="image" src="https://github.com/user-attachments/assets/b4fa2789-824c-404f-b476-49c3b30fc9bd" />
 
 ### 🏭 PARTE V: VINCOLI DI MISCELAZIONE {#vincoli-miscelazione}
 *Timing: 30:15 - 36:06*
@@ -346,6 +347,7 @@ dove M è una costante sufficientemente grande
 #### Esercizio per la Settimana Successiva
 **[71:11 - 72:12]**
 > "Dovete scrivere questo vincolo qui, che è scritto a parole. O la variabile continua come salmone è uguale a zero o è all'interno di un dato intervallo dove il lato sinistro è diverso da zero."
+<img width="298" height="365" alt="image" src="https://github.com/user-attachments/assets/dde9f845-2559-4fbd-ae27-8d7fb4dab1cc" />
 
 **Problema da risolvere:**
 ```
@@ -360,6 +362,7 @@ dove a > 0 e b > a
 
 #### Esempio: Campo Petrolifero
 **[73:12 - 74:29]**
+<img width="731" height="443" alt="image" src="https://github.com/user-attachments/assets/1d5c2209-05e9-4c62-b7ad-9bb27baaf150" />
 
 **Componenti del sistema:**
 - 2 pozzi (disponibilità: 10.000 e 15.000 unità)

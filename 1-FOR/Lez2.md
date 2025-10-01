@@ -168,6 +168,8 @@ Il professore elenca le principali sfide che affronteranemo:
 **[09:40 - 10:20]**
 > "Un'altra possibile applicazione è quando introduciamo perturbazioni. Per esempio, quando ogni anno riprogrammano i treni, rilasciano un nuovo orario dei treni, di solito in autunno. Non partono da zero."
 
+<img width="647" height="239" alt="image" src="https://github.com/user-attachments/assets/cec7c9d2-1cda-4568-9405-ea94ce4cea5b" />
+
 **Il Processo:**
 > "Prendono la vecchia soluzione e perturbano il tempo di viaggio e l'orario di arrivo alle stazioni."
 
@@ -219,10 +221,11 @@ Il professore introduce uno scenario molto importante:
 
 **Forma standard del solver:**
 ```
-Massimizzare: c^T x
+Massimizzare: cx
 Soggetto a: Ax ≤ b
 Con: x ≥ 0 (variabili non negative)
 ```
+<img width="423" height="143" alt="image" src="https://github.com/user-attachments/assets/05545db1-56ba-4030-aa62-2dfe780d896b" />
 
 > "Questa è la nostra scatola nera, la nostra macchina che risolve problemi di ottimizzazione. La macchina prende in input i parametri c, A, b e fornisce in output la soluzione ottimale x*."
 
