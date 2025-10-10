@@ -24,98 +24,80 @@
     - Se a1^T x* ≤ b1 ⇒ x* è fattibile per il sistema originale.
     - Se a1^T x* > b1 ⇒ originale infattibile (contraddizione con ottimalità).
 - Nota: Ricerca binaria e idee correlate funzionano anch'esse; il messaggio centrale è sfruttare il risolutore per inferire la fattibilità.
-### Obiettivo Collo di Bottiglia (Min–Max) nella Pianificazione Rete Cellulare — Versione 1
-- Contesto:
-  - Attivare stazioni base candidate e assegnare clienti alle stazioni attive.
-  - Capacità: ogni stazione attiva serve al massimo M clienti.
-  - Obiettivo: minimizzare la potenza di emissione massima sulle assegnazioni attive.
-- Insiemi/indici:
-  - S: siti candidati (j), C: clienti (i).
-- Parametri:
-  - M: capacità uniforme della stazione; p_ij: potenza di emissione per il cliente i tramite la stazione j.
-- Variabili decisionali:
-  - y_j ∈ {0,1}: stazione j attiva.
-  - x_ij ∈ {0,1}: cliente i assegnato alla stazione j.
-- Vincoli:
-  - Capacità: ∑_i x_ij ≤ M · y_j, ∀ j.
-  - Copertura (caso copertura completa): ∑_j x_ij = 1, ∀ i. (Forma generale ≤ 1.)
-  - Collegamento alternativo: y_j ≥ x_ij, ∀ i, j (implicazione logica).
-- Obiettivo collo di bottiglia:
-  - Non lineare: minimizzare max_{i,j} p_ij x_ij.
-  - Linearizzazione:
-    - Introdurre d ≥ 0.
-    - p_ij x_ij ≤ d, ∀ i, j.
-    - Minimizzare d.
-- Nota computazionale: Gli obiettivi collo di bottiglia possono indurre molte soluzioni equivalenti sotto d, creando plateau/simmetrie che possono rallentare i risolutori.
-### Estensione Multi-Obiettivo — Versione 2 (Copertura vs Costo di Installazione)
-- Modifiche:
-  - Copertura parziale consentita.
-  - Costo di installazione c_j per attivare la stazione j.
-- Parametri/variabili/vincoli:
-  - Come sopra, con capacità: ∑_i x_ij ≤ M · y_j, ∀ j.
-  - Restrizione assegnazione: ∑_j x_ij ≤ 1, ∀ i.
-- Obiettivi:
-  - Minimizzare costo di installazione: ∑_j c_j y_j.
-  - Massimizzare copertura: ∑_{i,j} x_ij.
-- Conversioni mono-obiettivo:
-  - Funzione utilità (scalarizzazione):
-    - Scegliere α (ricavo per cliente coperto).
-    - Massimizzare α ∑_{i,j} x_ij − ∑_j c_j y_j.
-    - Variare α per esplorare compromessi.
-  - Vincolato al budget:
-    - ∑_j c_j y_j ≤ β (budget).
-    - Massimizzare copertura soggetto a β (o fissare target copertura e minimizzare costo).
-    - Variare β per mappare compromessi.
-- Analisi Pareto:
-  - Dominanza: Per stesso costo, copertura inferiore è dominata; per stessa copertura, costo maggiore è dominato.
-  - Pareto-ottimale: non può migliorare un obiettivo senza peggiorare l'altro.
-  - Frontiera efficiente: curva di punti Pareto-ottimali per supporto decisionale.
-- Analogia mondo reale: la pianificazione radioterapica bilancia dose al tumore vs organi.
-### Pianificazione Produzione con Costi Setup Robot: Panoramica Modellazione
-- Contesto:
-  - Fabbrica produce N prodotti usando N robot.
-  - Obiettivo: massimizzare profitto netto (ricavo meno costi setup fissi per coppia robot–prodotto).
-- Insiemi/indici:
-  - Prodotti P (i), Robot R (j).
-- Parametri:
-  - a_ij: tempo sul robot j per unità del prodotto i.
-  - b_j: tempo disponibile per il robot j.
-  - r_i: ricavo per unità del prodotto i.
-  - c_ij: costo setup fisso per il robot j per produrre il prodotto i.
-- Variabili decisionali:
-  - x_ij ≥ 0: quantità del prodotto i sul robot j (intero se necessario).
-  - y_ij ∈ {0,1}: 1 se il robot j è impostato per il prodotto i (implica x_ij > 0).
-- Obiettivo:
-  - Massimizzare Σ_{i,j} (r_i x_ij) − Σ_{i,j} (c_ij y_ij).
-- Vincoli:
-  - Capacità robot: Σ_i a_ij x_ij ≤ b_j, ∀ j.
-  - Collegamento (applicare costo setup quando si produce):
-    - x_ij ≤ M_ij y_ij, ∀ i, j.
-    - Scegliere M_ij stretto (es. b_j / a_ij se applicabile) per rafforzare il modello.
-- Note e miglioramenti:
-  - Usare vincoli indicatori (x_ij = 0 se y_ij = 0) se supportati per evitare Big-M.
-  - Considerare limiti domanda/mercato per prodotto e vincoli compatibilità secondo necessità.
-  - La natura MILP deriva dalle y_ij binarie.
-### Note Aggiuntive, Logistica e Azioni
-- Logistica puzzle:
-  - Scadenza alle 10:00; soluzione rivelata dopo la scadenza.
-  - Evitare uso eccessivo di "per favore controlla"; prima valutare la correttezza.
-- Nota in aula: l'umorismo della "colonna sonora del Politecnico" continua.
-- Piano a breve termine: breve pausa, poi esercizi; più metodi multi-obiettivo nelle sessioni future.
-- Materiali:
-  - Materiali esercizi su WeBeep (HTML). Segnalare link non funzionanti.
-  - Nove testi di modellazione (iniziare con Esercizio 6).
-  - Raccolta esercizi con ~40–50 formulazioni e schemi di soluzione.
-### Azioni
-- [ ] Rispondenti puzzle: marcare la consegna "corretto" se corrisponde; "sbagliato" se no; usare "per favore controlla" con parsimonia.
-- [ ] Praticare il trucco fattibilità: convertire un vincolo nell'obiettivo e verificare risultati.
-- [ ] Implementare linearizzazione collo di bottiglia: aggiungere d e vincoli p_ij x_ij ≤ d; minimizzare d.
-- [ ] Costruire entrambe le opzioni di collegamento (capacità con y_j e implicazione y_j ≥ x_ij) e confrontare comportamento risolutore.
-- [ ] Formulare la variante multi-obiettivo usando:
-  - (a) Funzione utilità con parametro α.
-  - (b) Versione vincolata al budget con parametro β.
-- [ ] Eseguire esperimenti parametrici su α e β; tracciare la frontiera Pareto (costo vs copertura) e identificare soluzioni dominate vs Pareto-ottimali.
-- [ ] Rivedere i nove esercizi WeBeep, tentare individualmente e prepararsi a confrontare soluzioni.
+<img width="552" height="725" alt="image" src="https://github.com/user-attachments/assets/08a642e0-4b78-4927-be9e-331876dfc83e" />
+  
+# Facility Location Problem
+
+## Insiemi
+- **S = {1, ..., m}**: siti candidati per le antenne
+- **C = {1, ..., n}**: clienti da servire
+
+## Parametri
+- **M**: capacità massima (n° clienti per antenna)
+- **Pᵢⱼ**: potenza emessa da antenna i ∈ S per cliente j ∈ C
+- **cⱼ**: costo installazione antenna j ∈ S
+
+## Variabili
+- **yⱼ** ∈ {0,1}: antenna j attiva (1) o no (0), ∀j ∈ S
+- **xᵢⱼ** ∈ {0,1}: cliente i assegnato ad antenna j (1) o no (0), ∀i ∈ C, ∀j ∈ S
+
+## Vincoli
+
+### Copertura completa
+Ogni cliente deve essere servito da esattamente un'antenna:
+
+$$\sum_{j \in S} x_{ij} = 1 \qquad \forall i \in C$$
+
+### Vincolo di capacità
+Il numero di clienti assegnati a un'antenna non può superare la sua capacità:
+
+$$\sum_{i \in C} x_{ij} \leq M \cdot y_j \qquad \forall j \in S$$
+
+**Implicazione**: Se $y_j = 0$ allora $x_{ij} = 0$ (antenna spenta → nessun cliente servito)
+
+**Vincolo equivalente**: $x_{ij} \leq y_j \quad \forall i \in C, \forall j \in S$
+
+---
+
+## Funzioni Obiettivo
+
+### Obiettivo 1: Minimizzare costo installazione
+
+$$\min \sum_{j \in S} c_j \cdot y_j$$
+
+Minimizza il costo totale di installazione delle antenne attive.
+
+---
+
+### Obiettivo 2: Minimizzare potenza massima emessa
+
+**Formulazione non lineare**:
+
+$$\min \max_{i \in C, j \in S} \{P_{ij} \cdot x_{ij}\}$$
+
+**Linearizzazione** con variabile ausiliaria **d** (potenza massima):
+
+$$\min \quad d$$
+
+$$\text{s.t.} \quad d \geq P_{ij} \cdot x_{ij} \qquad \forall i \in C, \forall j \in S$$
+
+La variabile $d$ rappresenta la massima potenza emessa nel sistema.
+
+---
+
+### Obiettivo 3: Massimizzare copertura con vincolo di budget
+
+**Opzione A**: Massimizzare copertura pesata con costo
+
+$$\max \quad d \cdot \sum_{i \in C} \sum_{j \in S} x_{ij} - \sum_{j \in S} c_j \cdot y_j$$
+
+**Opzione B**: Vincolo di budget fisso **B**
+
+$$\max \quad \sum_{i \in C} \sum_{j \in S} x_{ij}$$
+
+$$\text{s.t.} \quad \sum_{j \in S} c_j \cdot y_j \leq B$$
+
+Massimizza il numero totale di assegnamenti cliente-antenna rispettando il budget disponibile.
 - [ ] Iniziare con Esercizio 6 e portare formulazioni preliminari alla prossima sessione.
 - [ ] Esplorare la raccolta esercizi e consultare schemi di soluzione secondo necessità.
 - [ ] Segnalare qualsiasi link HTML non funzionante/inaccessibile all'istruttore.
