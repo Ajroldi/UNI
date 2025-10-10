@@ -1,0 +1,590 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[italian]{babel}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\usepackage{enumitem}
+
+\geometry{margin=2.5cm}
+\pgfplotsset{compat=1.18}
+
+% Definizioni colori
+\definecolor{boxbg}{RGB}{240,248,255}
+\definecolor{warningbg}{RGB}{255,240,240}
+
+% Box colorati
+\newtcolorbox{defbox}{colback=boxbg, colframe=blue!75!black, title=Definizione}
+\newtcolorbox{exbox}{colback=green!5, colframe=green!75!black, title=Esempio}
+\newtcolorbox{warnbox}{colback=warningbg, colframe=red!75!black, title=Attenzione!}
+
+\title{\textbf{Mini-Libro di Studio}\\Ricerca Operativa}
+\author{Appunti delle Lezioni 1-6}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Introduzione alla Ricerca Operativa}
+
+\subsection{Cos'è la Ricerca Operativa?}
+
+\begin{defbox}
+La \textbf{Ricerca Operativa (RO)} è la disciplina che studia come prendere decisioni ottimali quando le risorse sono limitate.
+\end{defbox}
+
+\begin{exbox}
+\textbf{Esempio pratico}: Hai 100€ e devi decidere cosa comprare per massimizzare la tua felicità rispettando il budget.
+\end{exbox}
+
+\subsection{Schema del Processo Decisionale}
+
+\begin{center}
+\begin{tikzpicture}[node distance=1.5cm]
+\node (real) [rectangle, draw, fill=blue!20, text width=3cm, text centered] {Problema Reale};
+\node (model) [rectangle, draw, fill=green!20, text width=3cm, text centered, below of=real] {Modello Matematico};
+\node (sol) [rectangle, draw, fill=yellow!20, text width=3cm, text centered, below of=model] {Soluzione Matematica};
+\node (dec) [rectangle, draw, fill=orange!20, text width=3cm, text centered, below of=sol] {Decisione nel Mondo Reale};
+
+\draw[->, thick] (real) -- node[right] {ASTRAZIONE} (model);
+\draw[->, thick] (model) -- node[right] {RISOLUZIONE} (sol);
+\draw[->, thick] (sol) -- node[right] {INTERPRETAZIONE} (dec);
+\end{tikzpicture}
+\end{center}
+
+\subsection{I 3 Pilastri di Ogni Modello}
+
+\begin{center}
+\fbox{\textbf{DECISIONI} $\to$ Variabili}\\[0.5em]
+\fbox{\textbf{REGOLE} $\to$ Vincoli}\\[0.5em]
+\fbox{\textbf{OBIETTIVI} $\to$ Funzione Obiettivo}
+\end{center}
+
+\section{Componenti di un Modello}
+
+\subsection{Struttura Generale}
+
+Un problema di ottimizzazione ha sempre questa forma:
+
+\begin{equation}
+\begin{aligned}
+\max \text{ (o } \min\text{)} \quad & f(x_1, x_2, \ldots, x_n) \\
+\text{soggetto a:} \quad & g_1(x_1, \ldots, x_n) \leq b_1 \\
+& g_2(x_1, \ldots, x_n) \leq b_2 \\
+& \vdots \\
+& x_i \geq 0 \text{ per ogni } i
+\end{aligned}
+\end{equation}
+
+Dove:
+\begin{itemize}
+\item $f$ = \textbf{funzione obiettivo} (cosa vogliamo ottimizzare)
+\item $g_i$ = \textbf{vincoli} (limiti che dobbiamo rispettare)
+\item $x_i$ = \textbf{variabili decisionali} (cosa possiamo decidere)
+\end{itemize}
+
+\subsection{Esempio: Problema dei Telefonini}
+
+\begin{exbox}
+\textbf{Situazione}: Abbiamo pezzi colorati per costruire 2 tipi di telefoni.
+
+\textbf{Dati}:
+\begin{itemize}
+\item Telefono A: vale 5 punti, usa 2 rossi + 1 giallo
+\item Telefono B: vale 8 punti, usa 3 rossi + 1 giallo
+\item Disponibili: 9 pezzi rossi, 4 pezzi gialli
+\end{itemize}
+\end{exbox}
+
+\textbf{Modello matematico}:
+
+\begin{equation}
+\begin{aligned}
+\max \quad & 5x_A + 8x_B \\
+\text{s.t.} \quad & 2x_A + 3x_B \leq 9 \quad \text{(pezzi rossi)} \\
+& x_A + x_B \leq 4 \quad \text{(pezzi gialli)} \\
+& x_A, x_B \geq 0
+\end{aligned}
+\end{equation}
+
+\textbf{Rappresentazione grafica}:
+
+\begin{center}
+\begin{tikzpicture}[scale=1.2]
+\begin{axis}[
+    axis lines=middle,
+    xlabel={$x_A$},
+    ylabel={$x_B$},
+    xmin=0, xmax=5,
+    ymin=0, ymax=5,
+    xtick={0,1,2,3,4,5},
+    ytick={0,1,2,3,4,5},
+    grid=major,
+    width=10cm,
+    height=8cm
+]
+
+% Vincolo 1: 2xA + 3xB <= 9
+\addplot[blue, thick, domain=0:4.5] {(9-2*x)/3};
+\addplot[blue, fill=blue!20, opacity=0.3] coordinates {(0,0) (0,3) (4.5,0) (0,0)};
+
+% Vincolo 2: xA + xB <= 4
+\addplot[red, thick, domain=0:4] {4-x};
+
+% Regione ammissibile
+\addplot[green!50!black, fill=green!20, opacity=0.5] coordinates {(0,0) (0,3) (1,3) (3,1) (4,0) (0,0)};
+
+% Soluzione ottima
+\addplot[mark=*, mark size=3pt, red] coordinates {(1,3)};
+\node at (axis cs:1,3) [above right] {$(1,3)$ ottimo};
+
+% Curve di livello
+\addplot[orange, dashed, domain=0:4] {(20-5*x)/8};
+\addplot[orange, dashed, domain=0:4] {(29-5*x)/8};
+
+\end{axis}
+\end{tikzpicture}
+\end{center}
+
+\textbf{Soluzione ottima}: $x_A = 1$, $x_B = 3$ $\Rightarrow$ Valore = 29 punti
+
+\section{Tipologie di Variabili}
+
+\subsection{Variabili Continue Non Negative}
+
+\begin{equation}
+x \geq 0, \quad x \in \mathbb{R}
+\end{equation}
+
+\begin{exbox}
+Quantità di terreno da coltivare (8.5 ettari è ammesso).
+\end{exbox}
+
+\subsection{Variabili Continue Libere in Segno}
+
+\begin{equation}
+x \in \mathbb{R} \text{ (può essere negativa)}
+\end{equation}
+
+\begin{exbox}
+Perturbazione dell'orario dei treni:
+\begin{itemize}
+\item $\pi_s > 0$ $\to$ ritardo
+\item $\pi_s < 0$ $\to$ anticipo
+\item $\pi_s = 0$ $\to$ nessun cambiamento
+\end{itemize}
+\end{exbox}
+
+\subsubsection{Trasformazione Importante}
+
+Una variabile libera può essere scritta come:
+\begin{equation}
+\pi_s = \pi_s^+ - \pi_s^-
+\end{equation}
+dove $\pi_s^+, \pi_s^- \geq 0$
+
+\begin{center}
+\begin{tabular}{ccc}
+\toprule
+$\pi$ & $\pi^+$ & $\pi^-$ \\
+\midrule
++5 & 5 & 0 \\
+-3 & 0 & 3 \\
+0 & 0 & 0 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Variabili Binarie}
+
+\begin{equation}
+y \in \{0, 1\}
+\end{equation}
+
+\textbf{Significato logico}:
+\begin{itemize}
+\item $y = 1$ $\to$ ``SÌ, lo faccio''
+\item $y = 0$ $\to$ ``NO, non lo faccio''
+\end{itemize}
+
+\begin{exbox}
+\begin{equation}
+y_{\text{fabbrica}} = \begin{cases} 1 & \text{se costruisco la fabbrica} \\ 0 & \text{altrimenti} \end{cases}
+\end{equation}
+\end{exbox}
+
+\subsection{Variabili Intere}
+
+\begin{equation}
+x \in \mathbb{Z}, \quad x \geq 0
+\end{equation}
+
+\begin{exbox}
+Numero di autobus da acquistare (non posso comprare 2.5 autobus!).
+\end{exbox}
+
+\section{Tipologie di Vincoli}
+
+\subsection{Vincoli di Disponibilità ($\leq$)}
+
+\begin{defbox}
+\textbf{Significato}: Non posso usare più di quanto ho.
+\begin{equation}
+\text{Uso delle risorse} \leq \text{Disponibilità}
+\end{equation}
+\end{defbox}
+
+\begin{exbox}
+$2x_A + 3x_B \leq 9$ (al massimo 9 pezzi rossi)
+\end{exbox}
+
+\subsection{Vincoli di Fabbisogno ($\geq$)}
+
+\begin{defbox}
+\textbf{Significato}: Devo garantire un minimo.
+\begin{equation}
+\text{Quantità fornita} \geq \text{Fabbisogno minimo}
+\end{equation}
+\end{defbox}
+
+\begin{exbox}
+Vincolo calorico nella dieta:
+\begin{equation}
+300x_{\text{pasta}} + 250x_{\text{riso}} + \ldots \geq 700
+\end{equation}
+(almeno 700 calorie)
+\end{exbox}
+
+\subsection{Vincoli di Conservazione del Flusso ($=$)}
+
+\begin{defbox}
+\textbf{Significato}: Ciò che entra = Ciò che esce
+\end{defbox}
+
+\begin{exbox}
+Rete di oleodotti:
+
+\begin{center}
+\begin{tikzpicture}[node distance=3cm]
+\node[circle, draw] (1) {Pozzo 1};
+\node[circle, draw, below of=1] (2) {Nodo 2};
+\node[circle, draw, right of=2] (3) {Raffineria};
+\node[circle, draw, below of=2] (4) {Nodo 4};
+
+\draw[->, thick] (1) -- node[left] {$x_{12}$} (2);
+\draw[->, thick] (2) -- node[above] {$x_{23}$} (3);
+\draw[->, thick] (2) -- node[left] {$x_{24}$} (4);
+\end{tikzpicture}
+\end{center}
+
+Vincolo al nodo 2:
+\begin{equation}
+x_{12} = x_{23} + x_{24}
+\end{equation}
+\end{exbox}
+
+\subsection{Vincoli Logici}
+
+\subsubsection{OR ($\vee$): Almeno uno}
+\begin{equation}
+x + y \geq 1
+\end{equation}
+Almeno una delle due variabili deve valere 1.
+
+\subsubsection{AND ($\wedge$): Entrambi}
+\begin{equation}
+\begin{cases} x \geq 1 \\ y \geq 1 \end{cases}
+\end{equation}
+Entrambe le variabili devono valere 1.
+
+\subsubsection{Implicazione ($\to$): Se... allora...}
+\begin{equation}
+x \leq y
+\end{equation}
+Se $x=1$ allora deve essere $y=1$.
+
+\subsubsection{XOR ($\oplus$): Uno esclude l'altro}
+\begin{equation}
+x + y = 1
+\end{equation}
+Esattamente una delle due deve valere 1.
+
+\subsection{Vincoli ``O questo O quello'' con Variabili Continue}
+
+\textbf{Problema}: Voglio $x = 0$ OPPURE $a \leq x \leq b$ (con $a > 0$)
+
+\textbf{Soluzione}: Introduco una variabile binaria $y$
+
+\begin{equation}
+\begin{aligned}
+a \cdot y &\leq x \leq b \cdot y \\
+y &\in \{0, 1\}
+\end{aligned}
+\end{equation}
+
+\textbf{Come funziona}:
+\begin{itemize}
+\item Se $y = 0$ $\Rightarrow$ $x = 0$
+\item Se $y = 1$ $\Rightarrow$ $a \leq x \leq b$
+\end{itemize}
+
+\section{Trasformazioni Fondamentali}
+
+\subsection{Da $\geq$ a $\leq$}
+
+\begin{equation}
+a \cdot x \geq b \quad \Leftrightarrow \quad -a \cdot x \leq -b
+\end{equation}
+
+\begin{warnbox}
+\textbf{Mnemotecnica}: Moltiplico tutto per -1 e inverto il segno di disuguaglianza.
+\end{warnbox}
+
+\subsection{Da $\leq$ a $=$ (Variabili Slack)}
+
+\begin{equation}
+a \cdot x \leq b \quad \Leftrightarrow \quad a \cdot x + s = b, \quad s \geq 0
+\end{equation}
+
+\textbf{Significato di $s$}: Quanto margine ho ancora (risorsa inutilizzata).
+
+\begin{exbox}
+Se $2x \leq 10$ e $x = 3$ $\Rightarrow$ $s = 10 - 6 = 4$
+\end{exbox}
+
+\subsection{Da $\geq$ a $=$ (Variabili Slack)}
+
+\begin{equation}
+a \cdot x \geq b \quad \Leftrightarrow \quad a \cdot x - s = b, \quad s \geq 0
+\end{equation}
+
+\textbf{Significato di $s$}: Quanto sto superando il minimo.
+
+\subsection{Da $=$ a due disuguaglianze}
+
+\begin{equation}
+a \cdot x = b \quad \Leftrightarrow \quad \begin{cases} a \cdot x \leq b \\ a \cdot x \geq b \end{cases}
+\end{equation}
+
+\textbf{Interpretazione geometrica}: Un'uguaglianza è l'intersezione di due semipiani.
+
+\section{Esempi Applicativi Completi}
+
+\subsection{Problema della Dieta}
+
+\begin{exbox}
+\textbf{Contesto}: Devo mangiare almeno 700 calorie scegliendo tra vari cibi.
+
+\textbf{Dati}:
+\begin{center}
+\begin{tabular}{lc}
+\toprule
+Cibo & Calorie/hg \\
+\midrule
+Pasta & 300 \\
+Riso & 250 \\
+Salmone & 200 \\
+Pollo & 550 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Vincolo aggiuntivo}: O salmone O pollo (non entrambi).
+\end{exbox}
+
+\textbf{Modello}:
+
+\begin{equation}
+\begin{aligned}
+\min \quad & \text{(costo totale)} \\
+\text{s.t.} \quad & 300x_p + 250x_r + 200x_s + 550x_{po} \geq 700 \\
+& x_s \leq M \cdot y_s \\
+& x_{po} \leq M \cdot y_{po} \\
+& y_s + y_{po} \leq 1 \\
+& x_p, x_r, x_s, x_{po} \geq 0 \\
+& y_s, y_{po} \in \{0,1\}
+\end{aligned}
+\end{equation}
+
+\textbf{Spiegazione}:
+\begin{itemize}
+\item $y_s = 1$ se prendo salmone, 0 altrimenti
+\item $y_{po} = 1$ se prendo pollo, 0 altrimenti
+\item $y_s + y_{po} \leq 1$ impone la scelta esclusiva
+\end{itemize}
+
+\subsection{Panetteria Multi-Periodo}
+
+\begin{exbox}
+\textbf{Contesto}: Produco pane per 3 giorni con domanda variabile.
+
+\textbf{Dati}:
+\begin{itemize}
+\item Domanda: $d_1 = 100$, $d_2 = 150$, $d_3 = 80$
+\item Capacità produttiva: $[q, Q] = [50, 200]$ pezzi/giorno
+\item Costo produzione: $c_t = 2$€/pezzo
+\item Costo inventario: $g = 0.5$€/pezzo/giorno
+\item Costo setup: $S = 50$€ (se produco)
+\end{itemize}
+\end{exbox}
+
+\textbf{Variabili}:
+\begin{itemize}
+\item $x_t$ = quantità prodotta al giorno $t$
+\item $z_t$ = inventario a fine giornata $t$
+\item $y_t = 1$ se produco al giorno $t$
+\end{itemize}
+
+\textbf{Modello}:
+
+\begin{equation}
+\begin{aligned}
+\min \quad & \sum_{t=1}^3 (c_t \cdot x_t + g \cdot z_t + S \cdot y_t) \\
+\text{s.t.} \quad & z_t = z_{t-1} + x_t - d_t \quad \forall t \\
+& q \cdot y_t \leq x_t \leq Q \cdot y_t \quad \forall t \\
+& z_0 = 0, \quad z_t \geq 0 \quad \forall t \\
+& y_t \in \{0,1\} \quad \forall t
+\end{aligned}
+\end{equation}
+
+\section{Errori Comuni da Evitare}
+
+\subsection{Errore 1: Moltiplicare variabili tra loro}
+
+\begin{warnbox}
+\textbf{SBAGLIATO}:
+\begin{equation}
+x_{\text{salmone}} \cdot y_{\text{salmone}} \leq 100
+\end{equation}
+
+\textbf{Problema}: Questo crea un vincolo \textbf{non lineare} molto difficile da risolvere!
+
+\textbf{CORRETTO}:
+\begin{equation}
+x_{\text{salmone}} \leq M \cdot y_{\text{salmone}}
+\end{equation}
+\end{warnbox}
+
+\subsection{Errore 2: Dimenticare i vincoli di collegamento}
+
+\begin{warnbox}
+Se introduci una variabile binaria $y$ per controllare una variabile continua $x$, DEVI collegarle!
+
+\textbf{SBAGLIATO}:
+\begin{equation}
+\begin{aligned}
+& x_s + x_{po} \leq 100 \\
+& y_s + y_{po} \leq 1 \\
+& \text{(mancano i collegamenti!)}
+\end{aligned}
+\end{equation}
+
+\textbf{CORRETTO}:
+\begin{equation}
+\begin{aligned}
+& x_s + x_{po} \leq 100 \\
+& x_s \leq M \cdot y_s \\
+& x_{po} \leq M \cdot y_{po} \\
+& y_s + y_{po} \leq 1
+\end{aligned}
+\end{equation}
+\end{warnbox}
+
+\subsection{Errore 3: Big-M troppo grande}
+
+\begin{warnbox}
+Se $M$ è troppo grande (es. $M = 10^{10}$), il solver lavora male.
+
+\textbf{REGOLA}: Usa il $M$ valido più piccolo possibile!
+
+\textbf{Esempio}: Se $x \leq 100$ sempre, usa $M = 100$, non $M = 999999$.
+\end{warnbox}
+
+\subsection{Errore 4: Usare $=$ quando serve $\leq$}
+
+\begin{warnbox}
+\textbf{SBAGLIATO} (nel set covering):
+\begin{equation}
+\sum_{j \in F_i} x_j = 1 \quad \text{(troppo rigido!)}
+\end{equation}
+
+\textbf{CORRETTO}:
+\begin{equation}
+\sum_{j \in F_i} x_j \geq 1 \quad \text{(almeno uno)}
+\end{equation}
+\end{warnbox}
+
+\subsection{Errore 5: Confondere obiettivi multipli}
+
+\begin{warnbox}
+Se hai 2 obiettivi:
+\begin{enumerate}
+\item Minimizzare costi
+\item Massimizzare copertura
+\end{enumerate}
+
+\textbf{NON puoi scrivere}:
+\begin{equation}
+\begin{aligned}
+\min & \sum c_j y_j \\
+\max & \sum x_{ij}
+\end{aligned}
+\end{equation}
+
+\textbf{Devi scegliere}:
+\begin{itemize}
+\item \textbf{Opzione A}: Funzione pesata $\to$ $\max \alpha \sum x_{ij} - \sum c_j y_j$
+\item \textbf{Opzione B}: Vincolo su uno $\to$ $\min \sum c_j y_j$ con $\sum x_{ij} \geq \text{target}$
+\end{itemize}
+\end{warnbox}
+
+\section{Formulario Rapido}
+
+\subsection{Trasformazioni Base}
+
+\begin{center}
+\begin{tabular}{rcl}
+\toprule
+$\max f(x)$ & $\Leftrightarrow$ & $\min -f(x)$ \\[0.5em]
+$ax \geq b$ & $\Leftrightarrow$ & $-ax \leq -b$ \\[0.5em]
+$ax \leq b$ & $\Leftrightarrow$ & $ax + s = b, \; s \geq 0$ \\[0.5em]
+$ax = b$ & $\Leftrightarrow$ & $\begin{cases} ax \leq b \\ ax \geq b \end{cases}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Vincoli Logici (variabili binarie)}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Tipo} & \textbf{Formulazione} \\
+\midrule
+OR & $x + y \geq 1$ \\
+AND & $x \geq 1, \; y \geq 1$ \\
+Implicazione & $x \leq y$ \\
+XOR & $x + y = 1$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Linking Constraints}
+
+\begin{equation}
+x \leq M \cdot y, \quad y \in \{0,1\}
+\end{equation}
+
+\textbf{Effetto}: Se $y=0$ $\Rightarrow$ $x=0$; se $y=1$ $\Rightarrow$ $x \leq M$
+
+\end{document}
