@@ -207,7 +207,7 @@ min Σ_{(i,j)∈A} c_ij · x_ij
 x_ij ∈ {0,1}    ∀(i,j) ∈ A
 ```
 
-Dove δ(S) rappresenta il **taglio** (cut) definito dal sottoinsieme S di nodi.
+Dove δ(S) (= insieme di archi) rappresenta il **taglio** (cut) definito dal sottoinsieme S di nodi.
 
 > **⚠️ Complessità**
 > 
