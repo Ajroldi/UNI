@@ -485,7 +485,7 @@ T(n,m) = O(n) + O(n) · O(1) + O(m)
 
 #### Collegamenti con Altre Proprietà
 
-**Lemma di Farkas per Grafi**: Questa proprietà è l'analogo grafico del lemma di Farkas in programmazione lineare.
+**Lemma di Farkas per Grafi**: un sistema di equazioni lineari ha **una soluzione** oppure esiste un **certificato** (una combinazione lineare) che dimostra che nessuna soluzione è possibile — ma non entrambe le cose
 
 **Lemma di Colorazione di Menger**: Versione con colorazione casuale degli archi:
 - O trovi un percorso fatto di archi di 2 colori
