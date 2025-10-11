@@ -237,8 +237,8 @@ p_i = {
 > - L'ordine di esplorazione
 > 
 > Possibili politiche:
-> - **FIFO** (Queue): Breadth-First Search
-> - **LIFO** (Stack): Depth-First Search
+> - **FIFO** (Queue): Breadth-First Search (ricerca in ampiezza) = visito prima tutti i nodi vicini alla sorgente, poi quelli più lontani
+> - **LIFO** (Stack): Depth-First Search (Ricerca in Profondità) = esploro un grafo andando il più lontano possibile lungo un percorso prima di tornare indietro per esplorare gli altri rami
 > - **Priority Queue**: Dijkstra (per shortest path)
 
 ### <a name="pseudocodice-visita"></a>4.2 Pseudocodice e Funzionamento
