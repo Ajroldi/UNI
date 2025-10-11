@@ -334,7 +334,7 @@ Sia n = |N| il numero di nodi e m = |A| il numero di archi.
    - m iterazioni
    - Ogni iterazione: 2 operazioni FIND + 1 UNION
    - Costo ammortizzato per operazione: O(α(n))
-   - Dove α(n) è la funzione **inversa di Ackermann**
+   - Dove α(n) è la funzione **inversa di Ackermann** (= una funzione che cresce più lentamente di qualsiasi altra funzione usata in informatica, posso vederla come una costante).
 
 #### Complessità Totale
 
