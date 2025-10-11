@@ -241,7 +241,7 @@ L'**algoritmo di Kruskal** è un algoritmo **greedy** (goloso) che costruisce l'
 KRUSKAL(G, c):
     1. Ordina gli archi A in ordine crescente di costo c
     2. Inizializza T = ∅ (insieme archi dell'MST)
-    3. Inizializza n componenti connesse (ogni nodo è una componente)
+    3. Inizializza n componenti connesse (ogni nodo è una componente) = non esistono connessioni tra nodi per ora
     
     4. Per ogni arco (i,j) in ordine crescente di costo:
         5. Se i e j appartengono a componenti diverse:
