@@ -211,16 +211,16 @@ Dove δ(S) (= insieme di archi) rappresenta il **taglio** (cut) definito dal sot
 
 > **⚠️ Complessità**
 > 
-> Il numero di vincoli di connettività è **esponenziale** nel numero di nodi (2^n - 2 vincoli possibili).
+> Il numero di vincoli di connettività è **esponenziale** nel numero di nodi (2^n - 2 vincoli possibili = tutti i possibili sottoinsiemi non banali di archi, cioè i possibili tagli).
 > 
 > Tuttavia, il problema MST è risolvibile in **tempo polinomiale** grazie al **problema di separazione**, che può essere risolto trovando il taglio minimo in tempo polinomiale.
 
-**Separazione dei Vincoli**:
+**Separazione dei Vincoli (problema di separazione)**:
 
-Dato una soluzione x*, per verificare se viola qualche vincolo di connettività:
-1. Costruiamo un grafo con gli archi dove x*_ij > 0
-2. Cerchiamo un taglio minimo
-3. Se il taglio minimo ha capacità < 1, abbiamo trovato un vincolo violato
+Dato una soluzione x* candidata, per verificare se viola qualche vincolo di connettività (sono troppi per controllarli ciascuno):
+1. Costruiamo un grafo con gli archi dove x*_ij > 0 (archi presenti nella soluzione x*)
+2. Cerchiamo un **taglio minimo** (questa ricerca si risolve in tempo polinomiale)
+3. Se il taglio minimo ha capacità < 1, abbiamo trovato un vincolo violato (c’è meno di un collegamento “completo” che collega il gruppo al resto, quindi il grafo rischia di spezzarsi in due parti separate).
 4. Altrimenti, la soluzione è ammissibile
 
 Questo significa che, anche con vincoli esponenziali, possiamo risolvere il problema in tempo polinomiale.
