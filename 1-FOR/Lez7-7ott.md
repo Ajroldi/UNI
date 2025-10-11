@@ -276,7 +276,7 @@ Consideriamo un grafo con archi ordinati:
 
 `00:31:00 - 00:33:30`
 
-Per implementare efficientemente l'algoritmo di Kruskal, utilizziamo la struttura dati **Find-Union** (o **Union-Find** o **Disjoint Set**).
+Per implementare efficientemente l'algoritmo di Kruskal, utilizziamo la struttura dati **Find-Union** (o **Union-Find** o **Disjoint Set**). Serve per tenere traccia dei gruppi di nodi collegati tra loro in un grafo, quindi collega due gruppi (se erano separati) in un unico insieme.
 
 #### Operazioni Fondamentali
 
