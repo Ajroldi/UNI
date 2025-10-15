@@ -122,27 +122,32 @@ Il framework \textbf{World-Machine} (o Environment-Machine) distingue tra:
 
 \begin{center}
 \begin{tikzpicture}[scale=0.9]
+% Attiva la fusione dei colori
+\begin{scope}[blend group = multiply]
+
 % Cerchio Mondo
-\draw[thick, fill=yellow!20] (-2.5,0) circle (2.3cm);
-\node at (-2.5,1.8) {\textbf{MONDO}};
-\node[align=center] at (-2.5,0.3) {Ambiente\\Reale};
+\fill[yellow!40] (-1.7,0) circle (3.4cm);
+\draw[thick] (-1.7,0) circle (3.4cm);
 
-% Cerchio Macchina  
-\draw[thick, fill=blue!20] (2.5,0) circle (2.3cm);
-\node at (2.5,1.8) {\textbf{MACCHINA}};
-\node[align=center] at (2.5,0.3) {Software\\Sistema};
+% Cerchio Macchina
+\fill[blue!40] (1.7,0) circle (3.4cm);
+\draw[thick] (1.7,0) circle (3.4cm);
 
-% Intersezione
-\begin{scope}
-\clip (-2.5,0) circle (2.3cm);
-\fill[green!30] (2.5,0) circle (2.3cm);
 \end{scope}
 
-\node[align=center] at (0,0.5) {\textbf{Fenomeni}};
-\node[align=center] at (0,-0.2) {\textbf{Condivisi}};
-\node[align=center, font=\small] at (0,-0.8) {(Interfaccia)};
+% Etichette
+\node at (-2.9,1.8) {\textbf{MONDO}};
+\node[align=center] at (-3.5,0.3) {Ambiente\\Reale};
+
+\node at (2.9,1.8) {\textbf{MACCHINA}};
+\node[align=center] at (3.5,0.3) {Software\\Sistema};
+
+\node[align=center, font=\bfseries] at (0,0.5) {Fenomeni};
+\node[align=center, font=\bfseries] at (0,-0.1) {Condivisi};
+\node[align=center, font=\small] at (0,-0.7) {(Interfaccia)};
 \end{tikzpicture}
 \end{center}
+
 
 \subsubsection{Classificazione dei Fenomeni}
 
@@ -229,11 +234,11 @@ Leggi: ``Requirements AND Domain assumptions IMPLY Goals''
 \begin{center}
 \begin{tikzpicture}[node distance=1.8cm and 2.5cm]
 \node (goal) [rectangle, draw, fill=blue!20, text width=3.5cm, text centered, minimum height=1.2cm] {\textbf{GOAL}\\Obiettivo};
-\node (req) [rectangle, draw, fill=green!20, text width=3.5cm, text centered, below left=of goal, minimum height=1.2cm] {\textbf{REQUIREMENTS}\\Software};
+\node (req) [rectangle, draw, fill=green!20, text width=4.2cm, text centered, below left=of goal, minimum height=1.2cm] {\textbf{REQUIREMENTS}\\Software};
 \node (dom) [rectangle, draw, fill=yellow!20, text width=3.5cm, text centered, below right=of goal, minimum height=1.2cm] {\textbf{DOMAIN}\\Mondo};
 
-\draw[->, very thick] (req) -- node[left] {$\land$} (goal);
-\draw[->, very thick] (dom) -- node[right] {$\land$} (goal);
+\draw[->, very thick] (req) -- node[left, yshift=4pt] {$\land$} (goal);
+\draw[->, very thick] (dom) -- node[right, yshift=4pt] {$\land$} (goal);
 
 \node[below=0.3cm of req, font=\small] {Cosa software fa};
 \node[below=0.3cm of dom, font=\small] {Cosa mondo fa};
@@ -291,27 +296,27 @@ Un \textbf{Use Case Diagram} mostra:
 \node at (0,0.5) {\textbf{Utente}};
 
 % Sistema
-\draw[thick] (3,0.5) rectangle (8,4.5);
+\draw[thick] (2.7,0.5) rectangle (10,4.5);
 \node at (5.5,4.8) {\textbf{Sistema}};
 
 % Use Cases
 \draw (4.5,3.5) ellipse (1.2cm and 0.5cm);
 \node at (4.5,3.5) {Login};
 
-\draw (6.5,3.5) ellipse (1.2cm and 0.5cm);
-\node at (6.5,3.5) {Registrazione};
+\draw (8,3.5) ellipse (1.4cm and 0.5cm);
+\node at (8,3.5) {Registrazione};
 
 \draw (4.5,2) ellipse (1.5cm and 0.5cm);
 \node at (4.5,2) {Invia Domanda};
 
-\draw (6.5,2) ellipse (1.5cm and 0.5cm);
-\node at (6.5,2) {Controlla Stato};
+\draw (8,2) ellipse (1.5cm and 0.5cm);
+\node at (8,2) {Controlla Stato};
 
 % Relazioni
 \draw[->] (0.5,2.5) -- (3.3,3.5);
-\draw[->] (0.5,2.5) -- (5.3,3.5);
+\draw[->] (0.5,2.5) -- (6.6,3.5);
 \draw[->] (0.5,2.5) -- (3,2);
-\draw[->] (0.5,2.5) -- (5,2);
+\draw[->] (0.5,2.5) -- (6.5,2);
 \end{tikzpicture}
 \end{center}
 
@@ -343,62 +348,6 @@ Un use case completo contiene:
 \item \textbf{Requisiti speciali}: Non-funzionali specifici
 \end{enumerate}
 \end{defbox}
-
-\begin{exbox}
-\textbf{Esempio Completo: Prelevare Contante da ATM}
-
-\textbf{Nome}: Prelevare Contante
-
-\textbf{Attori}:
-\begin{itemize}[leftmargin=*]
-\item Primario: Cliente (bancario)
-\item Secondario: Sistema Bancario (verifica saldo)
-\end{itemize}
-
-\textbf{Precondizioni}:
-\begin{itemize}[leftmargin=*]
-\item Cliente possiede carta ATM valida
-\item ATM funzionante e con contante disponibile
-\end{itemize}
-
-\textbf{Flusso Principale}:
-\begin{enumerate}[leftmargin=*]
-\item Cliente inserisce carta ATM
-\item Sistema legge carta e richiede PIN
-\item Cliente inserisce PIN
-\item Sistema verifica PIN con banca
-\item Sistema mostra menu operazioni
-\item Cliente seleziona ``Prelievo''
-\item Cliente inserisce importo (es: 100€)
-\item Sistema verifica saldo con banca
-\item Sistema eroga contante
-\item Sistema stampa ricevuta
-\item Sistema restituisce carta
-\item Cliente ritira contante e carta
-\end{enumerate}
-
-\textbf{Postcondizioni}:
-\begin{itemize}[leftmargin=*]
-\item Conto cliente addebitato dell'importo
-\item Transazione registrata nel sistema
-\item ATM aggiorna contante residuo
-\end{itemize}
-
-\textbf{Flussi Alternativi}:
-\begin{itemize}[leftmargin=*]
-\item \textbf{3a}: PIN errato → Sistema chiede reinserimento (max 3 tentativi)
-\item \textbf{3b}: Dopo 3 tentativi errati → Sistema trattiene carta
-\item \textbf{8a}: Saldo insufficiente → Sistema notifica e torna a passo 5
-\item \textbf{9a}: ATM senza contante → Sistema mostra errore e termina
-\end{itemize}
-
-\textbf{Requisiti Speciali}:
-\begin{itemize}[leftmargin=*]
-\item Verifica PIN in < 3 secondi
-\item Comunicazione con banca criptata (TLS 1.3)
-\item Log transazione per audit
-\end{itemize}
-\end{exbox}
 
 \subsubsection{Identificazione degli Attori}
 
@@ -466,28 +415,28 @@ Esistono 3 tipi di relazioni:
 \begin{center}
 \begin{tikzpicture}[scale=0.9, every node/.style={scale=0.85}]
 % Include example
-\draw (0,3) ellipse (1.3cm and 0.5cm);
-\node at (0,3) {Checkout};
+\draw (-2,3) ellipse (1.3cm and 0.5cm);
+\node at (-2,3) {Checkout};
 \draw (3,3) ellipse (1.5cm and 0.5cm);
 \node at (3,3) {Calcola Totale};
-\draw[->, dashed, thick] (1.3,3) -- node[above] {«include»} (1.5,3);
+\draw[->, dashed, thick] (-0.7,3) -- node[above] {«include»} (1.5,3);
 
 % Extend example
-\draw (0,1) ellipse (1cm and 0.5cm);
-\node at (0,1) {Login};
+\draw (-2,1) ellipse (1cm and 0.5cm);
+\node at (-2,1) {Login};
 \draw (3,1) ellipse (1.5cm and 0.5cm);
 \node at (3,1) {Reset Password};
-\draw[->, dashed, thick] (3,1) -- node[above] {«extend»} (1.5,1);
+\draw[->, dashed, thick] (-1,1) -- node[above] {«extend»} (1.5,1);
 
 % Generalization example
-\draw (0,-1) ellipse (1cm and 0.5cm);
-\node at (0,-1) {Pagare};
-\draw (2.5,-2) ellipse (1.4cm and 0.5cm);
-\node at (2.5,-2) {Paga Carta};
-\draw (2.5,0) ellipse (1.4cm and 0.5cm);
-\node at (2.5,0) {Paga PayPal};
-\draw[->, thick] (1.1,-1.8) -- (1,-1);
-\draw[->, thick] (1.1,-0.2) -- (1,-1);
+\draw (0,-1.3) ellipse (1cm and 0.5cm);
+\node at (0,-1.3) {Pagare};
+\draw (3.5,-2.2) ellipse (1.4cm and 0.5cm);
+\node at (3.5,-2.2) {Paga Carta};
+\draw (3.5,-0.3) ellipse (1.4cm and 0.5cm);
+\node at (3.5,-0.3) {Paga PayPal};
+\draw[->, thick] (2.1,-2.1) -- (1,-1.3);
+\draw[->, thick] (2.1,-0.4) -- (1,-1.2);
 \end{tikzpicture}
 \end{center}
 
@@ -598,25 +547,25 @@ Un \textbf{Class Diagram} modella:
 
 \begin{center}
 \begin{tikzpicture}
-% Classe Persona
-\draw (0,0) rectangle (3,2.5);
-\draw (0,2) -- (3,2);
-\draw (0,1.2) -- (3,1.2);
-\node at (1.5,2.25) {\textbf{Person}};
-\node[align=left] at (1.5,1.6) {-name: String\\-age: int};
-\node[align=left] at (1.5,0.6) {+getName()\\+setAge()};
+% Classe Person
+\draw (0,0) rectangle (3,3.5);
+\draw (0,2.8) -- (3,2.8);
+\draw (0,1.8) -- (3,1.8);
+\node at (1.5,3.15) {\textbf{Person}};
+\node[align=left] at (1.5,2.3) {-name: String\\-age: int};
+\node[align=left] at (1.5,0.9) {+getName()\\+setAge()};
 
-% Classe Studente
-\draw (5,0) rectangle (8,2.5);
-\draw (5,2) -- (8,2);
-\draw (5,1.2) -- (8,1.2);
-\node at (6.5,2.25) {\textbf{Student}};
-\node[align=left] at (6.5,1.6) {-studentID: String\\-course: String};
-\node[align=left] at (6.5,0.6) {+enroll()\\+graduate()};
+% Classe Student (più larga di 0.6 cm)
+\draw (5,0) rectangle (8.6,3.5);
+\draw (5,2.8) -- (8.6,2.8);
+\draw (5,1.8) -- (8.6,1.8);
+\node at (6.8,3.15) {\textbf{Student}};
+\node[align=left] at (6.8,2.3) {-studentID: String\\-course: String};
+\node[align=left] at (6.8,0.9) {+enroll()\\+graduate()};
 
 % Ereditarietà
-\draw[->, thick] (5,1.25) -- (3,1.25);
-\node[above] at (4,1.25) {\small extends};
+\draw[->, thick] (5,1.75) -- (3,1.75);
+\node[above] at (4,1.75) {\small extends};
 \end{tikzpicture}
 \end{center}
 
@@ -637,24 +586,25 @@ Un \textbf{Sequence Diagram} mostra come gli oggetti interagiscono nel tempo att
 \begin{center}
 \begin{tikzpicture}
 % Oggetti
-\node[draw, rectangle] (user) at (0,4) {User};
-\node[draw, rectangle] (system) at (3,4) {System};
-\node[draw, rectangle] (db) at (6,4) {Database};
+\node[draw, rectangle, minimum width=2cm, minimum height=0.8cm] (user) at (0,5) {User};
+\node[draw, rectangle, minimum width=2cm, minimum height=0.8cm] (system) at (4,5) {System};
+\node[draw, rectangle, minimum width=2cm, minimum height=0.8cm] (db) at (8,5) {Database};
 
 % Lifelines
-\draw[dashed] (user) -- (0,0);
-\draw[dashed] (system) -- (3,0);
-\draw[dashed] (db) -- (6,0);
-
-% Messaggi
-\draw[->, thick] (0,3.5) -- node[above] {login()} (3,3.5);
-\draw[->, thick] (3,3) -- node[above] {query()} (6,3);
-\draw[->, thick, dashed] (6,2.5) -- node[above] {result} (3,2.5);
-\draw[->, thick, dashed] (3,2) -- node[above] {success} (0,2);
+\draw[dashed, thick] (user) -- (0,0);
+\draw[dashed, thick] (system) -- (4,0);
+\draw[dashed, thick] (db) -- (8,0);
 
 % Activation boxes
-\draw[fill=blue!20] (2.9,3.5) rectangle (3.1,2);
-\draw[fill=green!20] (5.9,3) rectangle (6.1,2.5);
+\draw[fill=blue!20, draw=black] (3.85,4.2) rectangle (4.15,1.5);
+\draw[fill=green!20, draw=black] (7.85,3.2) rectangle (8.15,2.3);
+
+% Messaggi
+\draw[->, thick] (0,4.2) -- node[above, font=\small] {login()} (3.85,4.2);
+\draw[->, thick] (4.15,3.5) -- node[above, font=\small] {query()} (7.85,3.2);
+\draw[->, thick, dashed] (7.85,2.6) -- node[above, font=\small] {result} (4.15,2.6);
+\draw[->, thick, dashed] (3.85,1.8) -- node[above, font=\small] {success} (0,1.8);
+
 \end{tikzpicture}
 \end{center}
 
@@ -665,17 +615,19 @@ Un \textbf{State Machine Diagram} modella il ciclo di vita di un'entità attrave
 \end{defbox}
 
 \begin{center}
-\begin{tikzpicture}[node distance=3cm, auto]
-\node[state, initial] (idle) {Idle};
-\node[state, right of=idle] (active) {Active};
-\node[state, right of=active] (suspended) {Suspended};
-\node[state, accepting, below of=active] (done) {Done};
+\begin{tikzpicture}[node distance=4cm, auto]
+% Nodi
+\node[state, initial, minimum size=1.2cm] (idle) {Idle};
+\node[state, right of=idle, minimum size=1.2cm] (active) {Active};
+\node[state, right of=active, minimum size=1.5cm] (suspended) {Suspended};
+\node[state, accepting, below of=active, minimum size=1.2cm] (done) {Done};
 
-\path[->] 
-(idle) edge node {start} (active)
-(active) edge [bend left] node {pause} (suspended)
-(suspended) edge [bend left] node {resume} (active)
-(active) edge node {finish} (done);
+% Transizioni
+\path[->, thick] 
+(idle) edge node[above] {start} (active)
+(active) edge [bend left=20] node[above] {pause} (suspended)
+(suspended) edge [bend left=20] node[below] {resume} (active)
+(active) edge node[right] {finish} (done);
 \end{tikzpicture}
 \end{center}
 
