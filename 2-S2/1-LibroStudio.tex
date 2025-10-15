@@ -1,0 +1,1308 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[italian]{babel}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\usepackage{enumitem}
+\usepackage{listings}
+
+\geometry{margin=2.5cm}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{shapes,arrows,positioning,automata}
+
+% Definizioni colori
+\definecolor{boxbg}{RGB}{240,248,255}
+\definecolor{warningbg}{RGB}{255,240,240}
+\definecolor{examplebg}{RGB}{240,255,240}
+\definecolor{alloycolor}{RGB}{100,50,150}
+
+% Box colorati
+\newtcolorbox{defbox}{colback=boxbg, colframe=blue!75!black, title=Definizione}
+\newtcolorbox{exbox}{colback=examplebg, colframe=green!75!black, title=Esempio}
+\newtcolorbox{warnbox}{colback=warningbg, colframe=red!75!black, title=Attenzione!}
+\newtcolorbox{tipbox}{colback=yellow!10, colframe=orange!75!black, title=Suggerimento}
+
+% Stile Alloy
+\lstdefinelanguage{Alloy}{
+  keywords={sig, extends, abstract, lone, one, some, set, pred, fun, fact, assert, check, run, all, no, some, for, in, not, and, or, implies, iff},
+  keywordstyle=\color{blue}\bfseries,
+  commentstyle=\color{gray}\itshape,
+  stringstyle=\color{red},
+  morecomment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  sensitive=true
+}
+
+\lstset{
+  language=Alloy,
+  basicstyle=\small\ttfamily,
+  breaklines=true,
+  frame=single,
+  numbers=left,
+  numberstyle=\tiny,
+  captionpos=b
+}
+
+\title{\textbf{Mini-Libro di Studio}\\Software Engineering 2}
+\author{Appunti delle Lezioni 1-8}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Introduzione all'Ingegneria del Software}
+
+Il \textbf{Software Engineering} è la disciplina che applica principi ingegneristici allo sviluppo del software. L'obiettivo principale è creare sistemi \textbf{affidabili} (che funzionano correttamente), \textbf{manutenibili} (facili da modificare), \textbf{scalabili} (gestiscono crescita), \textbf{efficienti} (ottimizzano risorse) ed \textbf{economici} (tempi e costi ragionevoli).
+
+\subsection{Qualità del Software: ISO/IEC 25010:2023}
+
+Lo standard internazionale ISO/IEC 25010 definisce 8 caratteristiche fondamentali della qualità software. Non tutti i sistemi devono eccellere in tutte: sistemi critici (avionica, medicina) puntano su \textbf{reliability} e \textbf{security}, applicazioni consumer su \textbf{usability} e \textbf{performance}, software open-source su \textbf{maintainability} e \textbf{portability}.
+
+\begin{defbox}
+\textbf{Le 8 Caratteristiche di Qualità}:
+\textbf{Functional Suitability} (completezza funzionale), \textbf{Performance Efficiency} (velocità e risorse), \textbf{Compatibility} (interoperabilità), \textbf{Usability} (facilità d'uso), \textbf{Reliability} (disponibilità e tolleranza errori), \textbf{Security} (confidenzialità e integrità), \textbf{Maintainability} (modificabilità), \textbf{Portability} (adattabilità piattaforme).
+\end{defbox}
+
+\subsection{Case Study: CrowdStrike (19 Luglio 2024)}
+
+Il 19 luglio 2024 un aggiornamento difettoso di CrowdStrike causò uno dei più grandi outage della storia: 8.5 milioni di computer Windows in crash, voli cancellati, ospedali e banche bloccati, servizi 911 compromessi. La causa fu un driver kernel con file di configurazione corrotto che causò kernel panic, senza validation pre-deploy.
+
+\begin{warnbox}
+\textbf{Lezione fondamentale}: Un singolo errore software può avere conseguenze globali. L'ingegneria del software non è solo codice, ma gestione del rischio, rollout graduali, fallback mechanisms e validazione estrema per componenti critici.
+\end{warnbox}
+
+\subsection{Ciclo di Vita del Software}
+
+Lo sviluppo software segue un ciclo iterativo: \textbf{Analisi Requisiti} → \textbf{Progettazione} → \textbf{Implementazione} → \textbf{Testing} → \textbf{Manutenzione}. Il ciclo non è lineare: il feedback dalla manutenzione spesso richiede nuovi requisiti o modifiche al design, creando un processo continuo di evoluzione.
+
+\section{Requirement Engineering}
+
+Il \textbf{Requirement Engineering (RE)} è il processo di raccogliere, analizzare, specificare, validare e gestire i requisiti software. È una fase critica perché gli errori qui sono costosi: un errore nei requisiti costa 1x se trovato subito, ma diventa 5x in design, 10x in implementazione, 20x in testing e oltre 100x dopo il rilascio. La crescita è esponenziale!
+
+\subsection{Tipi di Requisiti}
+
+I requisiti si dividono in tre categorie. I \textbf{requisiti funzionali} descrivono cosa il sistema deve fare (es: "il sistema permette login con username e password"). I \textbf{requisiti non-funzionali} descrivono come il sistema si comporta: performance (tempo di risposta < 2s), usabilità, affidabilità (uptime 99.9\%), sicurezza, manutenibilità, portabilità. I \textbf{requisiti tecnici} sono vincoli su tecnologie (es: "sviluppare in Java 17", "database PostgreSQL 14+").
+
+\subsection{Caratteristiche di Buoni Requisiti}
+
+Un requisito ben scritto deve essere: \textbf{chiaro} (una sola interpretazione), \textbf{verificabile} (esiste un test per verificarlo), \textbf{raggiungibile} (tecnicamente ed economicamente possibile), \textbf{completo} (include tutte le informazioni), \textbf{consistente} (non contraddice altri requisiti), e \textbf{tracciabile} (collegato a fonte e test).
+
+\begin{exbox}
+\textbf{Confronto Buono vs Cattivo}:
+\begin{itemize}
+\item Cattivo: "Il sistema deve essere veloce" → Buono: "Risposta < 200ms nel 95\% dei casi"
+\item Cattivo: "Interfaccia intuitiva" → Buono: "Nuovo utente completa primo task in < 5 minuti senza training"
+\item Cattivo: "Alta sicurezza" → Buono: "Autenticazione two-factor + encryption AES-256"
+\end{itemize}
+\end{exbox}
+
+\subsection{Il Framework Mondo-Macchina (Jackson \& Zave)}
+
+\begin{defbox}
+Il framework \textbf{World-Machine} (o Environment-Machine) distingue tra:
+\begin{itemize}
+\item \textbf{Mondo (World)}: ambiente reale in cui il sistema opera
+\item \textbf{Macchina (Machine)}: il software che sviluppiamo
+\item \textbf{Interfaccia (Shared Phenomena)}: interazione tra mondo e macchina
+\end{itemize}
+\end{defbox}
+
+\begin{center}
+\begin{tikzpicture}[scale=0.9]
+% Cerchio Mondo
+\draw[thick, fill=yellow!20] (-2.5,0) circle (2.3cm);
+\node at (-2.5,1.8) {\textbf{MONDO}};
+\node[align=center] at (-2.5,0.3) {Ambiente\\Reale};
+
+% Cerchio Macchina  
+\draw[thick, fill=blue!20] (2.5,0) circle (2.3cm);
+\node at (2.5,1.8) {\textbf{MACCHINA}};
+\node[align=center] at (2.5,0.3) {Software\\Sistema};
+
+% Intersezione
+\begin{scope}
+\clip (-2.5,0) circle (2.3cm);
+\fill[green!30] (2.5,0) circle (2.3cm);
+\end{scope}
+
+\node[align=center] at (0,0.5) {\textbf{Fenomeni}};
+\node[align=center] at (0,-0.2) {\textbf{Condivisi}};
+\node[align=center, font=\small] at (0,-0.8) {(Interfaccia)};
+\end{tikzpicture}
+\end{center}
+
+\subsubsection{Classificazione dei Fenomeni}
+
+\begin{defbox}
+I \textbf{fenomeni} sono eventi, azioni, entità osservabili. Si classificano in:
+
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Fenomeni del Mondo (World-only)}
+\begin{itemize}
+\item Accadono solo nel mondo
+\item Non visibili/controllabili dalla macchina
+\item Es: pensieri utente, eventi naturali
+\end{itemize}
+
+\item \textbf{Fenomeni Condivisi - Controllati dal Mondo}
+\begin{itemize}
+\item Visibili ad entrambi
+\item Controllati dal mondo
+\item Es: click bottone, input utente, sensori
+\end{itemize}
+
+\item \textbf{Fenomeni Condivisi - Controllati dalla Macchina}
+\begin{itemize}
+\item Visibili ad entrambi
+\item Controllati dalla macchina
+\item Es: output su schermo, segnali attuatori
+\end{itemize}
+
+\item \textbf{Fenomeni della Macchina (Machine-only)}
+\begin{itemize}
+\item Accadono solo nella macchina
+\item Non visibili al mondo
+\item Es: variabili interne, calcoli
+\end{itemize}
+\end{enumerate}
+\end{defbox}
+
+\begin{exbox}
+\textbf{Esempio: Sistema ATM}
+
+\begin{itemize}[leftmargin=*]
+\item \textbf{World-only}: Utente decide quanto prelevare (pensiero)
+\item \textbf{Shared, controlled by World}: Inserimento carta, digitazione PIN, pressione tasto
+\item \textbf{Shared, controlled by Machine}: Visualizzazione menu su schermo, erogazione contante
+\item \textbf{Machine-only}: Validazione PIN interna, query database, log transazioni
+\end{itemize}
+\end{exbox}
+
+\subsection{Goals, Domain Assumptions, Requirements}
+
+\begin{defbox}
+Nel framework mondo-macchina distinguiamo:
+
+\textbf{Goals (G)}: Obiettivi che vogliamo raggiungere nel mondo
+\begin{itemize}
+\item Espressi in termini di fenomeni del mondo
+\item Es: ``Passeggeri arrivano a destinazione in sicurezza''
+\end{itemize}
+
+\textbf{Domain Assumptions (D)}: Proprietà del mondo che assumiamo vere
+\begin{itemize}
+\item Fatti sul dominio, non controllabili dal software
+\item Es: ``Le ruote girano solo quando toccano il suolo''
+\end{itemize}
+
+\textbf{Requirements (R)}: Cosa la macchina deve fare
+\begin{itemize}
+\item Espressi in termini di fenomeni condivisi
+\item Es: ``Il sistema applica i freni quando rileva ostacolo''
+\end{itemize}
+\end{defbox}
+
+\subsubsection{Il Criterio di Completezza}
+
+\begin{defbox}
+\textbf{Criterio di Completezza}:
+\[ R \land D \models G \]
+
+Leggi: ``Requirements AND Domain assumptions IMPLY Goals''
+
+\textbf{Significato}: I requisiti del software, combinati con le proprietà del dominio, devono \textbf{garantire logicamente} il raggiungimento dei goals.
+\end{defbox}
+
+\begin{center}
+\begin{tikzpicture}[node distance=1.8cm and 2.5cm]
+\node (goal) [rectangle, draw, fill=blue!20, text width=3.5cm, text centered, minimum height=1.2cm] {\textbf{GOAL}\\Obiettivo};
+\node (req) [rectangle, draw, fill=green!20, text width=3.5cm, text centered, below left=of goal, minimum height=1.2cm] {\textbf{REQUIREMENTS}\\Software};
+\node (dom) [rectangle, draw, fill=yellow!20, text width=3.5cm, text centered, below right=of goal, minimum height=1.2cm] {\textbf{DOMAIN}\\Mondo};
+
+\draw[->, very thick] (req) -- node[left] {$\land$} (goal);
+\draw[->, very thick] (dom) -- node[right] {$\land$} (goal);
+
+\node[below=0.3cm of req, font=\small] {Cosa software fa};
+\node[below=0.3cm of dom, font=\small] {Cosa mondo fa};
+\end{tikzpicture}
+\end{center}
+
+\begin{warnbox}
+\textbf{Validazione delle Domain Assumptions}:
+
+Le assunzioni sul dominio sono \textbf{critiche}: se sono false, il sistema può fallire anche se il software è corretto!
+
+\textbf{Domande chiave}:
+\begin{itemize}[leftmargin=*]
+\item L'assunzione è sempre vera?
+\item Ci sono eccezioni o casi limite?
+\item Cosa succede se l'assunzione viene violata?
+\end{itemize}
+\end{warnbox}
+
+\subsection{Caso di Studio: A320 Reverse Thrust (1993)}
+
+Nel 1993 un Airbus A320 uscì di pista a Varsavia causando 2 morti. L'aereo atterrò con pioggia intensa in aquaplaning: le ruote toccavano il suolo ma non giravano, scivolando sull'acqua. Il sistema reverse thrust non si attivò perché controllava la rotazione delle ruote, non il contatto col suolo. 
+
+Analisi: Goal = "aereo si ferma entro pista", Domain = "ruote girano quando toccano suolo", Requirement = "attiva reverse thrust quando ruote girano". La formula $R \land D \models G$ era corretta, ma l'assunzione D era falsa in aquaplaning! Lezione: le domain assumptions devono essere validate attentamente.
+
+\subsection{Caso Tornello e Sistema Ambulanze}
+
+\textbf{Tornello con badge}: Goal = solo autorizzati entrano (Safety: $E \leq S$) e tutti autorizzati possono entrare (Liveness). Domain = badge non duplicabili, una persona per autorizzazione, tornello blocca fisicamente. Requirements = apri solo con badge valido, chiudi dopo passaggio. Se badge clonato o tailgating, sicurezza compromessa!
+
+\textbf{Sistema ambulanze 118}: Goal = ambulanza arriva in 8 minuti. Domain = traffico predicibile, ambulanze seguono percorso, GPS accurato. Requirements = calcola ambulanza più vicina in <5s, routing con traffico real-time, tracciamento ogni 10s. Formula: $R1 \land R2 \land R3 \land D1 \land D2 \land D4 \models G1$. Se traffico eccezionale, goal può fallire.
+
+\section{UML per Requirement Engineering}
+
+UML (Unified Modeling Language) è un linguaggio di modellazione visuale che offre diversi diagrammi per catturare requisiti da prospettive diverse. I principali sono: \textbf{Use Case} (cosa fa il sistema), \textbf{Class} (quali entità), \textbf{Sequence} (come comunicano), \textbf{State Machine} (ciclo di vita e stati), \textbf{Activity} (workflow e processi).
+
+\subsection{Use Case Diagram}
+
+\begin{defbox}
+Un \textbf{Use Case Diagram} mostra:
+\begin{itemize}
+\item Gli \textbf{attori} (utenti o sistemi esterni)
+\item I \textbf{casi d'uso} (funzionalità del sistema)
+\item Le \textbf{relazioni} tra attori e use case
+\end{itemize}
+\end{defbox}
+
+\begin{center}
+\begin{tikzpicture}
+% Attore
+\node[draw, circle, minimum size=0.8cm] (head) at (0,3) {};
+\draw (0,2.6) -- (0,1.8);
+\draw (-0.4,2.2) -- (0.4,2.2);
+\draw (0,1.8) -- (-0.4,1);
+\draw (0,1.8) -- (0.4,1);
+\node at (0,0.5) {\textbf{Utente}};
+
+% Sistema
+\draw[thick] (3,0.5) rectangle (8,4.5);
+\node at (5.5,4.8) {\textbf{Sistema}};
+
+% Use Cases
+\draw (4.5,3.5) ellipse (1.2cm and 0.5cm);
+\node at (4.5,3.5) {Login};
+
+\draw (6.5,3.5) ellipse (1.2cm and 0.5cm);
+\node at (6.5,3.5) {Registrazione};
+
+\draw (4.5,2) ellipse (1.5cm and 0.5cm);
+\node at (4.5,2) {Invia Domanda};
+
+\draw (6.5,2) ellipse (1.5cm and 0.5cm);
+\node at (6.5,2) {Controlla Stato};
+
+% Relazioni
+\draw[->] (0.5,2.5) -- (3.3,3.5);
+\draw[->] (0.5,2.5) -- (5.3,3.5);
+\draw[->] (0.5,2.5) -- (3,2);
+\draw[->] (0.5,2.5) -- (5,2);
+\end{tikzpicture}
+\end{center}
+
+\begin{tipbox}
+\textbf{Labels importanti}:
+\begin{itemize}
+\item \textbf{initiate}: L'attore avvia il use case
+\item \textbf{participate}: L'attore è coinvolto nel flusso
+\end{itemize}
+\end{tipbox}
+
+\subsubsection{Struttura Dettagliata di un Use Case}
+
+\begin{defbox}
+Un use case completo contiene:
+
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Nome}: Breve, forma verbo (es: ``Prenotare biglietto'')
+\item \textbf{Attori}: Chi interagisce (primari e secondari)
+\item \textbf{Precondizioni}: Cosa deve essere vero prima dell'esecuzione
+\item \textbf{Flusso principale (Main Success Scenario)}:
+\begin{itemize}
+\item Passo 1: attore fa X
+\item Passo 2: sistema risponde con Y
+\item ...
+\end{itemize}
+\item \textbf{Postcondizioni}: Stato finale del sistema
+\item \textbf{Flussi alternativi/eccezioni}: Varianti e gestione errori
+\item \textbf{Requisiti speciali}: Non-funzionali specifici
+\end{enumerate}
+\end{defbox}
+
+\begin{exbox}
+\textbf{Esempio Completo: Prelevare Contante da ATM}
+
+\textbf{Nome}: Prelevare Contante
+
+\textbf{Attori}:
+\begin{itemize}[leftmargin=*]
+\item Primario: Cliente (bancario)
+\item Secondario: Sistema Bancario (verifica saldo)
+\end{itemize}
+
+\textbf{Precondizioni}:
+\begin{itemize}[leftmargin=*]
+\item Cliente possiede carta ATM valida
+\item ATM funzionante e con contante disponibile
+\end{itemize}
+
+\textbf{Flusso Principale}:
+\begin{enumerate}[leftmargin=*]
+\item Cliente inserisce carta ATM
+\item Sistema legge carta e richiede PIN
+\item Cliente inserisce PIN
+\item Sistema verifica PIN con banca
+\item Sistema mostra menu operazioni
+\item Cliente seleziona ``Prelievo''
+\item Cliente inserisce importo (es: 100€)
+\item Sistema verifica saldo con banca
+\item Sistema eroga contante
+\item Sistema stampa ricevuta
+\item Sistema restituisce carta
+\item Cliente ritira contante e carta
+\end{enumerate}
+
+\textbf{Postcondizioni}:
+\begin{itemize}[leftmargin=*]
+\item Conto cliente addebitato dell'importo
+\item Transazione registrata nel sistema
+\item ATM aggiorna contante residuo
+\end{itemize}
+
+\textbf{Flussi Alternativi}:
+\begin{itemize}[leftmargin=*]
+\item \textbf{3a}: PIN errato → Sistema chiede reinserimento (max 3 tentativi)
+\item \textbf{3b}: Dopo 3 tentativi errati → Sistema trattiene carta
+\item \textbf{8a}: Saldo insufficiente → Sistema notifica e torna a passo 5
+\item \textbf{9a}: ATM senza contante → Sistema mostra errore e termina
+\end{itemize}
+
+\textbf{Requisiti Speciali}:
+\begin{itemize}[leftmargin=*]
+\item Verifica PIN in < 3 secondi
+\item Comunicazione con banca criptata (TLS 1.3)
+\item Log transazione per audit
+\end{itemize}
+\end{exbox}
+
+\subsubsection{Identificazione degli Attori}
+
+\begin{defbox}
+Gli \textbf{attori} sono entità esterne che interagiscono col sistema:
+
+\textbf{Attori Umani}:
+\begin{itemize}
+\item Ruoli (non persone specifiche): User, Admin, Manager
+\item Criteri: obiettivi diversi → attori diversi
+\end{itemize}
+
+\textbf{Attori Non-Umani}:
+\begin{itemize}
+\item Altri sistemi software: PaymentGateway, EmailServer
+\item Hardware: GPS, Sensor, Printer
+\item Servizi esterni: CalendarService, WeatherAPI
+\item Timer/Scheduler: CronJob, AutomaticBackup
+\end{itemize}
+\end{defbox}
+
+\begin{exbox}
+\textbf{Sistema Prenotazione Hotel}:
+\begin{itemize}[leftmargin=*]
+\item \textbf{Umani}: Guest (prenota), Receptionist (check-in), Manager (report)
+\item \textbf{Non-umani}: PaymentService (pagamento), EmailService (conferme), CalendarSystem (disponibilità)
+\end{itemize}
+\end{exbox}
+
+\begin{tipbox}
+\textbf{Domanda chiave}: ``Chi/cosa avvia o risponde alle azioni del sistema?''
+
+Se la risposta è ``il sistema da solo'', potrebbe essere un attore Timer!
+\end{tipbox}
+
+\subsubsection{Relazioni tra Use Case}
+
+\begin{defbox}
+Esistono 3 tipi di relazioni:
+
+\textbf{1. Generalizzazione (Inheritance)}
+\begin{itemize}
+\item Use case astratto → use case specializzati
+\item Freccia: da specializzato a generale (triangolo vuoto)
+\item Es: ``Pagare'' $\leftarrow$ ``Paga con Carta'', ``Paga con PayPal''
+\end{itemize}
+
+\textbf{2. Include (Mandatory Inclusion)}
+\begin{itemize}
+\item Use case A include sempre use case B
+\item Freccia tratteggiata: da A a B, label «include»
+\item Es: ``Checkout'' include ``Calcola Totale''
+\item Riuso: comportamento comune estratto
+\end{itemize}
+
+\textbf{3. Extend (Optional Extension)}
+\begin{itemize}
+\item Use case B estende A solo in certe condizioni
+\item Freccia tratteggiata: da B (estensione) a A (base), label «extend»
+\item Extension point: dove avviene estensione
+\item Es: ``Login'' $\leftarrow$ «extend» ``Reset Password'' (solo se dimenticata)
+\end{itemize}
+\end{defbox}
+
+\begin{center}
+\begin{tikzpicture}[scale=0.9, every node/.style={scale=0.85}]
+% Include example
+\draw (0,3) ellipse (1.3cm and 0.5cm);
+\node at (0,3) {Checkout};
+\draw (3,3) ellipse (1.5cm and 0.5cm);
+\node at (3,3) {Calcola Totale};
+\draw[->, dashed, thick] (1.3,3) -- node[above] {«include»} (1.5,3);
+
+% Extend example
+\draw (0,1) ellipse (1cm and 0.5cm);
+\node at (0,1) {Login};
+\draw (3,1) ellipse (1.5cm and 0.5cm);
+\node at (3,1) {Reset Password};
+\draw[->, dashed, thick] (3,1) -- node[above] {«extend»} (1.5,1);
+
+% Generalization example
+\draw (0,-1) ellipse (1cm and 0.5cm);
+\node at (0,-1) {Pagare};
+\draw (2.5,-2) ellipse (1.4cm and 0.5cm);
+\node at (2.5,-2) {Paga Carta};
+\draw (2.5,0) ellipse (1.4cm and 0.5cm);
+\node at (2.5,0) {Paga PayPal};
+\draw[->, thick] (1.1,-1.8) -- (1,-1);
+\draw[->, thick] (1.1,-0.2) -- (1,-1);
+\end{tikzpicture}
+\end{center}
+
+\begin{warnbox}
+\textbf{Include vs Extend - Quando usare?}
+
+\textbf{Include}: comportamento \textbf{sempre necessario}, fattorizzato per riuso
+\begin{itemize}[leftmargin=*]
+\item ``Prenotare Volo'' include ``Verifica Disponibilità'' (sempre!)
+\end{itemize}
+
+\textbf{Extend}: comportamento \textbf{opzionale}, dipende da condizioni
+\begin{itemize}[leftmargin=*]
+\item ``Acquista Prodotto'' extended by ``Applica Codice Sconto'' (solo se cliente ha codice)
+\end{itemize}
+\end{warnbox}
+
+\subsubsection{Da Scenari a Use Case}
+
+\begin{defbox}
+\textbf{Scenario}: Istanza specifica di interazione (esempio concreto)
+
+\textbf{Use Case}: Generalizzazione di più scenari simili
+
+\textbf{Processo}:
+\begin{enumerate}[leftmargin=*]
+\item Raccogliere scenari dagli stakeholder (storie concrete)
+\item Identificare similitudini (stesso obiettivo)
+\item Astrarre scenario principale (flusso tipico)
+\item Catturare varianti come flussi alternativi
+\item Documentare eccezioni
+\end{enumerate}
+\end{defbox}
+
+\begin{exbox}
+\textbf{Scenari} (istanze concrete):
+\begin{itemize}[leftmargin=*]
+\item Scenario 1: Mario prenota biglietto Milano-Roma, paga con carta, riceve email
+\item Scenario 2: Anna prenota Milano-Napoli, paga PayPal, riceve SMS
+\item Scenario 3: Luca prova prenotare, carta rifiutata, riprova con altra carta
+\end{itemize}
+
+\textbf{Use Case} (generalizzazione):
+\begin{itemize}[leftmargin=*]
+\item Nome: ``Prenotare Biglietto Treno''
+\item Flusso principale: selezione tratta → scelta posto → pagamento → conferma
+\item Flussi alternativi: diversi metodi pagamento (carta/PayPal), diverse notifiche (email/SMS)
+\item Eccezioni: pagamento fallito (passo 3a: retry o cancella)
+\end{itemize}
+\end{exbox}
+
+\subsubsection{Name-Verb Analysis per Domain Modeling}
+
+\begin{defbox}
+\textbf{Tecnica Name-Verb Analysis}:
+\begin{itemize}
+\item \textbf{Nomi (Nouns)} → Candidati per \textbf{classi/entità}
+\item \textbf{Verbi (Verbs)} → Candidati per \textbf{operazioni/use case}
+\end{itemize}
+
+\textbf{Processo}:
+\begin{enumerate}[leftmargin=*]
+\item Analizzare descrizioni requisiti e scenari
+\item Sottolineare tutti i sostantivi → lista entità
+\item Sottolineare tutti i verbi → lista azioni
+\item Filtrare: eliminare sinonimi, termini vaghi, ridondanze
+\item Mappare: nomi → classi, verbi → metodi o use case
+\end{enumerate}
+\end{defbox}
+
+\begin{exbox}
+\textbf{Requisito}: ``Il \underline{cliente} può \underline{prenotare} un \underline{biglietto} per un \underline{volo}. Il \underline{sistema} \underline{verifica} la \underline{disponibilità} e \underline{calcola} il \underline{prezzo}. Dopo il \underline{pagamento}, il cliente \underline{riceve} una \underline{conferma}.''
+
+\textbf{Analisi}:
+\begin{itemize}[leftmargin=*]
+\item \textbf{Nomi} (entità): Cliente, Biglietto, Volo, Sistema (scartato - troppo generico), Disponibilità (attributo), Prezzo (attributo), Pagamento, Conferma
+\item \textbf{Verbi} (operazioni): prenotare (use case), verificare (metodo), calcolare (metodo), ricevere (relazione)
+\end{itemize}
+
+\textbf{Domain Model}:
+\begin{itemize}[leftmargin=*]
+\item \textbf{Classi}: Cliente, Biglietto, Volo, Pagamento, Conferma
+\item \textbf{Use Case}: Prenotare Biglietto
+\item \textbf{Metodi}: Volo.verificaDisponibilità(), Biglietto.calcolaPrezzo()
+\end{itemize}
+\end{exbox}
+
+\begin{tipbox}
+\textbf{Filtri Utili}:
+\begin{itemize}[leftmargin=*]
+\item Scartare nomi troppo vaghi: ``informazione'', ``dato'', ``sistema''
+\item Scartare verbi generici: ``gestire'', ``fare'', ``avere''
+\item Unificare sinonimi: ``utente'' = ``cliente''
+\item Distinguere entità da attributi: ``indirizzo'' (attributo di Cliente)
+\end{itemize}
+\end{tipbox}
+
+\subsection{Class Diagram}
+
+\begin{defbox}
+Un \textbf{Class Diagram} modella:
+\begin{itemize}
+\item Le \textbf{entità} (classi) del dominio
+\item I loro \textbf{attributi} e \textbf{operazioni}
+\item Le \textbf{relazioni} tra entità (associazioni, ereditarietà)
+\end{itemize}
+\end{defbox}
+
+\begin{center}
+\begin{tikzpicture}
+% Classe Persona
+\draw (0,0) rectangle (3,2.5);
+\draw (0,2) -- (3,2);
+\draw (0,1.2) -- (3,1.2);
+\node at (1.5,2.25) {\textbf{Person}};
+\node[align=left] at (1.5,1.6) {-name: String\\-age: int};
+\node[align=left] at (1.5,0.6) {+getName()\\+setAge()};
+
+% Classe Studente
+\draw (5,0) rectangle (8,2.5);
+\draw (5,2) -- (8,2);
+\draw (5,1.2) -- (8,1.2);
+\node at (6.5,2.25) {\textbf{Student}};
+\node[align=left] at (6.5,1.6) {-studentID: String\\-course: String};
+\node[align=left] at (6.5,0.6) {+enroll()\\+graduate()};
+
+% Ereditarietà
+\draw[->, thick] (5,1.25) -- (3,1.25);
+\node[above] at (4,1.25) {\small extends};
+\end{tikzpicture}
+\end{center}
+
+\textbf{Molteplicità}:
+\begin{itemize}
+\item \textbf{1} - esattamente uno
+\item \textbf{0..1} - zero o uno
+\item \textbf{*} - zero o più
+\item \textbf{1..*} - uno o più
+\end{itemize}
+
+\subsection{Sequence Diagram}
+
+\begin{defbox}
+Un \textbf{Sequence Diagram} mostra come gli oggetti interagiscono nel tempo attraverso lo scambio di messaggi.
+\end{defbox}
+
+\begin{center}
+\begin{tikzpicture}
+% Oggetti
+\node[draw, rectangle] (user) at (0,4) {User};
+\node[draw, rectangle] (system) at (3,4) {System};
+\node[draw, rectangle] (db) at (6,4) {Database};
+
+% Lifelines
+\draw[dashed] (user) -- (0,0);
+\draw[dashed] (system) -- (3,0);
+\draw[dashed] (db) -- (6,0);
+
+% Messaggi
+\draw[->, thick] (0,3.5) -- node[above] {login()} (3,3.5);
+\draw[->, thick] (3,3) -- node[above] {query()} (6,3);
+\draw[->, thick, dashed] (6,2.5) -- node[above] {result} (3,2.5);
+\draw[->, thick, dashed] (3,2) -- node[above] {success} (0,2);
+
+% Activation boxes
+\draw[fill=blue!20] (2.9,3.5) rectangle (3.1,2);
+\draw[fill=green!20] (5.9,3) rectangle (6.1,2.5);
+\end{tikzpicture}
+\end{center}
+
+\subsection{State Machine Diagram}
+
+\begin{defbox}
+Un \textbf{State Machine Diagram} modella il ciclo di vita di un'entità attraverso i suoi stati e le transizioni.
+\end{defbox}
+
+\begin{center}
+\begin{tikzpicture}[node distance=3cm, auto]
+\node[state, initial] (idle) {Idle};
+\node[state, right of=idle] (active) {Active};
+\node[state, right of=active] (suspended) {Suspended};
+\node[state, accepting, below of=active] (done) {Done};
+
+\path[->] 
+(idle) edge node {start} (active)
+(active) edge [bend left] node {pause} (suspended)
+(suspended) edge [bend left] node {resume} (active)
+(active) edge node {finish} (done);
+\end{tikzpicture}
+\end{center}
+
+\textbf{Elementi chiave}:
+\begin{itemize}
+\item \textbf{Stati}: Configurazioni stabili dell'entità
+\item \textbf{Transizioni}: Cambiamenti di stato scatenati da eventi
+\item \textbf{Eventi}: Trigger delle transizioni (es: \texttt{start}, \texttt{pause})
+\item \textbf{Azioni entry/exit}: 
+  \begin{itemize}
+  \item \textbf{entry}: Azione eseguita quando si \textbf{entra} nello stato
+  \item \textbf{exit}: Azione eseguita quando si \textbf{esce} dallo stato
+  \end{itemize}
+\item \textbf{Stati composti}: Stati che contengono sotto-stati (gerarchie)
+\end{itemize}
+
+\begin{exbox}
+\textbf{Esempio: ATM con entry/exit}
+
+Stato ``Serving Customer'' (Servi Cliente):
+\begin{lstlisting}[language={}]
+Serving Customer
+  entry / read card      // Quando entro: leggo carta
+  exit / eject card      // Quando esco: espello carta
+  
+  [sub-states]:
+    Customer Authentication -> Selecting Transaction -> Transaction
+\end{lstlisting}
+
+\textbf{Flusso}:
+\begin{enumerate}[leftmargin=*]
+\item Entro in ``Serving Customer'' → \textbf{leggo carta} (entry)
+\item Attraverso sotto-stati (autenticazione, selezione, transazione)
+\item Esco da ``Serving Customer'' → \textbf{espello carta} (exit)
+\end{enumerate}
+
+Questo permette di eseguire azioni comuni all'entrata/uscita senza doverle ripetere per ogni sotto-stato!
+\end{exbox}
+
+\subsection{Activity Diagram}
+
+\begin{defbox}
+Un \textbf{Activity Diagram} descrive i flussi di lavoro (workflow) e i processi, mostrando l'ordine delle attività.
+\end{defbox}
+
+\begin{center}
+\begin{tikzpicture}[node distance=1.5cm]
+\node[draw, circle, fill=black, minimum size=0.3cm] (start) {};
+\node[draw, rectangle, rounded corners, below of=start] (a1) {Ricevi Ordine};
+\node[draw, rectangle, rounded corners, below of=a1] (a2) {Verifica Stock};
+\node[draw, diamond, aspect=2, below of=a2] (d1) {Disponibile?};
+\node[draw, rectangle, rounded corners, below left=of d1] (a3) {Riordina};
+\node[draw, rectangle, rounded corners, below right=of d1] (a4) {Prepara Spedizione};
+\node[draw, rectangle, rounded corners, below=2cm of d1] (a5) {Invia Ordine};
+\node[draw, circle, double, below of=a5, minimum size=0.3cm] (end) {};
+
+\draw[->] (start) -- (a1);
+\draw[->] (a1) -- (a2);
+\draw[->] (a2) -- (d1);
+\draw[->] (d1) -- node[left] {No} (a3);
+\draw[->] (d1) -- node[right] {Sì} (a4);
+\draw[->] (a3) |- (a5);
+\draw[->] (a4) |- (a5);
+\draw[->] (a5) -- (end);
+\end{tikzpicture}
+\end{center}
+
+\textbf{Elementi principali}:
+\begin{itemize}[leftmargin=*]
+\item \textbf{Azioni}: Attività eseguite (rettangoli arrotondati)
+\item \textbf{Decisioni}: Rombi con condizioni (es: Disponibile?)
+\item \textbf{Fork}: Barra nera orizzontale che \textbf{divide} il flusso in percorsi paralleli
+\item \textbf{Join}: Barra nera orizzontale che \textbf{sincronizza} percorsi paralleli (aspetta che tutti terminino)
+\item \textbf{Swim Lanes}: Divisione verticale per attori/ruoli (es: Cliente, Sistema, Magazzino)
+\end{itemize}
+
+\begin{exbox}
+\textbf{Esempio con Fork e Join}:
+
+Processo di ordine con attività parallele:
+\begin{enumerate}[leftmargin=*]
+\item Ricevi ordine
+\item \textbf{[FORK]} - Esegui in parallelo:
+  \begin{itemize}
+  \item Verifica disponibilità magazzino
+  \item Autorizza pagamento
+  \item Prepara fattura
+  \end{itemize}
+\item \textbf{[JOIN]} - Aspetta che tutte e tre terminino
+\item Procedi con spedizione
+\end{enumerate}
+
+Il \textbf{fork} permette di eseguire attività contemporaneamente, il \textbf{join} garantisce che tutte siano completate prima di procedere.
+\end{exbox}
+
+\textbf{Swim Lanes}: Permettono di dividere le attività per attori/ruoli responsabili.
+
+\subsection{Limitazioni di UML}
+
+\begin{warnbox}
+\textbf{UML NON può esprimere}:
+\begin{itemize}
+\item Vincoli formali complessi (es: logica matematica)
+\item Goals espressi come formule logiche
+\item Domain properties formali
+\item Verifiche automatiche di correttezza
+\end{itemize}
+
+\textbf{Soluzione}: Linguaggi formali come \textbf{Alloy}!
+\end{warnbox}
+
+\section{Alloy: Linguaggio di Specifica Formale}
+
+\subsection{Cos'è Alloy?}
+
+\begin{defbox}
+\textbf{Alloy} è un linguaggio formale dichiarativo per specificare e analizzare modelli di sistemi software. Permette di:
+\begin{itemize}
+\item Descrivere strutture (signature e relazioni)
+\item Definire vincoli (facts)
+\item Specificare proprietà (assertions)
+\item \textbf{Verificare automaticamente} con l'Alloy Analyzer
+\end{itemize}
+\end{defbox}
+
+\subsection{Componenti Base di Alloy}
+
+\subsubsection{Signatures (Tipi)}
+
+\begin{lstlisting}[caption=Definizione di Signature]
+sig Name {}  // Tipo semplice
+sig Addr {}
+
+sig Book {
+  addr: Name -> lone Addr  // Relazione
+}
+\end{lstlisting}
+
+\textbf{Significato}: 
+\begin{itemize}
+\item \texttt{Name}, \texttt{Addr} sono atomi (elementi base)
+\item \texttt{Book} contiene una relazione \texttt{addr}
+\item \texttt{Name -> lone Addr} significa: ogni nome ha 0 o 1 indirizzo
+\end{itemize}
+
+\subsubsection{Molteplicità}
+
+\begin{center}
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Keyword} & \textbf{Cardinalità} & \textbf{Esempio} \\
+\hline
+\texttt{one} & Esattamente 1 & Ogni persona ha 1 età \\
+\texttt{lone} & 0 o 1 & Un libro ha 0 o 1 autore \\
+\texttt{some} & 1 o più & Un corso ha $\geq$ 1 studente \\
+\texttt{set} & 0 o più & Un autore scrive 0+ libri \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsubsection{Ereditarietà}
+
+\begin{lstlisting}[caption=Extends vs In]
+abstract sig Person {}
+sig Man extends Person {}    // Sottotipo (disjoint)
+sig Woman extends Person {}
+
+sig Trashed in Message {}    // Sottoinsieme (subset)
+\end{lstlisting}
+
+\textbf{Differenza}:
+\begin{itemize}
+\item \textbf{extends}: Crea sottotipo disgiunti (Man e Woman non si sovrappongono)
+\item \textbf{in}: Crea sottoinsieme (Trashed $\subseteq$ Message, può cambiare)
+\end{itemize}
+
+\subsection{Quantificatori}
+
+\begin{defbox}{Quantificatori in Alloy}
+I quantificatori permettono di esprimere proprietà su insiemi di elementi.
+
+\begin{center}
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Sintassi} & \textbf{Significato} \\
+\hline
+\texttt{all x: T | P} & Per ogni x di tipo T vale P \\
+\texttt{some x: T | P} & Esiste almeno un x per cui vale P \\
+\texttt{no x: T | P} & Non esiste x per cui vale P \\
+\texttt{lone x: T | P} & Esiste al più un x (0 o 1) per cui vale P \\
+\texttt{one x: T | P} & Esiste esattamente un x per cui vale P \\
+\hline
+\end{tabular}
+\end{center}
+\end{defbox}
+
+\begin{exbox}{Esempi Pratici}
+\begin{lstlisting}[caption=Uso dei Quantificatori]
+// ALL: Tutti devono soddisfare (vincoli universali)
+fact noSelfAncestor {
+  all p: Person | p not in p.^(father + mother)
+}
+
+// SOME: Almeno uno esiste (scenari)
+pred hasBigFamily {
+  some p: Person | #p.children > 3
+}
+
+// NO: Nessuno soddisfa (divieti)
+fact noSelfMarriage {
+  no p: Person | p in p.wife or p in p.husband
+}
+
+// LONE: Al piu uno (0 o 1)
+fact uniqueRoot {
+  lone p: Person | no p.father and no p.mother
+}
+
+// ONE: Esattamente uno
+pred hasFounder[f: Family] {
+  one p: Person | p in f.members and no p.father
+}
+\end{lstlisting}
+\end{exbox}
+
+\begin{tipbox}
+\textbf{Quando usarli}:
+\begin{itemize}
+\item \textbf{all} $\rightarrow$ vincoli universali (facts)
+\item \textbf{some} $\rightarrow$ scenari esplorativi (run)
+\item \textbf{no} $\rightarrow$ divieti e asserzioni negative
+\item \textbf{lone/one} $\rightarrow$ vincoli di unicità
+\end{itemize}
+\end{tipbox}
+
+\subsection{Operatori Logici}
+
+\begin{defbox}{Operatori Booleani}
+\begin{center}
+\begin{tabular}{|l|c|l|}
+\hline
+\textbf{Operatore} & \textbf{Simbolo} & \textbf{Significato} \\
+\hline
+\texttt{and} & $\land$ & Congiunzione (entrambi veri) \\
+\texttt{or} & $\lor$ & Disgiunzione (almeno uno vero) \\
+\texttt{not} & $\neg$ & Negazione (inverti valore) \\
+\texttt{implies} & $\implies$ & Implicazione (se A allora B) \\
+\texttt{iff} & $\iff$ & Equivalenza (A se e solo se B) \\
+\hline
+\end{tabular}
+\end{center}
+
+\vspace{5pt}
+\textbf{Tabelle di Verità Essenziali}:
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|c|}
+\hline
+\textbf{A} & \textbf{B} & \textbf{A and B} & \textbf{A or B} & \textbf{A implies B} \\
+\hline
+V & V & V & V & V \\
+V & F & F & V & F \\
+F & V & F & V & V \\
+F & F & F & F & V \\
+\hline
+\end{tabular}
+\end{center}
+\end{defbox}
+
+\begin{exbox}{Esempi Operatori Logici}
+\begin{lstlisting}[caption=Combinazioni Logiche]
+// AND: Congiunzione
+fact marriedHaveSpouse {
+  all p: Person | 
+    (p in Man and some p.wife) or
+    (p in Woman and some p.husband)
+}
+
+// IMPLIES: Se...allora
+fact childrenHaveParents {
+  all c: Person | 
+    (some c.children) implies 
+    (some c.father or some c.mother)
+}
+
+// IFF: Equivalenza (necessario e sufficiente)
+pred isMarried[p: Person] {
+  (p in Man) iff (some p.wife)
+}
+
+// NOT: Negazione
+fact noSelfParent {
+  all p: Person | not (p in p.father or p in p.mother)
+}
+\end{lstlisting}
+\end{exbox}
+
+\begin{tipbox}
+\textbf{Priorità} (dal più forte): \texttt{not} $>$ \texttt{and} $>$ \texttt{or} $>$ \texttt{implies} $>$ \texttt{iff}
+
+\textbf{Consiglio}: Usa sempre le parentesi per chiarezza!
+\end{tipbox}
+
+\subsection{Operatori in Alloy}
+
+\subsubsection{Operatori Relazionali}
+
+\begin{center}
+\begin{tabular}{|l|l|p{5cm}|}
+\hline
+\textbf{Operatore} & \textbf{Nome} & \textbf{Descrizione} \\
+\hline
+\texttt{.} & Join & Compone relazioni \\
+\texttt{+} & Unione & Unione di insiemi \\
+\texttt{\&} & Intersezione & Intersezione di insiemi \\
+\texttt{-} & Differenza & Differenza tra insiemi \\
+\texttt{\textasciitilde} & Trasposizione & Inverte le coppie \\
+\texttt{\textasciicircum} & Chiusura transitiva & Tutti i cammini \\
+\texttt{*} & Chiusura riflessiva & Incluso elemento stesso \\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{exbox}
+\textbf{Esempio Join}:
+\begin{lstlisting}
+sig Person {
+  father: lone Person,
+  mother: lone Person
+}
+
+// Nonni paterni e materni
+fun grandparents[p: Person]: set Person {
+  p.(father + mother).(father + mother)
+}
+\end{lstlisting}
+
+\textbf{Spiegazione}:
+\begin{enumerate}
+\item \texttt{father + mother}: Relazione ``genitore'' (unione)
+\item \texttt{p.(father + mother)}: Genitori di \texttt{p}
+\item Secondo join: Genitori dei genitori = nonni
+\end{enumerate}
+\end{exbox}
+
+\subsubsection{Chiusura Transitiva}
+
+\begin{defbox}
+\textbf{Chiusura Transitiva (\texttt{\textasciicircum})}:
+\begin{itemize}
+\item \texttt{R\textasciicircum} = tutti i cammini di lunghezza $\geq 1$ attraverso R
+\item Esempio: \texttt{parent\textasciicircum} = tutti gli antenati
+\end{itemize}
+
+\textbf{Chiusura Riflessiva-Transitiva (\texttt{*})}:
+\begin{itemize}
+\item \texttt{R*} = tutti i cammini di lunghezza $\geq 0$ (include l'elemento stesso)
+\item Esempio: \texttt{parent*} = antenati + se stesso
+\end{itemize}
+\end{defbox}
+
+\begin{center}
+\begin{tikzpicture}[node distance=2cm]
+\node[draw, circle] (a) {A};
+\node[draw, circle, right of=a] (b) {B};
+\node[draw, circle, right of=b] (c) {C};
+\node[draw, circle, right of=c] (d) {D};
+
+\draw[->] (a) -- node[above] {parent} (b);
+\draw[->] (b) -- node[above] {parent} (c);
+\draw[->] (c) -- node[above] {parent} (d);
+
+\draw[->, bend left, blue, thick] (a) to node[above] {\texttt{\textasciicircum parent}} (d);
+\end{tikzpicture}
+\end{center}
+
+\subsection{Predicati e Funzioni}
+
+\subsubsection{Predicati}
+
+\begin{lstlisting}[caption=Definizione di Predicato]
+pred show[b: Book] {
+  #b.addr > 2  // Il libro ha più di 2 entry
+}
+
+run show for 5  // Cerca istanza con max 5 atomi
+\end{lstlisting}
+
+\textbf{Predicati}: Formule booleane con parametri, usati per:
+\begin{itemize}
+\item Esplorare il modello (\texttt{run})
+\item Definire scenari
+\item Descrivere operazioni
+\end{itemize}
+
+\subsubsection{Funzioni}
+
+\begin{lstlisting}[caption=Definizione di Funzione]
+fun ancestors[p: Person]: set Person {
+  p.^(father + mother)
+}
+
+// Uso
+pred hasCommonAncestor[p1, p2: Person] {
+  some ancestors[p1] & ancestors[p2]
+}
+\end{lstlisting}
+
+\textbf{Funzioni}: Restituiscono valori (insiemi, relazioni), usate per calcoli riutilizzabili.
+
+\subsection{Facts e Assertions}
+
+Un \textbf{fact} è un vincolo sempre vero in ogni istanza (es: \texttt{all p: Person | p not in p.\textasciicircum(father + mother)} - nessuno è proprio antenato). I facts sono globali e non hanno parametri. Un'\textbf{assertion} è una proprietà che vogliamo verificare: l'Analyzer cerca un controesempio per falsificarla.
+
+\begin{lstlisting}[caption=Facts vs Assertions]
+// FACT: sempre vero
+fact noSelfAncestor {
+  all p: Person | p not in p.^(father + mother)
+}
+
+// ASSERTION: da verificare
+assert noSelfFather {
+  all p: Person | p != p.father
+}
+check noSelfFather for 5
+\end{lstlisting}
+
+\textbf{Differenza \texttt{run} vs \texttt{check}}: \texttt{run} cerca istanza che soddisfa un predicato, \texttt{check} cerca controesempio che viola un'assertion.
+
+\subsection{Esempio: Family Tree}
+
+In un albero genealogico modelliamo Person con \texttt{father} e \texttt{mother} (molteplicità \texttt{lone}), estendendo in Man e Woman con relazioni \texttt{wife}/\texttt{husband}. Facts chiave: \texttt{noSelfAncestor} (nessuno è proprio antenato usando \texttt{\textasciicircum}), \texttt{symmetricMarriage} (\texttt{wife = \textasciitilde husband} con trasposizione), \texttt{socialConvention} (coniugi non sono antenati). Funzione \texttt{ancestors} usa chiusura transitiva per calcolare tutti gli antenati.
+
+\subsection{Esempio: Address Book}
+
+Una rubrica associa nomi ad indirizzi: \texttt{sig Book \{ addr: Name -> lone Addr \}}. Le operazioni usano la convenzione prime (\texttt{'}) per indicare lo stato successivo. \texttt{add[b, b': Book, n: Name, a: Addr]} aggiunge con \texttt{b'.addr = b.addr + (n -> a)}, \texttt{del} rimuove con differenza insiemistica. Corner case: \texttt{add} permette \texttt{b = b'} se coppia già presente.
+
+\subsection{Bounded Verification}
+
+Alloy analizza solo modelli fino a dimensione N (scope): \texttt{check assertion for N} e \texttt{run predicate for N}. Pro: verifica automatica veloce (SAT solver), trova controesempi concreti. Contro: non è prova formale completa, proprietà potrebbe essere falsa per scope > N. \textbf{Small Scope Hypothesis}: se vale per scope 3-5 spesso vale in generale, ma non è garantito matematicamente. Strategia: inizia con 3-4 per debug veloce, incrementa gradualmente, 5-7 di solito sufficiente.
+
+\section{Alloy 6: Modelli Mutabili}
+
+\subsection{Introduzione alla Mutabilità}
+
+\begin{defbox}
+\textbf{Alloy 6} introduce la possibilità di modellare sistemi che \textbf{evolvono nel tempo}:
+\begin{itemize}
+\item Relazioni che \textbf{cambiano} valore
+\item Stati che si \textbf{trasformano}
+\item Operazioni con \textbf{pre e post condizioni}
+\end{itemize}
+\end{defbox}
+
+\subsection{Keyword \texttt{var}}
+
+\begin{lstlisting}[caption=Relazioni Variabili]
+sig Book {
+  var addr: Name -> lone Addr  // Può cambiare nel tempo
+}
+
+var sig Message {}  // Il set di messaggi può variare
+\end{lstlisting}
+
+\textbf{Senza \texttt{var}}: Relazione/signature \textbf{immutabile} (stesso valore sempre)
+
+\textbf{Con \texttt{var}}: Relazione/signature \textbf{mutabile} (valori diversi in tempi diversi)
+
+\subsection{Operatore Prime (\texttt{'})}
+
+\begin{defbox}
+L'operatore \textbf{prime (\texttt{'}))} indica il valore di una relazione nel \textbf{prossimo istante temporale}.
+\end{defbox}
+
+\begin{lstlisting}[caption=Operazione con Prime]
+pred add[b: Book, n: Name, a: Addr] {
+  b.addr' = b.addr + (n -> a)  // Next state
+}
+\end{lstlisting}
+
+\textbf{Semantica}:
+\begin{itemize}
+\item \texttt{b.addr}: Valore \textbf{corrente} (tempo T)
+\item \texttt{b.addr'}: Valore \textbf{successivo} (tempo T+1)
+\item L'operazione definisce la \textbf{transizione}
+\end{itemize}
+
+\subsection{Operatori Temporali}
+
+\subsubsection{Operatori Futuri}
+
+\begin{center}
+\begin{tabular}{|l|p{7cm}|}
+\hline
+\textbf{Operatore} & \textbf{Significato} \\
+\hline
+\texttt{after $\phi$} & $\phi$ vale nel \textbf{prossimo istante} \\
+\texttt{always $\phi$} & $\phi$ vale in \textbf{tutti gli istanti futuri} \\
+\texttt{eventually $\phi$} & $\phi$ vale \textbf{prima o poi} in futuro \\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{lstlisting}[caption=Esempi Operatori Futuri]
+// Invariante globale
+fact maxSize {
+  always #Book.addr <= 10
+}
+
+// Prima o poi si rompe
+fact eventuallyBreaks {
+  all d: Device | eventually d.status = Broken
+}
+
+// Dopo l'operazione
+pred addThenCheck[b: Book, n: Name, a: Addr] {
+  add[b, n, a]
+  after (n -> a) in b.addr  // Al prossimo step
+}
+\end{lstlisting}
+
+\subsubsection{Operatori Passati}
+
+\begin{center}
+\begin{tabular}{|l|p{7cm}|}
+\hline
+\textbf{Operatore} & \textbf{Significato} \\
+\hline
+\texttt{before $\phi$} & $\phi$ valeva nell'\textbf{istante precedente} \\
+\texttt{historically $\phi$} & $\phi$ è sempre valsa in \textbf{passato} \\
+\texttt{once $\phi$} & $\phi$ è valsa \textbf{almeno una volta} in passato \\
+\hline
+\end{tabular}
+\end{center}
+
+\begin{warnbox}
+\textbf{Problema con operatori passati}:
+\begin{itemize}
+\item Al tempo T=0 non esiste passato!
+\item \texttt{before} è indefinito a T=0
+\item \textbf{Soluzione}: Usa \texttt{after always} invece di \texttt{always}
+\end{itemize}
+\begin{lstlisting}
+// PROBLEMA
+always (... before ...)  // before indefinito a T=0
+
+// SOLUZIONE
+after always (... before ...)  // Inizia da T=1
+\end{lstlisting}
+\end{warnbox}
+
+\subsection{Esempio: Device con Stati}
+
+\begin{lstlisting}[caption=Modello Device]
+sig Device {
+  var status: DevStatus
+}
+
+enum DevStatus { Working, Broken }
+
+// Una volta rotto, sempre rotto
+fact irreparable {
+  all d: Device |
+    always (
+      (d.status = Broken) implies
+      (after always d.status = Broken)
+    )
+}
+
+// Prima o poi si rompe
+fact eventuallyBreaks {
+  all d: Device |
+    always (
+      (d.status = Working) implies
+      (eventually d.status = Broken)
+    )
+}
+
+pred break[d: Device] {
+  d.status = Working
+  d.status' = Broken  // Transizione
+}
+\end{lstlisting}
+
+\subsection{Comando Run con Steps}
+
+\begin{lstlisting}[caption=Esecuzione Temporale]
+pred show {
+  #Book.addr = 0        // T=0: vuoto
+  ; #Book.addr = 1      // T=1: 1 elemento
+  ; #Book.addr = 2      // T=2: 2 elementi
+}
+
+run show for 5 but 3 steps
+//           ^      ^
+//         scope  passi temporali
+\end{lstlisting}
+
+L'Analyzer genera una \textbf{traccia temporale} mostrando l'evoluzione del sistema.
+
+\section{Pattern e Best Practices}
+
+Il processo Alloy è iterativo: definisci signature base, esplora con \texttt{run}, identifica mondi indesiderati, aggiungi facts per escluderli, verifica con \texttt{check}, ripeti. Non scrivere tutti i facts subito - usa l'Analyzer come helper per scoprire vincoli necessari. L'Evaluator permette di valutare espressioni su mondi specifici per debug (es: \texttt{Person0.ancestors}). Per verificare se factA implica factB, crea \texttt{pred notFactB} con negazione e fai \texttt{run}: se trova istanza, factA non implica factB.
+
+\textbf{Alloy vs UML}: UML meglio per modellazione concettuale, facilità lettura, grandi sistemi, comunicazione stakeholder. Alloy meglio per vincoli formali, verifica automatica, piccole specifiche, analisi formale. Approccio: UML per modellazione iniziale, Alloy per formalizzare vincoli critici, mantenere consistenza tra modelli.
+
+\section{Checklist e Concetti Chiave}
+
+\textbf{Checklist RE}: Attori? Use case? Class diagram? Sequence diagram? State machine? Goals? Domain assumptions? $R \land D \models G$ verificata?
+
+\textbf{Checklist Alloy}: Signature? Molteplicità? Relazioni? Facts? \texttt{run} testato? \texttt{check} verificato? Corner cases? Evaluator? Scelte documentate?
+
+\textbf{Esercizi}: 1) Biblioteca con max 3 libri/utente. 2) UML prenotazioni con use case/class/sequence/state. 3) Semaforo Alloy 6 con Verde→Giallo→Rosso.
+
+\textbf{Concetti chiave}: $R \land D \implies G$. UML concettuale, Alloy formale. Chiusura transitiva \texttt{\textasciicircum}. Facts sempre veri. \texttt{run} cerca istanze, \texttt{check} controesempi. Prime \texttt{'} stati successivi. \texttt{always} invarianti, \texttt{eventually} futuro. Processo iterativo.
+
+\vspace{1cm}
+
+\begin{center}
+\fbox{\parbox{0.9\textwidth}{
+\centering
+\textbf{Promemoria Importante}\\[0.3cm]
+L'ingegneria del software è un processo \textbf{iterativo}.\\
+Non cercare la perfezione al primo tentativo!\\[0.2cm]
+\textit{``Esplora, identifica problemi, raffina il modello.''}\\[0.2cm]
+Usa gli strumenti (Analyzer, diagrammi UML) come \textbf{alleati}\\
+per scoprire vincoli e proprietà necessarie.
+}}
+\end{center}
+
+\end{document}
