@@ -1,0 +1,705 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[italian]{babel}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[hidelinks]{hyperref}
+\usepackage{amsthm}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{geometry}
+\usepackage{fancyhdr}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\usepackage{enumitem}
+\usepackage{listings}
+
+\geometry{margin=2.5cm}
+\pgfplotsset{compat=1.18}
+\usetikzlibrary{shapes,arrows,positioning,automata,calc}
+
+% Definizioni colori
+\definecolor{boxbg}{RGB}{240,248,255}
+\definecolor{warningbg}{RGB}{255,240,240}
+\definecolor{examplebg}{RGB}{240,255,240}
+
+% Box colorati
+\newtcolorbox{defbox}{colback=boxbg, colframe=blue!75!black, title=Definizione}
+\newtcolorbox{exbox}{colback=examplebg, colframe=green!75!black, title=Esempio}
+\newtcolorbox{warnbox}{colback=warningbg, colframe=red!75!black, title=Attenzione!}
+\newtcolorbox{tipbox}{colback=yellow!10, colframe=orange!75!black, title=Suggerimento}
+
+\lstset{
+  basicstyle=\small\ttfamily,
+  breaklines=true,
+  frame=single,
+  numbers=left,
+  numberstyle=\tiny,
+  captionpos=b
+}
+
+\title{\textbf{Mini-Libro di Studio}\\Software Engineering 2\\[0.5cm]\large Parte 2: Design, V\&V, Project Management}
+\author{Appunti delle Lezioni 4-6}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+\newpage
+
+\section{Software Architecture}
+
+L'\textbf{architettura software} è l'insieme delle strutture necessarie per ragionare sul sistema. Queste strutture comprendono \textbf{elementi software}, \textbf{relazioni} tra essi e \textbf{proprietà} di entrambi. Non è solo codice o diagrammi: è uno strumento di ragionamento che guida decisioni progettuali sotto vincoli di requisiti funzionali, non-funzionali, tecnologici, organizzativi e budget.
+
+\subsection{Caso Ariane 5: Quando il Design Fallisce}
+
+Il 4 giugno 1996, il razzo Ariane 5 esplose 37 secondi dopo il lancio. Causa immediata: conversione errata da float 64-bit a integer 16-bit nell'Inertial Reference System (IRS). Ma le vere cause furono \textbf{decisioni architetturali sbagliate}: riuso inappropriato (IRS progettato per Ariane 4), gestione eccezioni inadeguata (entrambe le repliche IRS fallirono simultaneamente), protocollo interazione vago (l'On-Board Computer interpretò pattern diagnostico come dati di volo). Lezione: le decisioni di design hanno conseguenze catastrofiche.
+
+\begin{warnbox}
+Le scelte architetturali determinano qualità del sistema, manutenibilità, costi futuri. Errori architetturali sono costosi e difficili da correggere dopo l'implementazione. Il design è decision-making sotto vincoli, non solo struttura!
+\end{warnbox}
+
+\subsection{Workflow di Ragionamento Architetturale}
+
+Il processo architetturale è iterativo: (1) Identifica soluzione possibile → (2) Verifica soddisfacimento requisiti → (3) Valuta impatto su qualità → (4) Identifica varianti → (5) Valuta se impatto è accettabile. Se no, torna al punto 1. Non esiste "un'architettura perfetta": esistono \textbf{trade-off} tra qualità diverse (latency vs flexibility, scalability vs simplicity, security vs usability).
+
+\begin{exbox}
+\textbf{Sistema Sorveglianza}: Cameree sensori di movimento monitorano edificio pubblico. Variante A: server centralizzato raccoglie tutti i dati (bassa latency, gestione semplice, single point of failure). Variante B: edge computing con analisi locale (maggiore resilienza, latency maggiore per decisioni globali, complessità deployment). Trade-off: latency vs flexibility.
+\end{exbox}
+
+\subsection{Architettura come Strutture Multiple}
+
+Un'architettura non è un singolo diagramma ma un insieme di \textbf{strutture} (views) che catturano aspetti diversi del sistema. Le strutture principali sono: \textbf{Module structures} (organizzazione statica del codice, responsabilità moduli), \textbf{Component-and-connector structures} (runtime: componenti, connettori, interazioni, deployment), \textbf{Allocation structures} (mappatura software su ambiente: nodi hardware, team, filesystem). Ogni struttura risponde a domande diverse: module per capire responsabilità e dipendenze, C\&C per analizzare performance e reliability, allocation per deployment e team organization.
+
+\begin{defbox}
+\textbf{Strutture Architetturali}:
+\begin{itemize}[leftmargin=*]
+\item \textbf{Module}: Class diagram, package diagram, layer diagram (decomposizione statica)
+\item \textbf{Component-Connector}: Sequence, deployment, process diagram (comportamento runtime)
+\item \textbf{Allocation}: Deployment diagram, work assignment, install diagram (mappatura ambiente)
+\end{itemize}
+\end{defbox}
+
+\subsection{Stili Architetturali}
+
+Uno \textbf{stile architetturale} definisce vocabolario di componenti e connettori, insieme a vincoli su come combinarli. Gli stili sono pattern ricorrenti, best practices dimostrate. Non sono framework o librerie: sono principi organizzativi.
+
+\subsubsection{Client-Server}
+
+Il pattern più fondamentale: due ruoli asimmetrici. \textbf{Client} invia richieste, \textbf{Server} fornisce risposte. Usato quando: (1) multipli utenti accedono risorsa condivisa (database), (2) esiste software preesistente da accedere remotamente (mail server), (3) conveniente centralizzare funzionalità condivisa (autenticazione).
+
+\textbf{Organizzazione Thin vs Fat Client}:
+\begin{itemize}[leftmargin=*]
+\item \textbf{Remote Presentation}: Client ha solo GUI, server ha logica e dati (thin client)
+\item \textbf{Remote Data Access}: Client ha GUI e logica, server solo dati (fat client)
+\item \textbf{Distributed Logic}: Logica divisa tra client e server (hybrid)
+\end{itemize}
+
+Trade-off: thin client riduce manutenzione client ma aumenta carico server e latency; fat client permette offline mode ma complica deployment e updates.
+
+\subsubsection{Layered (Multi-tier)}
+
+Sistema organizzato in \textbf{layer} (strati) gerarchici. Ogni layer usa servizi del layer sottostante e fornisce servizi al layer superiore. Tipicamente: Presentation Layer (UI) → Business Logic Layer (elaborazione) → Data Access Layer (persistenza) → Database. Principio: layer N comunica solo con N-1 e N+1, mai saltando layer (strict layering).
+
+\textbf{Vantaggi}: separazione concerns, sostituibilità layer, testabilità (mock dei layer sottostanti), team specializzati per layer. \textbf{Svantaggi}: overhead performance (ogni richiesta attraversa tutti layer), rigidità per ottimizzazioni cross-layer.
+
+\begin{exbox}
+\textbf{Applicazione Web Classica}:
+\begin{itemize}[leftmargin=*]
+\item Layer 1 (Presentation): HTML/CSS/JavaScript frontend
+\item Layer 2 (Application): Server-side logic (Spring Boot, Django)
+\item Layer 3 (Business): Domain entities, use cases
+\item Layer 4 (Data Access): DAO/Repository pattern
+\item Layer 5 (Database): PostgreSQL, MongoDB
+\end{itemize}
+\end{exbox}
+
+\subsubsection{Event-Driven}
+
+Componenti comunicano attraverso \textbf{eventi} anziché chiamate dirette. Un \textbf{Event Bus} (o Message Broker) disaccoppia producer e consumer. Producer emette evento, consumer sottoscrive e reagisce. Vantaggi: loose coupling (producer non conosce consumer), scalabilità (aggiungi consumer senza modificare producer), asincronia (no blocking). Usato in sistemi IoT, real-time analytics, notification systems.
+
+\textbf{Pattern Publish-Subscribe}: Publisher emette evento su topic, subscriber riceve eventi dai topic sottoscritti. Esempio: sistema smart home (sensori pubblicano temperature, dashboard e HVAC sottoscrivono).
+
+\subsubsection{Microservices}
+
+Evoluzione di monoliti verso suite di \textbf{servizi piccoli e specializzati}, ognuno con processo proprio e comunicazione leggera (REST API, message queues). Ogni microservizio gestisce un \textbf{bounded context} (singola area di responsabilità del dominio). Netflix, Amazon, Spotify migrarono da monoliti a microservizi per scalare a milioni di utenti.
+
+\textbf{Anatomia Microservizio}:
+\begin{enumerate}[leftmargin=*]
+\item \textbf{REST API}: espone operazioni (HTTP verbs: GET, POST, PUT, DELETE), serializzazione JSON
+\item \textbf{Business Logic}: implementazione operazioni
+\item \textbf{Data Storage}: ogni microservizio ha proprio database locale (no global DB shared!)
+\end{enumerate}
+
+\textbf{Vantaggi Prodotto}: scaling fine-grained (replica solo servizi sotto load), fault isolation (se un servizio crasha, altri continuano con degraded functionality), reusabilità (servizio autenticazione usato da tutti).
+
+\textbf{Vantaggi Processo}: team autonomi con tecnologie proprie, deployment indipendente, codebase piccole (debugging facile), sperimentazione tecnologica su singolo servizio.
+
+\textbf{Svantaggi}: complessità operazionale (orchestrazione, monitoring, debugging distribuito), latency (network overhead per chiamate inter-service), consistenza dati (no transazioni ACID globali), testing end-to-end complesso.
+
+\begin{defbox}
+\textbf{Pattern per Microservices}:
+\begin{itemize}[leftmargin=*]
+\item \textbf{API Gateway}: Single entry point che routing richieste ai servizi appropriati
+\item \textbf{Service Discovery}: Registro dinamico dei servizi (Consul, Eureka)
+\item \textbf{Circuit Breaker}: Previene chiamate a servizi falliti (fallback, timeout)
+\item \textbf{Saga Pattern}: Transazioni distribuite con compensating actions
+\end{itemize}
+\end{defbox}
+
+\subsection{Quality Attributes e Metriche}
+
+Le qualità software sono influenzate da scelte architetturali. Per gestire qualità serve: (1) \textbf{Metriche} quantitative per misurare, (2) \textbf{Metodologie} per analizzare impatto architetturale, (3) \textbf{Tactics} (tecniche di design) per raggiungere qualità target.
+
+\subsubsection{Availability}
+
+\textbf{Availability} = probabilità che servizio sia operativo al tempo t. Dipende da complessità infrastruttura, reliability componenti, capacità di recovery veloce da failure, qualità processi operazionali.
+
+\textbf{Lifecycle e Metriche}:
+\begin{itemize}[leftmargin=*]
+\item \textbf{MTTF} (Mean Time To Failure): tempo medio tra recovery e prossimo failure (uptime)
+\item \textbf{MTTR} (Mean Time To Repair): tempo medio tra failure e recovery (downtime)
+\item \textbf{MTBF} (Mean Time Between Failures): tempo tra due failure consecutivi = MTTF + MTTR
+\end{itemize}
+
+Formula availability: $A = \frac{MTTF}{MTTF + MTTR} = \frac{MTTF}{MTBF}$
+
+Se MTTR piccolo, MTBF $\approx$ MTTF.
+
+\textbf{Nines Notation}: Availability espressa in "nines". Esempi: 99\% (2-nines) = 3.65 giorni/anno downtime, 99.9\% (3-nines) = 8.76 ore/anno, 99.99\% (4-nines) = 52 minuti/anno, 99.999\% (5-nines) = 5 minuti/anno. Mission-critical systems richiedono 5-nines o superiore.
+
+\textbf{Analisi Availability}: Sistema modellato come interconnessione elementi in serie e parallelo.
+
+\textbf{Serie}: Sistema funziona solo se tutti componenti disponibili. $A_{combined} = \prod_{i=1}^{n} A_i$. Esempio: Componente1 (99\%) in serie con Componente2 (99.999\%) → combinata = 98.999\%. "Una catena è forte quanto l'anello più debole!"
+
+\textbf{Parallelo}: Sistema funziona se almeno un componente disponibile (ridondanza). $A_{combined} = 1 - \prod_{i=1}^{n} (1-A_i)$. Esempio: due componenti 99\% in parallelo → combinata = 99.99\% (4-nines!). Mission-critical systems usano componenti ridondanti.
+
+\begin{exbox}
+\textbf{Sistema Complesso}:
+\begin{center}
+\begin{tikzpicture}[scale=0.8]
+\node[draw, rectangle] (A1) at (0,2) {$A_1$};
+\node[draw, rectangle] (A2) at (0,0) {$A_2$};
+\node[draw, rectangle] (A3) at (3,1) {$A_3$};
+\node[draw, rectangle] (A5) at (6,2) {$A_5$};
+\node[draw, rectangle] (A6) at (6,0) {$A_6$};
+
+\draw[->, thick] (A1) -- (A3);
+\draw[->, thick] (A2) -- (A3);
+\draw[->, thick] (A3) -- (A5);
+\draw[->, thick] (A3) -- (A6);
+\end{tikzpicture}
+\end{center}
+
+Calcolo: $A_7 = 1-(1-A_1)(1-A_2)$ (parallelo A1, A2), poi $A_8 = A_7 \cdot A_3$ (serie con A3), poi $A_9 = A_5 \cdot A_6$ (serie A5, A6), infine $A = 1-(1-A_8)(1-A_9)$ (parallelo finale).
+\end{exbox}
+
+\textbf{Tactics per Availability}:
+\begin{itemize}[leftmargin=*]
+\item \textbf{Replication}: Hot spare (replica C2 sempre ready, takeover immediato quando C1 fallisce - stateful sync continuo, MTTR minimo ma overhead alto), Warm spare (replica si inizializza al bisogno - startup delay, MTTR medio, meno overhead), Cold spare (backup offline, attivato manualmente - MTTR alto ma costo basso)
+\item \textbf{Circuit Breaker}: Interrompe chiamate a servizio fallito (states: Closed→Open→Half-Open), evita cascading failures, timeout protection
+\item \textbf{Forward Error Recovery}: Maschera errori con codici di correzione (checksums TCP/IP, ECC memory, RAID storage), sistema continua operare correttamente nonostante errori sottostanti
+\item \textbf{Heartbeat/Health Check}: Monitoraggio continuo stato componenti, detection veloce failure, automatic failover
+\item \textbf{Graceful Degradation}: Sistema fornisce funzionalità ridotta quando componenti falliscono (es: Netflix riduce qualità video se CDN parzialmente down)
+\end{itemize}
+
+\textbf{Trade-off Replication}: Hot spare → availability massima, costo alto (risorse duplicate). Cold spare → costo minimo, availability lower (downtime durante startup). Scelta dipende da criticità servizio e budget.
+
+\subsubsection{Performance}
+
+\textbf{Performance} = velocità di risposta, throughput, utilizzo risorse. Metriche: latency (tempo risposta), throughput (richieste/sec), CPU utilization, memory footprint.
+
+\textbf{Tactics}: Caching (riduce latency per dati frequenti), load balancing (distribuisce carico), asynchronous processing (decoupling producer-consumer), database indexing, CDN per contenuti statici.
+
+\subsubsection{Scalability}
+
+\textbf{Scalability} = capacità di gestire crescita carico senza degradare performance. Due tipi: \textbf{Vertical scaling} (hardware più potente, limitato fisicamente, costoso), \textbf{Horizontal scaling} (aggiungi nodi, praticamente illimitato, richiede architettura distributed-friendly).
+
+Microservices eccellono in horizontal scaling perché permettono replica selettiva (scale solo servizi bottleneck). Monoliti richiedono replica intera applicazione anche se solo un modulo sotto stress.
+
+\subsubsection{Maintainability}
+
+\textbf{Maintainability} = facilità modifica, debug, estensione. Dipende da modularità, separazione concerns, code quality, documentazione. Layered e microservices migliorano maintainability rispetto a monoliti spaghetti-code.
+
+\subsection{Documentazione Architetturale}
+
+Architettura ben documentata è essenziale per onboarding team, analisi impact, evoluzione sistema. Documenti chiave: \textbf{Architecture Overview} (vision, stakeholder, constraints), \textbf{Views per ogni struttura} (module view, C\&C view, deployment view con diagrammi UML), \textbf{Quality Attribute Scenarios} (requisiti non-funzionali come scenari testabili), \textbf{Design Decisions} e rationale (perché questa scelta? quali alternative? trade-off?).
+
+\subsubsection{Design Document (DD) - Struttura}
+
+Il Design Document comunica decisioni architetturali a team e stakeholder. Struttura standard:
+
+\textbf{1. Introduction}: Scope (cos'è il sistema), definizioni/acronimi, documenti riferimento, overview capitoli
+
+\textbf{2. Architectural Design}: (a) Overview high-level componenti/interazioni (notazione informale), (b) Component View (component diagram, composite structure, class diagram dettagliati con interfacce), (c) Deployment View (infrastructure: deployment diagram con load balancer, firewall, nodi), (d) Component Interfaces (firma operazioni, parametri, return types), (e) Runtime View (sequence diagram per use case realization), (f) Architectural Styles/Patterns utilizzati, (g) Design Decisions (rationale, trade-off)
+
+\textbf{3. User Interface Design}: Overview UI, mockup (può raffinare RASD)
+
+\textbf{4. Requirements Traceability}: Mapping requisiti → componenti design (verifica completezza)
+
+\textbf{5. Implementation, Integration \& Test Plan}: Ordine implementazione subsystems/components, strategia integration (bottom-up/top-down), piano test integration
+
+\textbf{6. Effort Spent}: Time tracking team
+
+\textbf{7. References}: Bibliografia, tool, standard
+
+\begin{tipbox}
+\textbf{Template Decision Record}: (1) Context: problema da risolvere, (2) Decision: scelta fatta, (3) Consequences: impatti positivi/negativi, (4) Alternatives Considered: opzioni scartate e perché. Esempio: "Context: API Gateway o direct service calls? Decision: API Gateway. Consequences: +single entry, +rate limiting, -latency overhead. Alternatives: direct calls (rejected per mancanza centralized control)."
+\end{tipbox}
+
+\textbf{Purpose DD}: Comunicazione tra requirements analysts ↔ architects ↔ developers. Baseline per implementation/QA. Traceability requisiti-componenti. Supporta verification/validation. Raffina stime (size, cost, schedule).
+
+\section{Verification \& Validation}
+
+\textbf{Verification} (interno): stiamo costruendo il software correttamente rispetto alla specifica? \textbf{Validation} (esterno): stiamo costruendo il software giusto rispetto ai bisogni stakeholder? V\&V attraversa tutto il ciclo di vita: validation su requisiti, verification su design/codice/test.
+
+\subsection{Quality Assurance e Terminologia}
+
+\textbf{Quality Assurance (QA)}: processi per raggiungere qualità, trovare difetti (V\&V), migliorare qualità. Qualità = assenza difetti + soddisfacimento requisiti non-funzionali (performance, security, maintainability).
+
+\textbf{Terminologia IEEE Standard 1044-2009}:
+\begin{itemize}[leftmargin=*]
+\item \textbf{Error}: azione umana che introduce risultato errato (typo programmatore, logica sbagliata, misunderstanding requisiti)
+\item \textbf{Defect} (Bug): imperfezione o deficienza nel programma (es: funzione dovrebbe sempre restituire positivo, ma codice può restituire negativo)
+\item \textbf{Fault}: manifestazione di un defect durante esecuzione (il codice difettoso viene effettivamente eseguito con certi input)
+\item \textbf{Failure}: terminazione abilità del prodotto di eseguire funzione richiesta entro limiti specificati (crash, output sbagliato visibile all'utente, sistema non risponde)
+\end{itemize}
+
+Catena causale: Error (umano) → Defect (codice statico) → Fault (runtime) → Failure (observable). \textbf{Importante}: Non tutti i defect causano failure! Un defect può esistere nel codice ma mai essere eseguito (dead code, path non raggiunto), oppure essere eseguito (fault) ma non causare failure visibile (masked by error handling, lucky input values).
+
+\textbf{Sfide QA}: Zero-defect impossibile praticamente. QA necessaria continuamente lungo sviluppo, non solo alla fine. Idealmente ogni artifact sottoposto a QA (spec, design, test data, persino test stessi verificati!). Focus corso: verification, non validation.
+
+\subsection{Static vs Dynamic Analysis}
+
+\textbf{Static Analysis}: esamina codice senza eseguirlo. Metodi: code review manuale, linters (syntax check, style), type checkers, data flow analysis, symbolic execution (esplorare paths simbolicamente). Vantaggi: trova bug senza test cases, copre tutti path teoricamente, early detection. Limiti: false positive (allarmi non reali), false negative (bug non trovati), non verifica comportamento runtime reale.
+
+\textbf{Dynamic Analysis}: esegue codice con input specifici. Metodi: testing (unit, integration, system), profiling (performance, memory), runtime assertions. Vantaggi: verifica comportamento reale, trova bug dipendenti da stato runtime. Limiti: copre solo paths eseguiti, richiede test cases, costoso per coverage completa.
+
+Trade-off: static trova più bug potenziali ma con rumore, dynamic trova bug reali ma solo su paths testati. Best practice: usare entrambi (static per screening iniziale, dynamic per conferma).
+
+\subsection{Data Flow Analysis}
+
+\textbf{Data Flow Analysis} analizza come valori variabili si propagano attraverso il programma. Usa Control Flow Graph (CFG) + tracking definizioni/usi variabili. Applicazioni: detecting uninitialized variables, dead code elimination, reaching definitions, constant propagation.
+
+\textbf{Concetti Chiave}:
+\begin{itemize}[leftmargin=*]
+\item \textbf{Definition}: statement che assegna valore a variabile ($x = 5$)
+\item \textbf{Use}: statement che legge valore variabile (\texttt{print(x)})
+\item \textbf{Reaching Definition}: definizione $d$ di variabile $v$ raggiunge punto $p$ se esiste path da $d$ a $p$ senza altre definizioni di $v$
+\item \textbf{Live Variable}: variabile $v$ è live a punto $p$ se valore può essere usato lungo qualche path da $p$
+\end{itemize}
+
+\textbf{Esempio Uninitialized Variable Detection}:
+\begin{lstlisting}[language=Java, caption=Potenziale variabile non inizializzata]
+int x;           // def0: no initialization
+if (condition) {
+  x = 10;        // def1
+  y = 20;
+} else {
+  y = 30;        // def2: no definition di x!
+}
+print(x);        // use: quale def raggiunge?
+\end{lstlisting}
+
+\textbf{Analisi}: Path true-branch: def1 raggiunge print → OK. Path false-branch: def0 (uninitialized) raggiunge print → \textbf{WARNING: possibly uninitialized!} Analyzer segnala bug potenziale. Se else-branch avesse \texttt{x=15}, entrambi path hanno def valida → no warning.
+
+\textbf{Esempio Dead Code Elimination}:
+\begin{lstlisting}[language=Java, caption=Codice morto]
+x = 5;          // def1
+x = 10;         // def2: kills def1
+print(x);       // usa def2
+\end{lstlisting}
+
+def1 non raggiunge mai use (killed da def2) → \texttt{x=5} è dead code → compiler può rimuovere. Ottimizzazione automatica!
+
+\textbf{Limiti}: Over-approximation (conservativa). Può segnalare warning su code safe (false positive) per evitare miss bug reali (no false negative su properties checked).
+
+\subsection{Symbolic Execution}
+
+\textbf{Symbolic Execution} esegue programma con input \textbf{simbolici} anziché concreti. Variabili hanno valori simbolici ($\alpha, \beta$), operazioni costruiscono espressioni simboliche, branches creano path constraints. Path Constraint = congiunzione condizioni branch attraversati. Alla fine di path, path constraint + assertion generano formula SMT (Satisfiability Modulo Theories). SMT solver (Z3, CVC4) verifica se esiste input concreto che viola assertion.
+
+\textbf{Workflow Symbolic Execution}:
+\begin{enumerate}[leftmargin=*]
+\item Inizializza variabili input con simboli ($x = X, y = Y$)
+\item Esegui statement, aggiorna symbolic state (es: $z := 2y$ diventa $z = 2Y$)
+\item Ad ogni branch, aggiungi condizione a path constraint ($\pi$)
+\item Se branch condizione $C$: path true ha $\pi \land C$, path false ha $\pi \land \neg C$
+\item Alla fine path o assertion, verifica SAT di $\pi$
+\item Se SAT → genera input concreto da solution, se UNSAT → path infeasible
+\end{enumerate}
+
+\begin{exbox}
+\textbf{Esempio Symbolic Execution Completo}:
+\begin{lstlisting}[language=Java]
+void foo(int x, int y) {
+  int z = 2*x;        // z = 2X
+  if (z == y) {       // branch: 2X == Y?
+    if (y > x + 10) { // branch: Y > X+10?
+      assert false;   // BUG!
+    }
+  }
+}
+\end{lstlisting}
+
+\textbf{Path Exploration}:
+\begin{itemize}[leftmargin=*]
+\item Path $\langle 0,1,2,7 \rangle$: $\pi = (2X \neq Y)$ → SAT con $X=5, Y=3$ (path esce da if)
+\item Path $\langle 0,1,2,3,4,6,7 \rangle$: $\pi = (2X = Y) \land (Y \leq X+10)$ → SAT con $X=10, Y=20$ (entra primo if, esce secondo)
+\item Path $\langle 0,1,2,3,4,5 \rangle$: $\pi = (2X = Y) \land (Y > X+10)$ → SAT con $X=11, Y=22$ → \textbf{ASSERTION FAILURE!} Input bug-triggering trovato!
+\end{itemize}
+
+Verifica: $22 = 2 \cdot 11$ ✓ e $22 > 11+10$ ✓ → assert false eseguito → bug esposto.
+\end{exbox}
+
+\textbf{Vantaggi}: trova bug senza scrivere test cases, genera automaticamente input che espongono bug, copre multipli path, preciso (no false positive se solver corretto). \textbf{Limiti}: path explosion (programmi grandi hanno $2^n$ path per n branch), constraint solving costoso (NP-hard), loop e recursion problematici (bound necessario o heuristics), funzioni native/system calls non simbolizzabili facilmente.
+
+\subsection{Concolic Testing}
+
+\textbf{Concolic} (Concrete + Symbolic) esegue programma con input concreti e simultaneamente traccia constraints simbolici. Ad ogni esecuzione, nega un branch constraint e risolve per generare nuovo input che esplora branch diverso. Iterativamente copre nuovi path.
+
+\textbf{Algoritmo Concolic Testing}:
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Concrete-to-Symbolic}: Scegli input concreto iniziale (random o seed). Esegui programma concretamente. Simultaneamente, costruisci path constraint simbolico del path eseguito.
+\item \textbf{Symbolic-to-Concrete}: Nega ultimo branch nel path constraint. Usa SMT solver per generare nuovo input che soddisfa negazione (esplora branch alternativo).
+\item \textbf{Iterazione}: Ripeti con nuovo input concreto. Ogni iterazione esplora nuovo path.
+\item \textbf{Terminazione}: Quando budget esaurito o tutti path coperti (raramente possibile).
+\end{enumerate}
+
+\begin{exbox}
+\textbf{Esempio Concolic su foo(x,y)}:
+
+\textbf{Iterazione 1}: Input concreto: $x=22, y=7$ (random).
+\begin{lstlisting}[language=Java]
+void m(int x, int y) {
+  int z = 2*y;    // z=14 (concreto), Z=2Y (simbolico)
+  if (z == x)     // false (14!=22), path constraint pi=(2Y!=X)
+    ...
+}
+\end{lstlisting}
+Path eseguito: $\langle 0,1,2,6,7 \rangle$. Path constraint: $\pi = (2Y \neq X)$. Nega: $\neg\pi = (2Y = X)$. Solver: $X=2, Y=1$ (nuovo input).
+
+\textbf{Iterazione 2}: Input: $x=2, y=1$.
+\begin{lstlisting}
+z = 2*1 = 2     // Z=2Y
+if (z == x)     // true (2==2), entra if
+  z = y + 10    // z=11, Z=Y+10
+  if (x <= z)   // true (2<=11)
+    print(...)
+\end{lstlisting}
+Path: $\langle 0,1,2,3,4,5 \rangle$. Path constraint: $\pi = (2Y=X) \land (X \leq Y+10)$. Nega ultimo branch: $(2Y=X) \land (X > Y+10)$. Solver trova input per esplorare else-branch (se esiste).
+
+Iterazioni successive negano branch diversi, esplorando tutto l'albero path.
+\end{exbox}
+
+\textbf{Vantaggi su Symbolic Pura}: meno path explosion (esecuzione concreta guida esplorazione, elimina path infeasible early), gestisce funzioni native/system calls (esegue concretamente quando simbolizzazione impossibile), automatizza generazione test raggiungendo high coverage. \textbf{Limiti}: coverage dipende da euristica scelta branch, loop profondi e recursion limitano profondità, solver timeout possibile su constraints complesse.
+
+\subsection{Testing: Unit, Integration, System}
+
+\textbf{V-Model}: testing a livelli corrispondenti a fasi sviluppo. Requirements → System Test (validation), High-Level Design → Integration Test, Low-Level Design → Unit Test. Ogni livello verifica consistenza con fase corrispondente.
+
+\subsubsection{Unit Testing}
+
+\textbf{Unit Test} testa piccole unità (funzioni, metodi, classi) in isolamento. Condotto da sviluppatori. Obiettivi: trovare bug presto (costo riparazione basso), guidare design (TDD), aumentare coverage, facilita refactoring (regression suite).
+
+\textbf{Scaffolding}: Unit possono dipendere da altre unit. Per isolare: \textbf{Test Stub} sostituisce unità chiamate (simulazione comportamento semplificato), \textbf{Driver} simula chiamante (setup, invocazione, oracle per verifica output).
+
+\begin{exbox}
+Testare unit B che usa A e chiama C: Driver simula A (setup input, invoca B, verifica output), Stub sostituisce C (ritorna valori predefiniti senza logica reale).
+\end{exbox}
+
+\textbf{Best Practices}: test automatizzati (framework: JUnit, PyTest), nomenclatura chiara (test\_methodName\_scenario\_expectedOutcome), AAA pattern (Arrange-Act-Assert), coverage metrics (line coverage, branch coverage, path coverage - 100\% raramente possibile/necessario).
+
+\subsubsection{Integration Testing}
+
+\textbf{Integration Test} verifica interfacce e interazioni componenti. Bug trovati: interpretazione inconsistente parametri (Mars Climate Orbiter: unità miste metri/yards), violazione assunzioni domini (buffer overflow), side effects non previsti (conflitto file temporanei), proprietà non-funzionali (performance degradation inattesa).
+
+\textbf{Esempio Bug Integrazione - Apache 2.0.48}:
+\begin{lstlisting}[language=C]
+static void ssl_io_filter_disable(ap_filter_t *f) {
+  bio_filter_in_ctx_t *inctx = f->ctx;
+  inctx->ssl = NULL;  // BUG: memory leak!
+  inctx->filter_ctx->pssl = NULL;
+}
+\end{lstlisting}
+
+Manca \texttt{SSL\_free(inctx->ssl)} prima di NULL assignment. Memory leak! Fix in 2.0.49 aggiunge free e passa \texttt{sslconn} per cleanup completo.
+
+\textbf{Strategie Integration}:
+\begin{itemize}[leftmargin=*]
+\item \textbf{Big Bang}: integra tutto insieme, testa alla fine. Pro: no stub. Contro: pessima osservabilità, difficile localizzare fault, alto costo riparazione, no feedback early.
+\item \textbf{Top-Down}: inizia da top-level (UI, API), aggiungi moduli gradualmente verso basso. Richiede stub per livelli bassi. Pro: early feedback su funzionalità user-visible. Contro: logica basso-livello testata tardi.
+\item \textbf{Bottom-Up}: inizia da leaf modules (utilities, data access), aggiungi verso alto. Richiede driver per ogni modulo. Pro: no stub, utility testate early. Contro: funzionalità end-to-end testabili tardi.
+\item \textbf{Sandwich}: combina top-down e bottom-up, incontra nel middle layer.
+\end{itemize}
+
+Scelta strategia dipende da build plan (ordine implementazione moduli) e risk analysis (quali moduli più critici/rischiosi testare prima).
+
+\subsubsection{System Testing (End-to-End)}
+
+\textbf{System Test} verifica sistema completo integrato in ambiente simile a produzione. Testa requisiti funzionali (use case scenarios) e non-funzionali (performance, security, usability). Include: functional testing, performance testing (load, stress), security testing (penetration, vulnerability scan), usability testing (user experience).
+
+\textbf{Acceptance Testing}: User Acceptance Test (UAT) condotto da stakeholder/utenti finali. Alpha testing (ambiente controllato lab), Beta testing (early adopters in produzione limitata). Validation finale: "stiamo costruendo il software giusto?"
+
+\subsection{Fuzzing e Search-Based Testing}
+
+\textbf{Fuzzing} genera input casuali o semi-strutturati per trovare bug (crash, hang, memory corruption). Complementare a functional testing, efficace per reliability e security. Lavora a component o system level. Tipi: \textbf{Black-box fuzzing} (genera input random senza conoscere codice), \textbf{Grey-box fuzzing} (usa coverage feedback per guidare generazione, es: AFL, LibFuzzer), \textbf{White-box fuzzing} (usa symbolic/concolic execution).
+
+\textbf{Grey-box Fuzzing con Coverage-Guided}:
+\begin{enumerate}[leftmargin=*]
+\item Seed corpus iniziale (input validi)
+\item Esegui programma con input da corpus, misura coverage (branch/path coperti)
+\item Muta input (bit flip, byte insert/delete, splice due input)
+\item Se nuovo input aumenta coverage, aggiungilo al corpus (interessante!)
+\item Ripeti fino a budget esaurito
+\end{enumerate}
+
+\textbf{Esempio Fuzzer Python}:
+\begin{lstlisting}[language=Python, caption=Simple fuzzer generator]
+import random
+def fuzzer(max_length=100, char_start=32, char_range=32):
+    length = random.randrange(0, max_length+1)
+    return ''.join(chr(random.randrange(char_start, 
+                   char_start+char_range)) for _ in range(length))
+
+# Test bc calculator
+for _ in range(100):  # budget
+    fuzz_input = fuzzer()
+    result = subprocess.run(['bc'], input=fuzz_input, 
+                           capture_output=True, text=True)
+    if result.returncode != 0:
+        print(f"Crash with input: {fuzz_input}")
+\end{lstlisting}
+
+\textbf{Case Study - HeartBleed (OpenSSL 2014)}: Bug memory access non controllato in SSL heartbeat. Sfruttabile con comando crafted inviato a server. Introdotto 2012, scoperto 2014 da Google researchers usando fuzzing + runtime memory-checks (AddressSanitizer). Lezione: fuzzing trova vulnerabilità security-critical che testing manuale non trova (corner cases, input malformati).
+
+Trova bug che testing manuale difficilmente scopre (corner cases, input malformati). Usato per trovare vulnerabilità security-critical (buffer overflow, format string, integer overflow).
+
+\textbf{Search-Based Testing} usa algoritmi ottimizzazione (genetic algorithms, simulated annealing, hill climbing) per trovare test input che massimizzano fitness function (es: branch coverage, bug detection, mutation score). Evolve popolazione test cases iterativamente: selezione fittest (rank by fitness), crossover (combina input), mutation (modifica casuale). Utile per generare input complessi che soddisfano constraints (es: data structure con proprietà specifiche).
+
+\section{Project Management}
+
+\textbf{Project} = organizzazione temporanea creata per consegnare prodotti business secondo agreed Business Case (scope, cost, time, quality, risk). \textbf{Project Management} = pianificare, monitorare, controllare variabili progetto (scope, quality, schedule, budget, resources, risk) per successo. "Un progetto ben diretto può fallire, un progetto mal diretto fallisce certamente."
+
+\subsection{Fasi Project Management (PMBOK)}
+
+\begin{enumerate}[leftmargin=*]
+\item \textbf{Initiating}: definizione obiettivi, stakeholder, business case, feasibility study
+\item \textbf{Planning}: scope dettagliato, schedule (WBS, Gantt), budget, resources, risk analysis, communication plan, quality plan
+\item \textbf{Executing}: implementazione piano, coordinamento team, gestione stakeholder
+\item \textbf{Monitoring \& Controlling}: tracking progress, confronto actual vs planned, corrective actions, change management
+\item \textbf{Closing}: consegna prodotto, lessons learned, rilascio risorse, post-mortem
+\end{enumerate}
+
+\textbf{Domande Chiave PM}:
+\begin{itemize}[leftmargin=*]
+\item Che problema risolviamo? (Scope)
+\item Come risolverlo? (Strategy)
+\item Qual è il piano? (Work breakdown, schedule, resources, cost)
+\item Come sappiamo quando completo? (Success criteria)
+\item Come è andato? (Assessment, retrospective)
+\end{itemize}
+
+\subsection{Software Project Management Specifico}
+
+Progetti software hanno caratteristiche uniche: prodotto intangibile (difficile misurare progress), requisiti mutevoli, tecnologie in rapida evoluzione, alta complessità. Successo organizzazioni dipende da abilità consegnare prodotto giusto in tempo e budget.
+
+\textbf{Caso Obamacare}: Affordable Care Act 2010 richiese piattaforma online per iscrizioni assicurazione sanitaria. Launch ottobre 2013 fu disastro: sito crashava, tempi risposta minuti, utenti non riuscivano completare iscrizioni. Cause: project management inadeguato (deadlines irrealistici, integration testing insufficiente, architecture non scalabile), coordination fallita tra contractor multipli, underestimation complessità. Lezione: gestione progetti software critici richiede planning realistico, testing rigoroso, architecture robusta, communication efficace.
+
+\subsection{Cost \& Effort Estimation}
+
+Stimare costo e effort (persona-mesi) è cruciale per planning e budgeting. Ma è difficile: incertezza requisiti, tecnologie nuove, team capabilities variabili, complessità non evidente early-on.
+
+\subsubsection{Approcci Estimation}
+
+\textbf{Expert Judgment}: esperti stimano basandosi su progetti passati. Pro: veloce, incorpora conoscenza dominio. Contro: bias, inconsistente, non ripetibile.
+
+\textbf{Analogia}: confronta con progetti simili passati. Aggiusta per differenze (dimensione, complessità). Pro: basato su dati reali. Contro: richiede progetti comparabili, difficile trovare match esatto.
+
+\textbf{Parametric Models}: formule matematiche basate su parametri (size, complexity). Più noti: COCOMO, Function Points.
+
+\subsubsection{COCOMO (Constructive Cost Model)}
+
+\textbf{COCOMO} stima effort (persona-mesi) basandosi su KLOC (thousands of lines of code) e fattori complessità. Versioni: Basic (solo size), Intermediate (aggiunge driver), Detailed (fase-specific).
+
+\textbf{COCOMO Basic}:
+\[
+Effort = a \cdot (KLOC)^b \cdot EAF
+\]
+
+dove $a, b$ dipendono da tipo progetto (Organic semplice, Semi-Detached medio, Embedded complesso), EAF = Effort Adjustment Factor (prodotto moltiplicatori per qualità team, tool, constraints).
+
+\textbf{Esempio}: Progetto Semi-Detached, 50 KLOC, $a=3.0$, $b=1.12$, EAF=1.2.
+\[
+Effort = 3.0 \cdot 50^{1.12} \cdot 1.2 = 3.0 \cdot 63.1 \cdot 1.2 \approx 227 \text{ persona-mesi}
+\]
+
+Con team di 10 persone: 227/10 $\approx$ 23 mesi. Duration (tempo calendario): $T = 2.5 \cdot Effort^{0.35} \approx 2.5 \cdot 227^{0.35} \approx 15$ mesi (parallelismo limitato da dependencies).
+
+\textbf{Moltiplicatori EAF}: Product complexity (1.0-1.6x), Required reliability (0.75-1.4x), Team capability (0.7-1.3x), Tool use (0.9-1.1x), Development schedule constraint (1.0-1.3x). Multiply tutti i fattori applicabili.
+
+\textbf{Limiti COCOMO}: richiede stima KLOC early (difficile!), non cattura tutte variabili (domain knowledge, team dynamics), calibrato su progetti 1980s-2000s (Agile, DevOps cambiano stime).
+
+\subsubsection{Function Points}
+
+\textbf{Function Points (FP)}: misura size basandosi su funzionalità dal punto di vista utente (non LOC). Conta: \textbf{Inputs} (form entries), \textbf{Outputs} (reports), \textbf{Inquiries} (query-response), \textbf{Internal Files} (tabelle DB), \textbf{External Interfaces} (API chiamate). Ogni elemento ha peso (semplice, medio, complesso). FP totali = somma pesata elementi, aggiustato per complessità tecnica.
+
+Pro: language-independent, misurabile da requisiti (no codice needed), user-centric. Contro: soggettivo (classificazione complessità), richiede expertise, no adatto per system software (pochi I/O).
+
+\subsection{Scheduling: WBS, PERT, Gantt}
+
+\textbf{Work Breakdown Structure (WBS)}: decomposizione gerarchica lavoro in task gestibili. Ogni task ha deliverable, effort estimate, responsabile. Bottom-up aggregation per effort totale.
+
+\textbf{PERT (Program Evaluation Review Technique)}: network diagram con task (nodi) e dipendenze (archi). Ogni task ha durata stimata (ottimistica, pessimistica, most likely). Critical Path = sequenza task con zero slack, determina duration minima progetto. Task non su critical path hanno slack (possono ritardare senza impatto totale).
+
+\textbf{Expected Time PERT}: $t_e = \frac{t_o + 4t_m + t_p}{6}$ (weighted average).
+
+\textbf{Gantt Chart}: visualizzazione timeline con barre orizzontali per task, mostra overlap e dependencies. Utile per communication con stakeholder, tracking progress (actual vs planned).
+
+\subsection{Risk Management}
+
+\textbf{Risk} = evento incerto che, se accade, impatta obiettivi progetto (negativo = threat, positivo = opportunity). Risk Management: identificare risk, analizzare probabilità e impatto, pianificare risposte, monitorare.
+
+\textbf{Risk Matrix}: Probability (bassa/media/alta) vs Impact (basso/medio/alto) → Priority (9 celle). Focus su high-probability high-impact risks.
+
+\textbf{Strategie Risposta}:
+\begin{itemize}[leftmargin=*]
+\item \textbf{Avoid}: elimina causa (cambia piano per evitare risk)
+\item \textbf{Mitigate}: riduci probabilità o impatto (backup strategies, training)
+\item \textbf{Transfer}: sposta risk ad altri (assicurazione, outsourcing)
+\item \textbf{Accept}: accetta risk, prepara contingency plan
+\end{itemize}
+
+\begin{exbox}
+\textbf{Risk Esempio}: "Key developer può lasciare team mid-project." Probability: media, Impact: alto → Priority: high. Mitigation: knowledge sharing sessions, documentazione dettagliata, cross-training team members, retention incentives.
+\end{exbox}
+
+\subsection{Agile vs Waterfall}
+
+\textbf{Waterfall}: fasi sequenziali (Requirements → Design → Implement → Test → Deploy). Pro: planning dettagliato upfront, adatto per progetti con requisiti stabili. Contro: rigido, feedback tardivo, difficile adattare cambiamenti.
+
+\textbf{Agile}: iterativo e incrementale, sprints brevi (2-4 settimane), feedback continuo, adattamento rapido. Framework: Scrum (sprint planning, daily standup, sprint review/retrospective), Kanban (continuous flow, WIP limits), XP (pair programming, TDD, continuous integration).
+
+Pro Agile: flessibilità, early delivery valore, risk mitigation (fallimenti piccoli early), collaboration team-stakeholder. Contro: meno predictability upfront, richiede commitment stakeholder, difficile per progetti fixed-price.
+
+Scelta dipende da: stabilità requisiti (stabili → Waterfall, volatili → Agile), team size (piccoli → Agile, grandi → Waterfall con Agile teams), criticità (safety-critical → più Waterfall per documentation/verification rigorosa).
+
+\subsection{Communication \& Team Management}
+
+Comunicazione è critica: breakdown comunicazione causa molti fallimenti progetti. \textbf{Communication Plan}: chi comunica cosa a chi, quando, come (meeting, email, dashboard). Stakeholder analysis: identificare stakeholder, loro interessi, livello influenza, strategia engagement.
+
+\textbf{Team Dynamics}: Forming (conoscenza iniziale) → Storming (conflitti ruoli) → Norming (stabilizzazione norme) → Performing (produttività alta). PM facilita transizioni, gestisce conflitti, motiva team.
+
+\textbf{Distributed Teams}: sfide timezone, communication overhead, cultural differences. Mitigation: overlap hours per sync meeting, clear documentation, async-friendly workflows, team building activities.
+
+\section{Esercizio Integrativo: Copilot Driver-Assistance System}
+
+\textbf{Caso di Studio Completo}: Sistema Copilot per assistenza guida con operazioni autonome (lane keeping, cruise control, emergency braking). Auto equipaggiata con sensori (camera, Lidar) e attuatori. Sensori raccolgono dati, svegliano Copilot periodicamente. Copilot logga dati, calcola comandi per attuatori. Driver può attivare/disattivare modalità autonoma con pulsanti steering wheel. Quando autonoma disattivata, Copilot logga ma non invia comandi. Quando attiva, Copilot monitora driver (prompt periodici steering wheel: se driver risponde con leggero movimento → resta attiva, se forza eccessiva → disattiva, se no risposta entro timeout → alarm).
+
+\subsection{Requirements Analysis (RASD)}
+
+\textbf{Goal G1}: "Driver vuole viaggiare con minimo sforzo guida."
+
+\textbf{Fenomeni}:
+\begin{itemize}[leftmargin=*]
+\item \textit{World-only}: Sensori raccolgono dati ambientali, attuatori applicano comandi, driver monitora guida
+\item \textit{Shared World-Controlled}: Driver attiva/disattiva autonoma, driver applica forza steering wheel (leggera/forte), sensore sveglia sistema, sensore invia dati
+\item \textit{Shared Machine-Controlled}: Sistema richiede dati sensori, sistema invia comandi attuatori, sistema prompt driver (vibrazioni steering wheel), sistema emette alarm
+\end{itemize}
+
+\textbf{Requirements Minimi}:
+\begin{itemize}[leftmargin=*]
+\item R1: Copilot SHALL permettere driver attivare self-driving con pulsante steering wheel
+\item R2: Copilot SHALL permettere driver disattivare self-driving con pulsante
+\item R3: Quando sensore sveglia Copilot, SHALL recuperare dati se self-driving attivo
+\item R4: Quando dati recuperati, Copilot SHALL calcolare comandi per attuatori se self-driving attivo
+\item R5: Copilot SHALL loggare sempre tutti dati sensori (indipendentemente da modalità)
+\item R6: Quando self-driving attivo, Copilot SHALL prompt driver periodicamente con vibrazioni steering wheel
+\item R7: Se driver no risposta entro timeout, Copilot SHALL emettere alarm continuo fino a driver riprende controllo
+\end{itemize}
+
+\textbf{Domain Assumptions}:
+\begin{itemize}[leftmargin=*]
+\item DA1: Sensori funzionano correttamente, forniscono dati accurati entro latency accettabile
+\item DA2: Attuatori eseguono comandi correttamente senza delay significativi
+\item DA3: Driver può fisicamente rispondere a prompt (non incapacitato)
+\end{itemize}
+
+\subsection{Design (DD)}
+
+\textbf{Interfacce Copilot}:
+\begin{itemize}[leftmargin=*]
+\item \texttt{IControl.engageAutonomous() : void} - Attiva modalità autonoma (R1)
+\item \texttt{IControl.disengageAutonomous() : void} - Disattiva modalità autonoma (R2)
+\item \texttt{ISensor.getData() : SensorData} - Recupera dati sensore (R3)
+\item \texttt{IActuator.sendCommand(cmd: Command) : void} - Invia comando attuatore (R4)
+\item \texttt{ILogger.log(data: SensorData) : void} - Logga dati (R5)
+\item \texttt{IDriver.promptSteering() : void} - Prompt driver steering wheel (R6)
+\item \texttt{IDriver.emitAlarm() : void} - Emette alarm (R7)
+\end{itemize}
+
+\textbf{Component Diagram}: Copilot ha componenti: \texttt{FeatureCoordinator} (orchestrazione), \texttt{DataLogger} (logging), \texttt{DrivingFeatures} (ALK, ACC, AEB calcolo comandi), \texttt{SensorManager} (interfaccia sensori), \texttt{ActuatorManager} (interfaccia attuatori), \texttt{DriverMonitor} (gestione prompt/alarm). Sensori (Camera, Lidar) → \texttt{SensorManager} → \texttt{FeatureCoordinator} + \texttt{DataLogger}. \texttt{FeatureCoordinator} → \texttt{DrivingFeatures} → comandi → \texttt{ActuatorManager} → Attuatori. \texttt{DriverMonitor} monitora stato autonomo e interagisce con driver.
+
+\textbf{Sequence Diagram Scenario 1} (Autonoma attiva, driver risponde prompt):
+\begin{enumerate}[leftmargin=*]
+\item Timer → \texttt{DriverMonitor.checkDriver()}
+\item \texttt{DriverMonitor} → \texttt{IDriver.promptSteering()}
+\item Driver applica leggero movimento → \texttt{DriverMonitor} riceve feedback
+\item \texttt{DriverMonitor}: autonomous resta attivo
+\end{enumerate}
+
+\textbf{Sequence Diagram Scenario 2} (Lidar segnala ostacolo, emergency braking):
+\begin{enumerate}[leftmargin=*]
+\item Lidar sveglia → \texttt{SensorManager.onSensorWakeup()}
+\item \texttt{SensorManager} → \texttt{FeatureCoordinator.processSensorData()}
+\item \texttt{FeatureCoordinator} → \texttt{ISensor.getData()}
+\item \texttt{FeatureCoordinator} → \texttt{AEB.calculateCommand(data)}
+\item \texttt{AEB} ritorna \texttt{BrakeCommand}
+\item \texttt{FeatureCoordinator} → \texttt{ActuatorManager.sendCommand(BrakeCommand)}
+\item \texttt{ActuatorManager} → \texttt{BrakingSystem.actuate(value)}
+\end{enumerate}
+
+\textbf{Lessons Learned}: Caso reale automotive richiede safety analysis rigorosa (HAZOP, FMEA), verification formal methods, redundancy per safety-critical components, extensive testing (HIL - Hardware-In-Loop, SIL - Software-In-Loop), compliance standard (ISO 26262 automotive safety). Design deve bilanciare autonomy vs human control, minimizzare false positives/negatives, gestire gracefully degradation quando sensori/attuatori falliscono.
+
+\section{Checklist e Concetti Chiave}
+
+\textbf{Checklist Architettura}: Identificate strutture necessarie (module, C\&C, allocation)? Stili architetturali appropriati? Quality attributes analizzati quantitativamente (availability, performance)? Trade-off valutati? Decisioni documentate con rationale? Tactics applicati per qualità target?
+
+\textbf{Checklist V\&V}: Static analysis eseguita (linters, type checkers, data flow)? Symbolic/concolic testing per corner cases? Unit test con coverage adeguata (>80\%)? Integration strategy definita (top-down/bottom-up)? System test end-to-end? Fuzzing per input malformati? Test automatizzati in CI/CD?
+
+\textbf{Checklist PM}: Scope definito chiaramente? WBS con task dettagliati? Effort estimation (COCOMO, FP, analogia)? Schedule con critical path (PERT/Gantt)? Risk matrix e mitigation plans? Communication plan? Success criteria misurabili? Retrospective per lessons learned?
+
+\textbf{Formule Chiave}:
+\begin{itemize}[leftmargin=*]
+\item Availability: $A = \frac{MTTF}{MTTF+MTTR}$
+\item Serie: $A = \prod A_i$, Parallelo: $A = 1 - \prod (1-A_i)$
+\item COCOMO: $Effort = a \cdot KLOC^b \cdot EAF$
+\item PERT: $t_e = \frac{t_o + 4t_m + t_p}{6}$
+\end{itemize}
+
+\textbf{Pattern/Tactics Riusabili}:
+\begin{itemize}[leftmargin=*]
+\item Architectural: Client-Server, Layered, Event-Driven, Microservices
+\item Availability: Replication (hot/warm/cold spare), Circuit Breaker, Graceful Degradation
+\item Microservices: API Gateway, Service Discovery, Saga Pattern, Sidecar
+\item Testing: Test Double (stub/mock), Test Pyramid (molti unit, pochi E2E), Shift-Left (early testing)
+\end{itemize}
+
+\vspace{1cm}
+
+\begin{center}
+\fbox{\parbox{0.9\textwidth}{
+\centering
+\textbf{Lezioni Finali}\\[0.3cm]
+L'architettura determina qualità: pensa trade-off, documenta decisioni.\\
+V\&V richiede strategia multi-livello: static + dynamic, automation + manual.\\
+Project management non è solo pianificare: è adattarsi, comunicare, imparare.\\[0.2cm]
+\textit{``La qualità non è un atto, è un'abitudine.'' - Aristotele}\\[0.2cm]
+Sviluppo software è processo iterativo e collaborativo.\\
+Fallimenti insegnano più dei successi: retrospective sempre!
+}}
+\end{center}
+
+\end{document}
