@@ -1,0 +1,1355 @@
+=== GradientDescent_v1.pdf - 60 Slides ===
+
+--- Slide 1/60 ---
+Images: 0
+
+The Gradient Descent Algorithm
+GradientDescent 1/51
+
+================================================================================
+
+--- Slide 2/60 ---
+Images: 0
+
+Definitions: Convexity I
+Formal Definition (Convexity)
+A function f is convex if its domain dom(f) is a convex set and
+∀x,y ∈ dom(f),λ ∈ [0,1]:
+f(λx +(1−λ)y) ≤ λf(x)+(1−λ)f(y)
+Practical Meaning: The line segment connecting any two points on
+the function’s graph lies above or on the graph.
+Key Implication: Every local minimum is also a global minimum.
+GradientDescent 2/51
+
+================================================================================
+
+--- Slide 3/60 ---
+Images: 1
+
+Definitions: Convexity II
+GradientDescent 3/51
+
+================================================================================
+
+--- Slide 4/60 ---
+Images: 0
+
+Definitions: First-Order Characterization I
+First-Order Characterization
+A differentiable f is convex if and only if:
+f(y) ≥ f(x)+∇f(x)⊤(y −x) ∀x,y
+Practical Meaning: The tangent hyperplane at any point x lies entirely
+below the graph of the function.
+GradientDescent 4/51
+
+================================================================================
+
+--- Slide 5/60 ---
+Images: 1
+
+Definitions: First-Order Characterization II
+GradientDescent 5/51
+
+================================================================================
+
+--- Slide 6/60 ---
+Images: 0
+
+Definitions: Lipschitz and Smoothness
+B-Lipschitz
+f is B-Lipschitz if its ”steepness” is globally bounded:
+|f(x)−f(y)| ≤ B||x −y|| ∀x,y
+For convex, differentiable functions, this is equivalent to:
+||∇f(x)|| ≤ B ∀x (Bounded Gradients)
+L-Smoothness (Gradient Lipschitz)
+f is L-smooth if its gradient is L-Lipschitz:
+||∇f(x)−∇f(y)|| ≤ L||x −y|| ∀x,y
+Practical Meaning: The function’s curvature is bounded above. It
+cannot bend or curve ”too sharply”.
+GradientDescent 6/51
+
+================================================================================
+
+--- Slide 7/60 ---
+Images: 0
+
+Definitions: Smoothness & Strong Convexity I
+These properties provide tangential quadratic bounds.
+L-Smoothness (Quadratic Upper Bound)
+L
+f(y) ≤ f(x)+∇f(x)⊤(y −x)+ ||y −x||2
+2
+The function always lies below a quadratic ”bowl” pointing up.
+(Prove as exercise)
+µ-Strong Convexity (Quadratic Lower Bound)
+µ
+f(y) ≥ f(x)+∇f(x)⊤(y −x)+ ||y −x||2
+2
+The function always lies above a quadratic ”bowl” pointing up. It is ”at
+least” quadratic, guaranteeing a unique, sharp minimum.
+GradientDescent 7/51
+
+================================================================================
+
+--- Slide 8/60 ---
+Images: 1
+
+Definitions: Smoothness & Strong Convexity II
+GradientDescent 8/51
+
+================================================================================
+
+--- Slide 9/60 ---
+Images: 0
+
+Gradient Descent (GD) is an iterative method.
+It generates a sequence of solutions x ,x ,x ,...
+0 1 2
+The update rule is: x = x +v .
+t+1 t t
+How to choose the direction v ?
+t
+We want f(x ) < f(x ).
+t+1 t
+Using a first-order Taylor expansion (for small v ):
+t
+f(x +v ) ≈ f(x )+∇f(x )⊤v
+t t t t t
+To make f decrease, we must choose v such that ∇f(x )⊤v < 0.
+t t t
+The Gradient Descent Algorithm: idea
+Objective
+We want to minimize a differentiable function f : Rd → R. We seek to
+find:
+x∗ = arg min f(x)
+x∈Rd
+GradientDescent 9/51
+
+================================================================================
+
+--- Slide 10/60 ---
+Images: 0
+
+How to choose the direction v ?
+t
+We want f(x ) < f(x ).
+t+1 t
+Using a first-order Taylor expansion (for small v ):
+t
+f(x +v ) ≈ f(x )+∇f(x )⊤v
+t t t t t
+To make f decrease, we must choose v such that ∇f(x )⊤v < 0.
+t t t
+The Gradient Descent Algorithm: idea
+Objective
+We want to minimize a differentiable function f : Rd → R. We seek to
+find:
+x∗ = arg min f(x)
+x∈Rd
+Gradient Descent (GD) is an iterative method.
+It generates a sequence of solutions x ,x ,x ,...
+0 1 2
+The update rule is: x = x +v .
+t+1 t t
+GradientDescent 9/51
+
+================================================================================
+
+--- Slide 11/60 ---
+Images: 0
+
+The Gradient Descent Algorithm: idea
+Objective
+We want to minimize a differentiable function f : Rd → R. We seek to
+find:
+x∗ = arg min f(x)
+x∈Rd
+Gradient Descent (GD) is an iterative method.
+It generates a sequence of solutions x ,x ,x ,...
+0 1 2
+The update rule is: x = x +v .
+t+1 t t
+How to choose the direction v ?
+t
+We want f(x ) < f(x ).
+t+1 t
+Using a first-order Taylor expansion (for small v ):
+t
+f(x +v ) ≈ f(x )+∇f(x )⊤v
+t t t t t
+To make f decrease, we must choose v such that ∇f(x )⊤v < 0.
+t t t
+GradientDescent 9/51
+
+================================================================================
+
+--- Slide 12/60 ---
+Images: 0
+
+The Gradient Descent Algorithm I
+The direction that maximizes this decrease (for a given step length) is
+the direction of the negative gradient.
+We choose v = −γ∇f(x ), where γ > 0 is the step size (or
+t t
+learning rate).
+The Gradient Descent Algorithm
+Choose an initial x . For t = 0,1,2,...:
+0
+x := x −γ∇f(x )
+t+1 t t
+GradientDescent 10/51
+
+================================================================================
+
+--- Slide 13/60 ---
+Images: 1
+
+The Gradient Descent Algorithm II
+Colab Link
+GradientDescent 11/51
+
+================================================================================
+
+--- Slide 14/60 ---
+Images: 1
+
+The Importance of the Step Size γ
+The choice of γ is critical for performance.
+GradientDescent 12/51
+Too small: Convergence is very slow.
+Too large: The algorithm ”overshoots” the minimum and oscillates,
+or may even diverge.
+Just right: Converges efficiently to the minimum.
+
+================================================================================
+
+--- Slide 15/60 ---
+Images: 0
+
+2 GD Step: We can express the gradient using the algorithm’s update
+rule:
+x −x
+t t+1
+g =
+t
+γ
+3 Substitution:
+1
+g⊤(x −x∗) = (x −x )⊤(x −x∗)
+t t γ t t+1 t
+Basic convergence Analysis (Proof)
+Our goal is to bound the error f(x )−f(x∗) .
+t
+1 Convexity: From the first-order characterization, we have:
+f(x )−f(x∗) ≤ ∇f(x )⊤(x −x∗)
+t t t
+Let g = ∇f(x ). We need to bound g⊤(x −x∗).
+t t t t
+GradientDescent 13/51
+
+================================================================================
+
+--- Slide 16/60 ---
+Images: 0
+
+3 Substitution:
+1
+g⊤(x −x∗) = (x −x )⊤(x −x∗)
+t t γ t t+1 t
+Basic convergence Analysis (Proof)
+Our goal is to bound the error f(x )−f(x∗) .
+t
+1 Convexity: From the first-order characterization, we have:
+f(x )−f(x∗) ≤ ∇f(x )⊤(x −x∗)
+t t t
+Let g = ∇f(x ). We need to bound g⊤(x −x∗).
+t t t t
+2 GD Step: We can express the gradient using the algorithm’s update
+rule:
+x −x
+t t+1
+g =
+t
+γ
+GradientDescent 13/51
+
+================================================================================
+
+--- Slide 17/60 ---
+Images: 0
+
+Basic convergence Analysis (Proof)
+Our goal is to bound the error f(x )−f(x∗) .
+t
+1 Convexity: From the first-order characterization, we have:
+f(x )−f(x∗) ≤ ∇f(x )⊤(x −x∗)
+t t t
+Let g = ∇f(x ). We need to bound g⊤(x −x∗).
+t t t t
+2 GD Step: We can express the gradient using the algorithm’s update
+rule:
+x −x
+t t+1
+g =
+t
+γ
+3 Substitution:
+1
+g⊤(x −x∗) = (x −x )⊤(x −x∗)
+t t γ t t+1 t
+GradientDescent 13/51
+
+================================================================================
+
+--- Slide 18/60 ---
+Images: 0
+
+5 Reformulation: Substitute this back and use
+||x −x ||2 = γ2||g ||2:
+t t+1 t
+g⊤(x −x∗) = 1 (cid:0) γ2||g ||2+||x −x∗||2−||x −x∗||2(cid:1)
+t t 2γ t t t+1
+= γ ||g ||2+ 1 (cid:0) ||x −x∗||2−||x −x∗||2(cid:1) (BA1)
+t t t+1
+2 2γ
+Basic convergence Analysis (Proof)
+4 Algebraic Identity: We use the identity
+2v⊤w = ||v||2+||w||2−||v −w||2.
+Let v = x −x and w = x −x∗.
+t t+1 t
+Then v −w = x∗−x .
+t+1
+2(x −x )⊤(x −x∗) = ||x −x ||2+||x −x∗||2−||x −x∗||2
+t t+1 t t t+1 t t+1
+GradientDescent 14/51
+
+================================================================================
+
+--- Slide 19/60 ---
+Images: 0
+
+Basic convergence Analysis (Proof)
+4 Algebraic Identity: We use the identity
+2v⊤w = ||v||2+||w||2−||v −w||2.
+Let v = x −x and w = x −x∗.
+t t+1 t
+Then v −w = x∗−x .
+t+1
+2(x −x )⊤(x −x∗) = ||x −x ||2+||x −x∗||2−||x −x∗||2
+t t+1 t t t+1 t t+1
+5 Reformulation: Substitute this back and use
+||x −x ||2 = γ2||g ||2:
+t t+1 t
+g⊤(x −x∗) = 1 (cid:0) γ2||g ||2+||x −x∗||2−||x −x∗||2(cid:1)
+t t 2γ t t t+1
+= γ ||g ||2+ 1 (cid:0) ||x −x∗||2−||x −x∗||2(cid:1) (BA1)
+t t t+1
+2 2γ
+GradientDescent 14/51
+
+================================================================================
+
+--- Slide 20/60 ---
+Images: 0
+
+7 Upper Bound: Since ||x T −x∗||2 ≥ 0, we can drop this term:
+T−1 T−1
+(cid:88) γ (cid:88) 1
+g⊤(x −x∗) ≤ ||g ||2+ ||x −x∗||2
+t t 2 t 2γ 0
+t=0 t=0
+8 Final Result: Use f(x t )−f(x∗) ≤ g t ⊤(x t −x∗):
+T−1 T−1
+(cid:88) γ (cid:88) 1
+(f(x )−f(x∗)) ≤ ||g ||2+ ||x −x∗||2
+t t 0
+2 2γ
+t=0 t=0
+Basic convergence Analysis (Proof)
+6 Telescoping Sum: Sum the equality from t = 0 to T −1:
+T−1 T−1 T−1
+(cid:88) γ (cid:88) 1 (cid:88)
+g⊤(x −x∗) = ||g ||2+ (||x −x∗||2−||x −x∗||2)
+t t 2 t 2γ t t+1
+t=0 t=0 t=0
+The second sum collapses to: ||x −x∗||2−||x −x∗||2
+0 T
+GradientDescent 15/51
+
+================================================================================
+
+--- Slide 21/60 ---
+Images: 0
+
+8 Final Result: Use f(x t )−f(x∗) ≤ g t ⊤(x t −x∗):
+T−1 T−1
+(cid:88) γ (cid:88) 1
+(f(x )−f(x∗)) ≤ ||g ||2+ ||x −x∗||2
+t t 0
+2 2γ
+t=0 t=0
+Basic convergence Analysis (Proof)
+6 Telescoping Sum: Sum the equality from t = 0 to T −1:
+T−1 T−1 T−1
+(cid:88) γ (cid:88) 1 (cid:88)
+g⊤(x −x∗) = ||g ||2+ (||x −x∗||2−||x −x∗||2)
+t t 2 t 2γ t t+1
+t=0 t=0 t=0
+The second sum collapses to: ||x −x∗||2−||x −x∗||2
+0 T
+7 Upper Bound: Since ||x T −x∗||2 ≥ 0, we can drop this term:
+T−1 T−1
+(cid:88) γ (cid:88) 1
+g⊤(x −x∗) ≤ ||g ||2+ ||x −x∗||2
+t t 2 t 2γ 0
+t=0 t=0
+GradientDescent 15/51
+
+================================================================================
+
+--- Slide 22/60 ---
+Images: 0
+
+Basic convergence Analysis (Proof)
+6 Telescoping Sum: Sum the equality from t = 0 to T −1:
+T−1 T−1 T−1
+(cid:88) γ (cid:88) 1 (cid:88)
+g⊤(x −x∗) = ||g ||2+ (||x −x∗||2−||x −x∗||2)
+t t 2 t 2γ t t+1
+t=0 t=0 t=0
+The second sum collapses to: ||x −x∗||2−||x −x∗||2
+0 T
+7 Upper Bound: Since ||x T −x∗||2 ≥ 0, we can drop this term:
+T−1 T−1
+(cid:88) γ (cid:88) 1
+g⊤(x −x∗) ≤ ||g ||2+ ||x −x∗||2
+t t 2 t 2γ 0
+t=0 t=0
+8 Final Result: Use f(x t )−f(x∗) ≤ g t ⊤(x t −x∗):
+T−1 T−1
+(cid:88) γ (cid:88) 1
+(f(x )−f(x∗)) ≤ ||g ||2+ ||x −x∗||2
+t t 0
+2 2γ
+t=0 t=0
+GradientDescent 15/51
+
+================================================================================
+
+--- Slide 23/60 ---
+Images: 0
+
+Convergence: Lipschitz Convex Functions
+Theorem
+Let f be convex and differentiable. Assume:
+||x −x∗|| ≤ R (bounded initial distance)
+0
+||∇f(x)|| ≤ B for all x (B-Lipschitz / bounded gradients)
+By choosing a constant step size γ := √R , after T iterations:
+B T
+T−1
+1 (cid:88) RB
+(f(x )−f(x∗)) ≤ √
+t
+T T
+t=0
+√
+This implies the error of the best iterate f(x )−f(x∗) is O(1/ T).
+best
+To guarantee f(x )−f(x∗) ≤ ϵ, we need T ≥ R2B2 iterations.
+best ϵ2
+This is a O(1/ϵ2) convergence rate.
+GradientDescent 16/51
+
+================================================================================
+
+--- Slide 24/60 ---
+Images: 0
+
+Lipschitz Convex Functions. Proof
+1 Start: Begin with the ”basic analysis” bound:
+T−1 T−1
+(cid:88) γ (cid:88) 1
+(f(x )−f(x∗)) ≤ ||g ||2+ ||x −x∗||2
+t t 0
+2 2γ
+t=0 t=0
+2 Apply Assumptions: Use the bounds ||g t || ≤ B and ||x 0 −x∗|| ≤ R.
+T−1 T−1
+(cid:88) γ (cid:88) 1
+(f(x )−f(x∗)) ≤ B2+ R2
+t
+2 2γ
+t=0 t=0
+T
+(cid:88)
+−1 γB2T R2
+(f(x )−f(x∗)) ≤ +
+t
+2 2γ
+t=0
+GradientDescent 17/51
+
+================================================================================
+
+--- Slide 25/60 ---
+Images: 0
+
+Lipschitz Convex Functions. Proof
+3 Optimize γ: We want to choose γ to minimize the right-hand side,
+q(γ). We find the minimum by taking the derivative and setting it to
+0:
+B2T R2 R2
+q′(γ) = − = 0 =⇒ γ2 =
+2 2γ2 B2T
+The optimal step size is γ∗ = √R .
+B T
+4 Substitute γ∗: Plug γ = √R back into the right-hand side q(γ):
+B T
+(cid:32) √ (cid:33)
+(cid:18) (cid:19)
+1 R 1 B T
+q(γ∗) = √ B2T + R2
+2 B T 2 R
+√ √
+RB T RB T √
+= + = RB T
+2 2
+GradientDescent 18/51
+
+================================================================================
+
+--- Slide 26/60 ---
+Images: 0
+
+Lipschitz Convex Functions. Proof
+5 Result:
+T−1 √
+(cid:88)
+(f(x )−f(x∗)) ≤ RB T
+t
+t=0
+6 Average Error: Divide by T to get the average error:
+T−1
+1 (cid:88) RB
+(f(x )−f(x∗)) ≤ √
+t
+T T
+t=0
+7 Impli √ cation: The average error (and thus the best error) decreases as
+O(1/ T).
+GradientDescent 19/51
+
+================================================================================
+
+--- Slide 27/60 ---
+Images: 0
+
+Convergence: Smooth Convex Functions
+The L-smoothness assumption is stronger and gives a better rate.
+Lemma (Sufficient decrease)
+Let f be L-smooth. By choosing γ = 1/L:
+1
+f(x ) ≤ f(x )− ||∇f(x )||2
+t+1 t t
+2L
+Meaning: With γ = 1/L, every single step is guaranteed to decrease the
+function value.
+GradientDescent 20/51
+
+================================================================================
+
+--- Slide 28/60 ---
+Images: 0
+
+Smooth Convex Functions. Proof
+Proof.
+From the L-smoothness upper bound:
+L
+f(x ) ≤ f(x )+∇f(x )⊤(x −x )+ ||x −x ||2
+t+1 t t t+1 t t+1 t
+2
+1
+Substitute x −x = − ∇f(x ) :
+t+1 t t
+L
+≤ f(x t )+∇f(x t )⊤ (cid:18) − 1 ∇f(x t ) (cid:19) + L (cid:13) (cid:13) (cid:13)− 1 ∇f(x t ) (cid:13) (cid:13) (cid:13) 2
+L 2 (cid:13) L (cid:13)
+1 L
+≤ f(x )− ||∇f(x )||2+ ||∇f(x )||2
+t L t 2L2 t
+1 1
+≤ f(x )− ||∇f(x )||2+ ||∇f(x )||2
+t t t
+L 2L
+1
+= f(x )− ||∇f(x )||2
+t t
+2L
+GradientDescent 21/51
+
+================================================================================
+
+--- Slide 29/60 ---
+Images: 0
+
+Convergence: Smooth Convex Functions
+Theorem
+Let f be convex and L-smooth. Choosing γ = 1/L:
+L
+f(x )−f(x∗) ≤ ||x −x∗||2
+T 0
+2T
+This is a much better result. The error decreases as O(1/T).
+To guarantee f(x )−f(x∗) ≤ ϵ, we need T ≥ LR2 iterations (where
+T 2ϵ
+R = ||x −x∗||).
+0
+This is a O(1/ϵ) convergence rate.
+GradientDescent 22/51
+
+================================================================================
+
+--- Slide 30/60 ---
+Images: 0
+
+Smooth Convex Functions. Proof I
+1 Start: Begin with the basic result using γ = 1/L:
+T−1 T−1
+(cid:88) 1 (cid:88) L
+(f(x )−f(x∗)) ≤ ||g ||2+ ||x −x∗||2
+t t 0
+2L 2
+t=0 t=0
+2 Bound Gradients: Use the Sufficient Decrease Lemma:
+1
+||g ||2 ≤ f(x )−f(x )
+t t t+1
+2L
+Sum this inequality from t = 0 to T −1:
+T−1 T−1
+1 (cid:88) (cid:88)
+||g ||2 ≤ (f(x )−f(x ))
+t t t+1
+2L
+t=0 t=0
+GradientDescent 23/51
+
+================================================================================
+
+--- Slide 31/60 ---
+Images: 0
+
+Smooth Convex Functions. Proof II
+3 Telescoping Sum: The right-hand side collapses:
+T−1
+(cid:88)
+(f(x )−f(x )) = f(x )−f(x )
+t t+1 0 T
+t=0
+So, 1 (cid:80)T−1||g ||2 ≤ f(x )−f(x ).
+2L t=0 t 0 T
+4 Substitute: Plug this bound for the gradient sum back into Step 1:
+T−1
+(cid:88) L
+(f(x )−f(x∗)) ≤ (f(x )−f(x ))+ ||x −x∗||2
+t 0 T 0
+2
+t=0
+GradientDescent 24/51
+
+================================================================================
+
+--- Slide 32/60 ---
+Images: 0
+
+Smooth Convex Functions. Proof III
+5 Rearrange: Add f(x T )−f(x 0 ) to both sides:
+T−1
+(cid:88) L
+(f(x )−f(x∗))−(f(x )−f(x )) ≤ ||x −x∗||2
+t 0 T 0
+2
+t=0
+This simplifies to:
+T
+(cid:88) L
+(f(x )−f(x∗)) ≤ ||x −x∗||2
+t 0
+2
+t=1
+6 Monotonicity: From Sufficient Decrease, f(x t+1 ) ≤ f(x t ). Thus
+f(x ) is the smallest value in the sequence f(x ),...,f(x ).
+T 1 T
+T
+(cid:88)
+T(f(x )−f(x∗)) ≤ (f(x )−f(x∗))
+T t
+t=1
+GradientDescent 25/51
+
+================================================================================
+
+--- Slide 33/60 ---
+Images: 0
+
+Smooth Convex Functions. Proof IV
+7 Combine: Combining steps 5 and 6:
+L
+T(f(x )−f(x∗)) ≤ ||x −x∗||2
+T 0
+2
+⇓
+L
+f(x )−f(x∗) ≤ ||x −x∗||2
+T 0
+2T
+GradientDescent 26/51
+
+================================================================================
+
+--- Slide 34/60 ---
+Images: 0
+
+Convergence: Smooth & Strongly Convex
+This is the ”best” class of functions for standard GD.
+Theorem
+Let f be L-smooth and µ-strongly convex (µ > 0). Choosing γ = 1/L:
+(i) (Distance): The distance to the optimum decreases geometrically:
+(cid:16) µ(cid:17)
+||x −x∗||2 ≤ 1− ||x −x∗||2
+t+1 t
+L
+(ii) (Function Value): The function error decreases exponentially:
+L (cid:16) µ(cid:17)T
+f(x )−f(x∗) ≤ 1− ||x −x∗||2
+T 0
+2 L
+Let κ = L/µ be the condition number.
+This is linear convergence (or geometric convergence).
+The number of steps is T = O(κlog(1/ϵ)).
+GradientDescent 27/51
+
+================================================================================
+
+--- Slide 35/60 ---
+Images: 0
+
+Smooth & Strongly Convex. Proof I
+1 Start: We start from the equation derived from the basic analysis
+plus strong convexity:
+g⊤(x −x∗) = 1 (cid:0) γ2||g ||2+||x −x∗||2−||x −x∗||2(cid:1)
+t t 2γ t t t+1
+= γ ||g ||2+ 1 (cid:0) ||x −x∗||2−||x −x∗||2(cid:1) (BA1)
+t t t+1
+2 2γ
+µ
+f(y) ≥ f(x)+∇f(x)⊤(y −x)+ ||y −x||2 (SC1)
+2
+Set x = x ,y = x∗ and g = ∇f(x ) then
+t t t
+µ
+g⊤(x −x∗) ≥ f(x )−f(x∗)+ ||x −x∗||2 (SC2)
+t t t 2 t
+GradientDescent 28/51
+
+================================================================================
+
+--- Slide 36/60 ---
+Images: 0
+
+Smooth & Strongly Convex. Proof II
+We have
+1
+f(x )−f(x∗) ≤ (γ2∥∇f(x )∥2+∥x −x∗∥2+∥x −x∗∥2)
+t t t t+1
+2γ
+µ
+− ∥x −x∗∥2
+t
+2
+||x −x∗||2 ≤ (1−µγ)||x −x∗||2+γ2||g ||2−2γ(f(x )−f(x∗))
+t+1 t t t
+Let’s call the last two terms the ”Noise”:
+Noise = γ2||g ||2−2γ(f(x )−f(x∗))
+t t
+GradientDescent 29/51
+
+================================================================================
+
+--- Slide 37/60 ---
+Images: 0
+
+Smooth & Strongly Convex. Proof III
+2 Goal: Show that Noise ≤ 0 when γ = 1/L.
+3 Sufficient Decrease:
+1
+f(x ) ≤ f(x )− ||g ||2
+t+1 t t
+2L
+4 Bound: Since x∗ is the minimum, f(x∗) ≤ f(x t+1 ).
+1
+f(x∗) ≤ f(x )− ||g ||2
+t t
+2L
+⇓
+1
+f(x∗)−f(x ) ≤ − ||g ||2
+t t
+2L
+GradientDescent 30/51
+
+================================================================================
+
+--- Slide 38/60 ---
+Images: 0
+
+Smooth & Strongly Convex. Proof IV
+5 Show Noise ≤ 0:
+Noise = 2γ(f(x∗)−f(x ))+γ2||g ||2
+t t
+Substitute the inequality from Step 4 and γ = 1/L:
+(cid:18)
+1
+(cid:19)(cid:18)
+1
+(cid:19) (cid:18)
+1
+(cid:19)2
+Noise ≤ 2 − ||g ||2 + ||g ||2
+t t
+L 2L L
+1 1
+≤ − ||g ||2+ ||g ||2 = 0
+L2 t L2 t
+GradientDescent 31/51
+
+================================================================================
+
+--- Slide 39/60 ---
+Images: 0
+
+Smooth & Strongly Convex. Proof V
+6 Proof of (i): Since the Noise term is ≤ 0, the inequality from Step 1
+becomes:
+||x −x∗||2 ≤ (1−µγ)||x −x∗||2
+t+1 t
+(cid:16) µ(cid:17)
+||x −x∗||2 ≤ 1− ||x −x∗||2
+t+1 t
+L
+Applying this recursively gives (i):
+(cid:16) µ(cid:17)T
+||x −x∗||2 ≤ 1− ||x −x∗||2
+T 0
+L
+7 Proof of (ii): Use the L-smoothness upper bound, starting from x∗:
+L
+f(x ) ≤ f(x∗)+∇f(x∗)⊤(x −x∗)+ ||x −x∗||2
+T T T
+2
+GradientDescent 32/51
+
+================================================================================
+
+--- Slide 40/60 ---
+Images: 0
+
+Smooth & Strongly Convex. Proof VI
+8 Simplify: The gradient at the minimum is zero, ∇f(x∗) = 0.
+L
+f(x )−f(x∗) ≤ ||x −x∗||2
+T T
+2
+9 Combine: Substitute the result from part (i) into this inequality:
+L (cid:16) µ(cid:17)T
+f(x )−f(x∗) ≤ 1− ||x −x∗||2
+T 0
+2 L
+□
+GradientDescent 33/51
+
+================================================================================
+
+--- Slide 41/60 ---
+Images: 0
+
+Convergence Summary
+Table: Gradient Descent Convergence Rates
+Function Class Error Rate Iterations T for error ϵ
+√
+Lipschitz Convex O(1/ T) O(1/ϵ2)
+Smooth Convex O(1/T) O(1/ϵ)
+Smooth & Strongly Conv. O((1−µ/L)T) O(κlog(1/ϵ))
+Stronger assumptions on the function (e.g., adding smoothness, then
+strong convexity) lead to exponentially faster convergence guarantees.
+GradientDescent 34/51
+
+================================================================================
+
+--- Slide 42/60 ---
+Images: 0
+
+The Line Search Challenge
+The Gradient Descent update rule is:
+x = x −γ ∇f(x )
+k+1 k k k
+We use g = ∇f(x ) as the gradient and d = −g as the descent
+k k k k
+direction.
+The update becomes x = x +γ d .
+k+1 k k k
+The Core Problem
+How do we choose the step size γ at each iteration?
+k
+Plain GD: Use a fixed γ (e.g., γ = 0.01).
+k
+Too small → very slow convergence.
+Too large → overshooting, oscillation, or divergence.
+Line Search: Choose an γ intelligently at each step.
+k
+GradientDescent 35/51
+
+================================================================================
+
+--- Slide 43/60 ---
+Images: 0
+
+The 1D Minimization Problem
+Given the current iterate x and direction d , we want to find an γ > 0
+k k k
+that minimizes f along that line.
+We define a new, 1-dimensional function ϕ(γ):
+ϕ(γ) = f(x +γd )
+k k
+The goal of any line search is to find a good γ that minimizes ϕ(γ).
+k
+Two main strategies:
+1 Exact Line Search: Find the exact minimum of ϕ(γ).
+2 Inexact Line Search: Find an γ that is ”good enough”.
+GradientDescent 36/51
+
+================================================================================
+
+--- Slide 44/60 ---
+Images: 0
+
+Method 1: Exact Line Search I
+Idea: Find the γ that perfectly minimizes the function along the search
+k
+direction.
+γ = argmin ϕ(γ) = argmin f(x +γd )
+k k k
+γ>0 γ>0
+How? (Theoretically)
+We solve for ϕ′(γ) = 0.
+Using the chain rule: ϕ′(γ) = ∇f(x +γd )Td .
+k k k
+We need to find γ such that ∇f(x )Td = 0.
+k+1 k
+This means the new gradient is orthogonal to the previous search
+direction.
+GradientDescent 37/51
+
+================================================================================
+
+--- Slide 45/60 ---
+Images: 0
+
+Method 1: Exact Line Search II
+Advantages:
+Makes the most progress possible in the chosen direction.
+Converges in very few iterations (especially for quadratic functions,
+where it produces a characteristic ”zigzag” path).
+Drawbacks:
+Extremely high cost! Solving argmin is often as hard as the original
+γ>0
+problem.
+Only analytically solvable for simple functions (e.g., quadratics).
+Almost never used in practice for complex problems like deep learning.
+GradientDescent 38/51
+
+================================================================================
+
+--- Slide 46/60 ---
+Images: 0
+
+Method 2: Backtracking Line Search (Inexact)
+Idea: Don’t find the perfect γ . Just find one that guarantees ”sufficient
+k
+decrease” quickly.
+Algorithm:
+1 Choose parameters:
+γ¯ >0 (initial guess, e.g., γ¯ =1.0)
+c ∈(0,1) (controls ”sufficient decrease”, e.g., c =10−4)
+τ ∈(0,1) (shrink factor, e.g., τ =0.5)
+2 Set γ = γ¯
+3 While f(x k +γd k ) > f(x k )+cγ∇f(x k )Td k :
+γ ←τγ (Shrink the step size)
+4 End While
+5 Set γ k = γ
+Note: The condition f(x +γd ) ≤ f(x )+cγ∇f(x )Td is called the
+k k k k k
+Armijo Condition. Since d = −g and ∇f(x )Td = −∥g ∥2, it
+k k k k k
+ensures the new point is sufficiently lower than the old one.
+GradientDescent 39/51
+
+================================================================================
+
+--- Slide 47/60 ---
+Images: 0
+
+Backtracking: Advantages Drawbacks
+Advantages:
+Practical and efficient: Much, much cheaper per iteration than
+exact search. It only requires function evaluations, not solving a new
+optimization problem.
+Robust: Guarantees convergence under mild assumptions.
+Widely used: The ”default” line search in many serious optimization
+packages (e.g., for L-BFGS, Newton’s method).
+Drawbacks:
+Requires tuning parameters (c, τ, γ¯), though default values (like
+c = 10−4,τ = 0.5) work well for many problems.
+Can require several function evaluations within one iteration (in the
+‘while‘ loop), which can be costly if f(x) is expensive to compute.
+May take more total iterations than exact search, but the total time is
+almost always far less.
+GradientDescent 40/51
+
+================================================================================
+
+--- Slide 48/60 ---
+Images: 0
+
+Comparison: Which Line Search to Use?
+Method Cost per Iteration Tuning Practicality
+Plain GD Lowest (1 grad) Requires careful Simple, but can be
+(Fixed γ) γ tuning slow or unstable
+Exact LS Extremely High None (theoretic) Impractical
+(Solve argmin) (except for quadratics)
+Backtracking Low / Medium Parameters Very Practical
+(Multiple f evals) c,τ,γ¯ (Good trade-off)
+Table: Comparison of step size strategies.
+Key Takeaway
+For most optimization problems, an inexact line search like backtracking provides the
+best balance of low computational cost and robust convergence.
+GradientDescent 41/51
+
+================================================================================
+
+--- Slide 49/60 ---
+Images: 0
+
+The Problem: Constrained Minimization
+So far, we have seen unconstrained minimization:
+minimizef(x)
+x∈Rn
+But many real-world problems have constraints:
+minimizef(x)
+x∈C
+f(x) is the (convex) objective function (e.g., loss function).
+C is a closed, convex set representing our constraints.
+Examples of Constraint Sets C:
+Non-negativity: C = {x | x ≥ 0 for all i}
+i
+Box Constraints: C = {x | l ≤ x ≤ u }
+i i i
+Norm Balls: We want to find a solution x with a ”small” norm.
+L Ball: C ={x|∥x∥ ≤R} (The ”Unitary Ball” if R =1)
+2 2
+L Ball: C ={x|∥x∥ ≤R}
+1 1
+GradientDescent 42/51
+
+================================================================================
+
+--- Slide 50/60 ---
+Images: 0
+
+Why Standard Gradient Descent Fails
+The standard Gradient Descent (GD) update is:
+x = x −γ ∇f(x )
+k+1 k k k
+The Problem
+Even if x is in the set C (i.e., x is feasible), the next step x may land
+k k k+1
+outside of C.
+We need a way to move in the direction of the negative gradient while
+staying inside the set C.
+GradientDescent 43/51
+
+================================================================================
+
+--- Slide 51/60 ---
+Images: 0
+
+The Projection Operator: P
+C
+Definition: The projection of a point y onto a convex set C, denoted
+P (y), is the point in C that is closest to y.
+C
+P (y) = argmin∥x−y∥2
+C 2
+x∈C
+If y ∈ C: The closest point is y itself. P (y) = y.
+C
+If y ∈/ C: P (y) is a point on the boundary of C.
+C
+GradientDescent 44/51
+
+================================================================================
+
+--- Slide 52/60 ---
+Images: 0
+
+The Projected Gradient Method (PGM) Algorithm
+The idea is simple: Descend, then Project.
+At each iteration k:
+1 Gradient Step (like standard GD): Take a step in the negative
+gradient direction.
+y = x −γ ∇f(x )
+k+1 k k k
+This y is our ”desired” point, but it might be infeasible.
+k+1
+2 Projection Step: Project the result y k+1 back onto the feasible set
+C.
+x = P (y )
+k+1 C k+1
+(cid:16) (cid:17)
+Single-line Update:x = P x −γ ∇f(x )
+k+1 C k k k
+Key Condition
+This method is only efficient if the projection P (y) is easy to compute.
+C
+GradientDescent 45/51
+
+================================================================================
+
+--- Slide 53/60 ---
+Images: 0
+
+Case 1: Projection onto the L Ball
+2
+Let C = {x | ∥x∥ ≤ R} (the ”unitary ball” if R = 1).
+2
+We have y = x −γ ∇f(x ). We need to compute x = P (y).
+k k k k+1 C
+The L Projection is simple ”shrinking”:
+2
+(cid:40)
+y if ∥y∥ ≤ R (already inside)
+2
+P (y) =
+C R · y if ∥y∥ > R (shrink to boundary)
+∥y∥2 2
+This can be written compactly as:
+(cid:18) (cid:19)
+R
+P (y) = ymin 1,
+C
+∥y∥
+2
+This projection is very cheap to compute.
+It scales the entire vector, but does not change its direction.
+It does not create sparsity.
+GradientDescent 46/51
+
+================================================================================
+
+--- Slide 54/60 ---
+Images: 0
+
+Case 2: Projection onto the L Ball
+1
+Let C = {x | ∥x∥ ≤ R}. This is much trickier!
+1
+(cid:88)
+P (y) = argmin∥x−y∥2 s.t. |x | ≤ R
+C 2 i
+x∈C
+i
+There is no simple, closed-form formula like the L case.
+2
+However, it can be computed efficiently (in O(nlogn) time).
+Crucial Property: The L projection is sparsity-inducing. It
+1
+preferentially sets small components of y to exactly zero.
+GradientDescent 47/51
+
+================================================================================
+
+--- Slide 55/60 ---
+Images: 0
+
+This is solved by Projected Gradient Descent:
+x = P (x −γ g )
+k+1 C k k k
+Form 2: Regularized Problem
+minimizef(V)+λ·Ω(x)
+x
+This is solved by Proximal Gradient Descent:
+x = prox (x −γ g )
+k+1 γ λΩ k k k
+k
+For convex problems, for every R > 0, there exists a λ ≥ 0 (and
+vice-versa) such that these two forms have the same solution.
+The Link: Constrained vs. Regularized
+There is a deep connection in optimization (via Lagrangian duality)
+between a constrained problem and a regularized one.
+Form 1: Constrained Problem
+minimizef(x) where C = {x | Ω(x) ≤ R}
+x∈C
+GradientDescent 48/51
+
+================================================================================
+
+--- Slide 56/60 ---
+Images: 0
+
+This is solved by Proximal Gradient Descent:
+x = prox (x −γ g )
+k+1 γ λΩ k k k
+k
+For convex problems, for every R > 0, there exists a λ ≥ 0 (and
+vice-versa) such that these two forms have the same solution.
+The Link: Constrained vs. Regularized
+There is a deep connection in optimization (via Lagrangian duality)
+between a constrained problem and a regularized one.
+Form 1: Constrained Problem
+minimizef(x) where C = {x | Ω(x) ≤ R}
+x∈C
+This is solved by Projected Gradient Descent:
+x = P (x −γ g )
+k+1 C k k k
+Form 2: Regularized Problem
+minimizef(V)+λ·Ω(x)
+x
+GradientDescent 48/51
+
+================================================================================
+
+--- Slide 57/60 ---
+Images: 0
+
+The Link: Constrained vs. Regularized
+There is a deep connection in optimization (via Lagrangian duality)
+between a constrained problem and a regularized one.
+Form 1: Constrained Problem
+minimizef(x) where C = {x | Ω(x) ≤ R}
+x∈C
+This is solved by Projected Gradient Descent:
+x = P (x −γ g )
+k+1 C k k k
+Form 2: Regularized Problem
+minimizef(V)+λ·Ω(x)
+x
+This is solved by Proximal Gradient Descent:
+x = prox (x −γ g )
+k+1 γ λΩ k k k
+k
+For convex problems, for every R > 0, there exists a λ ≥ 0 (and
+vice-versa) such that these two forms have the same solution.
+GradientDescent 48/51
+
+================================================================================
+
+--- Slide 58/60 ---
+Images: 0
+
+PGM (L Ball) vs. L Regularization (Ridge)
+2 2
+PGM on L Ball:
+2
+minimizef(x)
+∥x∥2≤R
+Update: x =P (x −γ g )
+k+1 L2(R) k k k
+Mechanism: ”Hard” constraint. If vector is too long, it gets clipped to the
+boundary.
+L Regularization (Ridge Regression):
+2
+minimizef(x)+λ∥x∥2
+2
+x
+Update: x =prox (x −γ g )
+k+1 γkλ∥·∥2
+2
+k k k
+This specific proximal operator is just weight decay:
+x =(1−γ λ′)(x −γ g )
+k+1 k k k k
+(assuming g is gradient of f only)
+k
+Mechanism: ”Soft” penalty. All weights are shrunk (decayed) by a factor at each
+step.
+Connection: Both methods shrink weights to control complexity.
+GradientDescent 49/51
+
+================================================================================
+
+--- Slide 59/60 ---
+Images: 0
+
+PGM (L Ball) vs. L Regularization (LASSO)
+1 1
+This is the most important connection!
+PGM on L Ball:
+1
+minimizef(x)
+∥x∥1≤R
+Update: x =P (x −γ g )
+k+1 L1(R) k k k
+Mechanism: The L projection creates sparsity by setting small components to 0.
+1
+L Regularization (LASSO):
+1
+minimizef(x)+λ∥x∥
+1
+x
+Update: x =prox (x −γ g )
+k+1 γkλ∥·∥1 k k k
+This proximal operator is the Soft-Thresholding Operator S !
+τ
+[S (y)] =sign(y)·max(0,|y|−τ)
+τ i i i
+where τ =γ λ.
+k
+Mechanism: This operator also creates sparsity by setting components with
+|y|<τ to 0.
+i
+GradientDescent 50/51
+
+================================================================================
+
+--- Slide 60/60 ---
+Images: 0
+
+Summary
+Projected Gradient Method (PGM) is a simple algorithm for
+constrained optimization: Descend, then Project.
+x = P (x −γ ∇f(x ))
+k+1 C k k k
+PGM on L Ball (”unitary ball”)
+2
+P is a simple ”scaling” or ”clipping” operation.
+L2(R)
+It is computationally cheap.
+It is equivalent to L (Ridge) regularization, as both shrink weights to
+2
+control complexity.
+PGM on L Ball
+1
+P is more complex, but still efficient.
+L1(R)
+It is the key link to L (LASSO) regularization.
+1
+Both methods induce sparsity by setting irrelevant features to exactly 0.
+PGM solves the constrained problem, while Proximal Gradient solves
+the regularized problem. For L and L norms, these two forms are
+1 2
+equivalent.
+GradientDescent 51/51
+
+================================================================================
+

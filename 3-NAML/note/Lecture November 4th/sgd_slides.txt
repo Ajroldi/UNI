@@ -1,0 +1,485 @@
+=== SGD_v1.pdf - 23 Slides ===
+
+--- Slide 1/23 ---
+Images: 0
+
+Stochastic Gradient Descent (SGD)
+StochasticGradientDescent(SGD) 1/23
+
+================================================================================
+
+--- Slide 2/23 ---
+Images: 0
+
+The Algorithm: Sum-Structured Objectives
+The Problem Setting
+Many objective functions in machine learning are structured as a sum:
+n
+1 (cid:88)
+f(x) = f (x)
+i
+n
+i=1
+f is typically the loss function for the i-th data point.
+i
+n is the total number of data points in the training set.
+Stochastic Gradient Descent (SGD) Iteration
+An iteration of SGD is defined as:
+1 Sample i ∈ {1,...,n} uniformly at random.
+2 Update x using only the gradient of f i :
+x := x −γ ∇f (x )
+t+1 t t i t
+StochasticGradientDescent(SGD) 2/23
+
+================================================================================
+
+--- Slide 3/23 ---
+Images: 0
+
+The SGD Algorithm: Efficiency
+The Advantage of SGD
+Efficiency per iteration.
+Full Gradient (GD): To compute ∇f(x ) = 1 (cid:80)n ∇f (x ), we
+t n i=1 i t
+must compute n individual gradients.
+Stochastic Gradient (SGD): An iteration requires computing only a
+single gradient, ∇f (x ).
+i t
+This makes each SGD iteration n times cheaper than a full GD
+iteration.
+The Core Question
+Do these much cheaper iterations still provide meaningful progress toward
+the minimum?
+(Spoiler: Yes, but with trade-offs.)
+StochasticGradientDescent(SGD) 3/23
+
+================================================================================
+
+--- Slide 4/23 ---
+Images: 0
+
+Unbiasedness of the Stochastic Gradient I
+Unbiased Estimator
+The update vector g := ∇f (x ) is called a stochastic gradient.
+t i t
+This stochastic gradient is an unbiased estimator of the true gradient
+∇f(x).
+In expectation, over the random choice of i, g equals the full gradient:
+t
+n
+1 (cid:88)
+E[g |x = x] = E [∇f (x)] = ∇f (x) = ∇f(x)
+t t i i i
+n
+i=1
+StochasticGradientDescent(SGD) 4/23
+
+================================================================================
+
+--- Slide 5/23 ---
+Images: 0
+
+Unbiasedness of the Stochastic Gradient II
+Consequence for Analysis
+The key inequality for convex functions, f(x )−f(x∗) ≤ ∇f(x )⊤(x −x∗),
+t t t
+may not hold for the stochastic gradient g .
+t
+However, it does hold in expectation.
+E[g⊤(x −x∗)] = E[∇f(x )⊤(x −x∗)]
+t t t t
+≥ E[f(x )−f(x∗)] (⋄)
+t
+This is the crucial observation that allows the analysis of SGD.
+StochasticGradientDescent(SGD) 5/23
+
+================================================================================
+
+--- Slide 6/23 ---
+Images: 0
+
+Convergence: Bounded Gradients
+Theorem (Lipschitz-like)
+Let f be convex and differentiable with global minimum x∗. Assume:
+1 ||x 0 −x∗|| ≤ R
+2 E[||g t ||2] ≤ B2 for all t (Bounded expected squared norm)
+Choosing a constant stepsize γ := √R , SGD yields:
+B T
+T−1
+1 (cid:88) RB
+E[f(x )]−f(x∗) ≤ √
+t
+T T
+t=0
+This implies an O(1/ϵ2) step complexity.
+StochasticGradientDescent(SGD) 6/23
+
+================================================================================
+
+--- Slide 7/23 ---
+Images: 0
+
+Convergence: Bounded Gradients. Proof I
+Start basic analysis from GD and take expectations:
+T−1 T−1
+(cid:88) γ (cid:88) 1
+E[g⊤(x −x∗)] ≤ E[||g ||2]+ ||x −x∗||2
+t t 2 t 2γ 0
+t=0 t=0
+Use our three key facts:
+1 E[f(x t )−f(x∗)] ≤ E[g t ⊤(x t −x∗)] (from ⋄)
+2 E[||g t ||2] ≤ B2 (Assumption)
+3 ||x 0 −x∗||2 ≤ R2 (Assumption)
+Plugging these in gives:
+T−1
+(cid:88) γ 1
+E[f(x )−f(x∗)] ≤ B2T + R2
+t
+2 2γ
+t=0
+The proof finishes by choosing the optimal γ = √R to minimize the RHS.
+√ B T
+This yields (cid:80)T−1E[f(x )−f(x∗)] ≤ RB T. Dividing by T gives the
+t=0 t
+result.
+StochasticGradientDescent(SGD) 7/23
+
+================================================================================
+
+--- Slide 8/23 ---
+Images: 0
+
+Convergence: Strong Convexity I
+Theorem (Strong Convexity)
+Let f be differentiable and strongly convex with parameter µ > 0. Assume
+E[||g ||2] ≤ B2 for all t.
+t
+With a decreasing stepsize γ := 2 , SGD yields:
+t µ(t+1)
+(cid:34) (cid:32) 2 (cid:88) T (cid:33) (cid:35) 2B2
+E f t ·x −f(x∗) ≤
+t
+T(T +1) µ(T +1)
+t=1
+This implies an O(1/ϵ) step complexity (for the averaged iterate).
+StochasticGradientDescent(SGD) 8/23
+
+================================================================================
+
+--- Slide 9/23 ---
+Images: 0
+
+Convergence: Strong Convexity. Proof I
+(1). Start from basic analysis and take expectations:
+γ 1
+E[g⊤(x −x∗)] = tE[||g ||2]+ (E[||x −x∗||2]−E[||x −x∗||2])
+t t 2 t 2γ t t+1
+t
+(2). Use (⋄) and strong convexity for the LHS:
+E[g⊤(x −x∗)] = E[∇f(x )⊤(x −x∗)]
+t t t t
+µ
+≥ E[f(x )−f(x∗)]+ E[||x −x∗||2]
+t t
+2
+(3). Combine (1) and (2), and use E[||g ||2] ≤ B2:
+t
+B2γ (γ−1−µ) γ−1
+E[f(x )−f(x∗)] ≤ t + t E[||x −x∗||2]− t E[||x −x∗||2]
+t t t+1
+2 2 2
+StochasticGradientDescent(SGD) 9/23
+
+================================================================================
+
+--- Slide 10/23 ---
+Images: 0
+
+Convergence: Strong Convexity. Proof II
+Theorem (Jensen’s inequality)
+Let f : Rd → R be a convex function, x ,...,x ∈ dom(f) and
+1 m
+λ ,...,λ ∈ R such that
+(cid:80)m
+λ = 1. Then
+1 m + i=1 i
+(cid:32) m (cid:33) m
+(cid:88) (cid:88)
+f λ x ≤ λ f(x )
+i i i i
+i=1 i=1
+4. Plug in γ = 2 , multiply by t, sum, and applying the Jensen’s
+t µ(t+1)
+inequality we get the thesis.
+StochasticGradientDescent(SGD) 10/23
+
+================================================================================
+
+--- Slide 11/23 ---
+Images: 0
+
+How to Sample: With or Without Replacement? I
+Sampling With Replacement
+What it is: In each step, pick an i ∈ {1,...,n} uniformly at random.
+Analysis: This is the standard assumption used in the proofs.
+Advantage: The samples (g ,g ,...) are all independent and
+t t+1
+identically distributed (i.i.d.). This makes the analysis much simpler.
+Drawback: In one "epoch" (pass through n samples), it’s very likely
+you miss some data points and sample others multiple times.
+StochasticGradientDescent(SGD) 11/23
+
+================================================================================
+
+--- Slide 12/23 ---
+Images: 0
+
+How to Sample: With or Without Replacement? II
+Sampling Without Replacement ("Random Reshuffling")
+What it is:
+1 Create a random permutation (shuffle) of the n data indices.
+2 Pass through the data in that shuffled order.
+3 When all n are used, re-shuffle and start a new epoch.
+This is what is done in practice!
+Advantage: Guarantees every data point is used exactly once per
+epoch. Empirically, it converges faster.
+Drawback: The samples within an epoch are not independent. The
+analysis is much, much harder.
+StochasticGradientDescent(SGD) 12/23
+
+================================================================================
+
+--- Slide 13/23 ---
+Images: 0
+
+The Goal in Machine Learning I
+Optimization vs. Generalization
+In pure optimization, we want to find the exact minimum of the given
+function f(x).
+In Machine Learning, f(x) is the training loss. We don’t care about
+minimizing it perfectly.
+We really care about the test loss (or "generalization error"): how
+the model performs on new, unseen data.
+Minimizing the training loss perfectly can lead to overfitting, where
+the model memorizes the training data and fails to generalize.
+StochasticGradientDescent(SGD) 13/23
+
+================================================================================
+
+--- Slide 14/23 ---
+Images: 0
+
+The Goal in Machine Learning II
+Early Stopping
+Because of this, we almost never train SGD until convergence.
+We monitor the loss on a separate validation set (data not used for
+training).
+We stop training when the validation loss stops improving (or starts
+getting worse), even if the training loss is still going down.
+This "early stopping" acts as a powerful regularizer.
+StochasticGradientDescent(SGD) 14/23
+
+================================================================================
+
+--- Slide 15/23 ---
+Images: 0
+
+Visualization: Early Stopping
+1
+0.8
+0.6
+Overfitting
+0.4
+0.2
+0
+0 10 20 Stop3H0ere! 40 50
+Training Epochs
+ssoL
+Training Loss
+Validation Loss
+StochasticGradientDescent(SGD) 15/23
+
+================================================================================
+
+--- Slide 16/23 ---
+Images: 0
+
+Example: f (x) = 1 (cid:80)N (a x − b )2 I
+2N i=1 i i
+The Setup (1D Linear Regression)
+Let f (x) = 1(a x −b )2. This is a single parabola.
+i 2 i i
+The minimum of f is at x∗ = b /a .
+i i i i
+The full-batch loss f(x) is the average of all these parabolas.
+The global minimum x∗ is at ∇f(x∗) = 0, which gives x∗ =
+(cid:80)aibi.
+(cid:80)a2
+i
+StochasticGradientDescent(SGD) 16/23
+
+================================================================================
+
+--- Slide 17/23 ---
+Images: 0
+
+Example: f (x) = 1 (cid:80)N (a x − b )2 II
+2N i=1 i i
+SGD Dynamics: Two Zones
+1 Far-out Zone:
+When x is far from all x∗, all individual gradients
+t i
+∇f(x )=a(ax −b) point in roughly the same direction (e.g., all
+i t i i t i
+negative).
+The stochastic gradient g is a good approximation of the true gradient
+t
+∇f(x ).
+t
+SGD makes fast, consistent progress, much like full-batch GD.
+2 Region of Confusion:
+When x is near the global minimum x∗, it lies between the individual
+t
+x∗.
+i
+Some ∇f(x ) will be positive, others will be negative. They "fight"
+i t
+each other.
+The stochastic gradient g has high variance. E[g ]≈0, but g itself is
+t t t
+large.
+SGD cannot converge to x∗ (with constant γ) and will "bounce
+around" this region. Link Colab
+StochasticGradientDescent(SGD) 17/23
+
+================================================================================
+
+--- Slide 18/23 ---
+Images: 1
+
+Visualization: Region of Confusion
+γB2
+E[∥x −x∗∥2] ≤ (1−2γµ)t∥x −x∗∥2+
+t 0
+2µ
+StochasticGradientDescent(SGD) 18/23
+
+================================================================================
+
+--- Slide 19/23 ---
+Images: 0
+
+Mini-Batch SGD
+The Algorithm
+A compromise between full-batch (GD) and single-sample (SGD). Instead
+of one sample, we average m samples (a "mini-batch"):
+m
+1 (cid:88)
+g˜ := ∇f (x )
+t
+m
+ij t
+j=1
+where i are m distinct, randomly chosen indices.
+j
+The update step is then:
+x := x −γ g˜
+t+1 t t t
+m = 1 is standard SGD.
+m = n is full-batch GD.
+StochasticGradientDescent(SGD) 19/23
+
+================================================================================
+
+--- Slide 20/23 ---
+Images: 0
+
+Mini-Batch SGD: Benefits
+Benefit 1: Variance Reduction
+Averaging reduces variance.
+The variance of the mini-batch gradient g˜ is m times smaller than the
+t
+variance of the single-sample gradient g .
+t
+E[||g˜ −∇f(x )||2] = 1E[||g1−∇f(x )||2]
+t t m t t
+This makes the gradient estimate g˜ much more accurate, leading to
+t
+more stable convergence.
+Benefit 2: Parallel Computation
+The m gradients in a mini-batch, ∇f (x ),...,∇f (x ), are all
+i1 t im t
+computed at the same point x .
+t
+They are independent computations and can be perfectly parallelized.
+This is the primary reason mini-batching is used in Deep Learning.
+GPUs (Graphical Processing Units) are massively parallel and can
+compute all m gradients simultaneously.
+StochasticGradientDescent(SGD) 20/23
+
+================================================================================
+
+--- Slide 21/23 ---
+Images: 0
+
+Mini-Batch SGD: Drawbacks
+Drawback: Overfitting & Generalization
+It is a common belief (and often observed) that the "noise" from small
+batches (small m) helps SGD escape sharp, non-generalizing local
+minima.
+This noise acts as a regularizer, pushing the algorithm toward "flatter"
+minima, which are thought to generalize better.
+A too-large mini-batch (m → n) reduces this beneficial noise,
+making the algorithm behave like full-batch GD, which can get stuck
+and overfit more easily.
+Finding the "best" m is a key part of hyperparameter tuning.
+StochasticGradientDescent(SGD) 21/23
+
+================================================================================
+
+--- Slide 22/23 ---
+Images: 0
+
+Stepsize (Learning Rate) Selection I
+The Most Critical Parameter
+The choice of stepsize γ (often called the learning rate in ML) is crucial.
+t
+Too Large: The algorithm will be unstable, "overshoot" the
+minimum, and diverge. The loss will explode.
+Too Small: The algorithm will be stable, but convergence will be
+extremely slow.
+StochasticGradientDescent(SGD) 22/23
+
+================================================================================
+
+--- Slide 23/23 ---
+Images: 0
+
+Stepsize (Learning Rate) Selection II
+Common Strategies
+1 Constant Stepsize:
+γ =γ
+t
+Simple, but will "bounce around" the minimum. Requires γ to be small
+enough.
+2 Decreasing Stepsize:
+γ
+t
+→0, e.g., γ
+t
+∝ 1
+t
+or √1
+t
+.
+Guarantees convergence to the minimum, but can be slow to tune and
+may decay too quickly.
+3 Annealing / Schedulers (Practice):
+Start with a large, constant γ for fast progress in the "far-out zone".
+Periodically "decay" (decrease) γ, e.g., divide by 10 every 20 epochs.
+This is the most common and effective strategy in modern deep
+learning.
+StochasticGradientDescent(SGD) 23/23
+
+================================================================================
+
