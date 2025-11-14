@@ -1,5 +1,3 @@
----
-
 # Lezione 3 - Venerdì 19 Settembre 2025
 
 **Argomenti principali:**
@@ -9,8 +7,6 @@
 - Introduzione a NumPy (array, operazioni vettoriali)
 - Introduzione a Matplotlib (plotting 2D e 3D)
 - Progetto 9: Visualizzazione 3D della funzione di Himmelblau
-
----
 
 ## 📌 Progetto 7: Numeri di Fibonacci
 
