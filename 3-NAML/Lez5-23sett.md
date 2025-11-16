@@ -1,5 +1,3 @@
----
-
 # Lezione 5 - Martedì 23 Settembre 2025
 
 **Argomenti principali:**
@@ -10,8 +8,6 @@
 - Decomposizioni: LU, QR, SVD (introduzione)
 - Matrici ortogonali e proiezioni
 - Applicazioni: PCA, regressione, compressione dati
-
----
 
 ## 🎯 Focus e Ambito del Corso
 
