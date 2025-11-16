@@ -1,5 +1,3 @@
----
-
 # Lezione 4 - Lunedì 22 Settembre 2025
 
 **Argomenti principali:**
@@ -9,8 +7,6 @@
 - Panoramica SciPy (moduli e documentazione)
 - Progetto 11: Modelli ODE (SIR, Lotka-Volterra, Cosmetics) con `solve_ivp`
 - Progetto 12: Problema di Laplace 1D con differenze finite
-
----
 
 ## 📊 Progetto 10: Visualizzazione Dati COVID-19
 
