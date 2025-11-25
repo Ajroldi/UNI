@@ -129,40 +129,124 @@ Possiamo continuare dal punto dove siamo arrivati l'ultima volta. Come ricordere
 In realtà, quando vi ho presentato il teorema, vi ho detto che questo risultato è valido in una norma indotta, ma le norme più importanti che considereremo sono la norma spettrale e la norma di Frobenius. Quindi oggi considereremo la norma di Frobenius. Quindi l'enunciato è solo per ricapitolare.
 
 `00:01:08` 
-Ci viene data una matrice di rango R e se calcoliamo la decomposizione ai valori singolari di A, arriviamo al prodotto di tre matrici, U, sigma e V trasposta, dove U e V sono matrici ortogonali e sigma è, diciamo, la matrice diagonale o pseudo-diagonale. Se u e v sono considerate quadrate, allora abbiamo informazioni importanti solo nelle prime r colonne di u e r righe di v trasposta.
+Consideriamo una matrice $A \in \mathbb{R}^{m \times n}$ di rango $r$. La sua **Decomposizione ai Valori Singolari (SVD)** è data da:
 
-`00:01:53` 
-E nella matrice sigma, nella porzione diagonale della matrice sigma, abbiamo r valori singolari, che sono numeri positivi. Sono ordinati in ordine decrescente, quindi sigma 1 è assunto essere il valore singolare più grande, fino a sigma r, e poi tutti gli altri valori singolari sono uguali a 0. Okay, partendo da...
+$$
+A = U \Sigma V^T
+$$
+
+Dove:
+- $U \in \mathbb{R}^{m \times m}$: **matrice ortogonale** (vettori singolari sinistri)
+- $\Sigma \in \mathbb{R}^{m \times n}$: **matrice pseudo-diagonale** con valori singolari
+- $V \in \mathbb{R}^{n \times n}$: **matrice ortogonale** (vettori singolari destri)
+
+**Struttura di $\Sigma$:** Contiene $r$ valori singolari **positivi** sulla diagonale:
+$$
+\sigma_1 \geq \sigma_2 \geq \cdots \geq \sigma_r > 0
+$$
+
+Tutti gli altri elementi sono zero. Le informazioni significative sono contenute nelle prime $r$ colonne di $U$ e nelle prime $r$ righe di $V^T$.
+
+`00:01:53`
 
 `00:02:26` 
-quella composizione, o in realtà scrivendo esplicitamente quella composizione, possiamo scrivere la matrice A come una somma di r contributi di rango uno. Se invece di tenere tutti gli r contributi, ci fermiamo al termine k, come in questa espressione, abbiamo la cosiddetta SVD troncata. Quindi stiamo costruendo un'approssimazione di rango k della matrice A, della matrice A originale.
+Partendo dalla SVD, possiamo espandere la matrice $A$ come **somma di $r$ matrici di rango 1**:
+
+$$
+A = \sum_{i=1}^r \sigma_i u_i v_i^T
+$$
+
+Dove $u_i$ è la $i$-esima colonna di $U$ e $v_i$ è la $i$-esima colonna di $V$.
+
+**SVD Troncata (rank-$k$ approximation):** Se tratteniamo solo i primi $k$ termini ($k < r$), otteniamo:
+
+$$
+A_k = \sum_{i=1}^k \sigma_i u_i v_i^T = U_k \Sigma_k V_k^T
+$$
+
+Questa è un'**approssimazione di rango $k$** della matrice originale $A$.
 
 `00:03:07` 
-E il risultato del teorema è che se avete una matrice B, che è della stessa dimensione della matrice A, e il suo rango è minore o uguale a K, possiamo dire essenzialmente che sia nella norma spettrale che nella norma di Frobenius, è possibile dimostrare che AK è la migliore approssimazione di rango K della matrice A.
+**Teorema di Eckart-Young:** Data una matrice $B$ della stessa dimensione di $A$ con $\text{rank}(B) \leq k$, si ha:
+
+$$
+\|A - A_k\|_F \leq \|A - B\|_F \quad \text{e} \quad \|A - A_k\|_2 \leq \|A - B\|_2
+$$
+
+Ovvero, $A_k$ (SVD troncata) è la **migliore approssimazione di rango $k$** sia nella norma di Frobenius che nella norma spettrale.
 
 `00:03:41` 
-Non solo, ma i due risultati vi danno anche un limite superiore dell'errore che state commettendo approssimando la matrice A con la sua approssimazione A-K. In particolare, nella norma spettrale, il primo valore singolare trascurato, quindi il valore singolare K più 1, è una misura dell'errore che state commettendo troncando fino al rango K.
+**Limiti sull'errore di approssimazione:**
+
+- **Norma spettrale (2-norma):**
+$$
+\|A - A_k\|_2 = \sigma_{k+1}
+$$
+L'errore è esattamente uguale al **primo valore singolare trascurato**.
+
+- **Norma di Frobenius:**
+$$
+\|A - A_k\|_F = \sqrt{\sum_{i=k+1}^r \sigma_i^2}
+$$
+L'errore è la **radice quadrata della somma dei quadrati** di tutti i valori singolari trascurati.
 
 `00:04:18` 
 Nel caso della norma di Frobenius, l'errore è dato dalla somma dei quadrati di tutti gli errori rimanenti. Okay, quindi questa è la dimostrazione che abbiamo visto l'ultima volta. E ora vogliamo considerare il caso di Frobenius.
 
 `00:04:51` 
-In realtà, ci sono almeno tre diverse dimostrazioni del risultato nella norma di Frobenius. Qui, quella che vi sto presentando è quella basata su questa disuguaglianza. Che è chiamata la disuguaglianza di Weyl per i valori singolari di due matrici. Quindi essenzialmente, se avete due matrici della stessa dimensione m per n, potete dimostrare che il valore singolare in posizione I più j meno uno della somma delle due matrici è minore o uguale alla somma del...
+Esistono diverse dimostrazioni del Teorema di Eckart-Young nella norma di Frobenius. Qui presentiamo quella basata sulla **Disuguaglianza di Weyl**.
+
+**Disuguaglianza di Weyl (per valori singolari):**
+
+Date due matrici $X, Y \in \mathbb{R}^{m \times n}$, si ha:
+
+$$
+\sigma_{i+j-1}(X + Y) \leq \sigma_i(X) + \sigma_j(Y)
+$$
+
+per $i, j \geq 1$ tali che $i + j - 1 \leq \min(m,n)$.
+
+**Definizione:** $\sigma_i(M)$ denota l'$i$-esimo valore singolare (in ordine decrescente) della matrice $M$.
+
+*Nota: Non dimostreremo questa disuguaglianza. È un risultato fondamentale dell'algebra lineare numerica.*
 
 `00:05:36` 
-Il valore singolare I-esimo di X più il valore singolare J-esimo di Y. Non dimostreremo questa disuguaglianza. Se siete interessati, posso darvi alcuni riferimenti, ma non è importante per noi ora. Quindi qual è l'idea? L'idea è, prendiamo una matrice generica B di rango K, che è il candidato per approssimare la matrice A originale.
+**Strategia della dimostrazione:** Consideriamo una matrice generica $B$ di rango $k$ (candidata approssimazione di $A$). Per la disuguaglianza di Weyl, analizzeremo la somma $X = (A - B) + B$.
 
 `00:06:22` 
-Significa che dato che è di rango K, i valori singolari da K più 1 fino al minimo tra M e N, se B è di dimensione M per N, saranno zero. Quindi in particolare, sigma K più 1 è zero. Quindi, poi applicheremo la disuguaglianza che abbiamo appena menzionato a queste due matrici.
+**Proprietà chiave di $B$:** Essendo $\text{rank}(B) = k$, tutti i valori singolari da $k+1$ in poi sono **nulli**:
+
+$$
+\sigma_{k+1}(B) = \sigma_{k+2}(B) = \cdots = \sigma_{\min(m,n)}(B) = 0
+$$
+
+In particolare: $\sigma_{k+1}(B) = 0$.
 
 `00:06:58` 
-A meno B e B. Quindi, nella relazione precedente abbiamo X uguale a A meno B e Y uguale a B. Quindi, essenzialmente, stiamo anche scegliendo J uguale a K più 1. Quindi, se applicate la disuguaglianza.
+**Applicazione della disuguaglianza di Weyl:**
+
+Poniamo:
+- $X = A - B$ (errore di approssimazione)
+- $Y = B$ (matrice di rango $k$)
+- $j = k + 1$ (primo indice "trascurato")
+
+Applicando Weyl con questi valori:
 
 `00:07:32` 
-avete che il valore singolare di indice I più K della matrice A, che è uguale a i più k più 1 meno 1, è minore o uguale al valore singolare i-esimo di a meno b più il valore singolare k più 1 di b, okay?
+Otteniamo:
+
+$$
+\sigma_{i+k}(A) = \sigma_{i+(k+1)-1}(X + Y) \leq \sigma_i(X) + \sigma_{k+1}(Y) = \sigma_i(A - B) + \sigma_{k+1}(B)
+$$
 
 `00:08:03` 
-Ma questo è zero perché b è, per ipotesi, di rango k, okay? Quindi da questa relazione, possiamo trovare che il valore singolare con indice i più k della matrice a è minore o uguale al valore singolare di indice i della matrice a meno b.
+Ma $\sigma_{k+1}(B) = 0$ (perché $\text{rank}(B) = k$), quindi:
+
+$$
+\sigma_{i+k}(A) \leq \sigma_i(A - B)
+$$
+
+Questa è la **relazione chiave** che collega i valori singolari di $A$ con quelli dell'errore $A - B$.
 
 `00:08:34` 
 E A meno B è la matrice che è importante per noi perché è essenzialmente il resto tra la matrice originale e una delle sue possibili approssimazioni di rango K. Okay. Quindi ora partiremo da questo punto. E quello che faremo è, prima di tutto, vogliamo ricordare che ciò che vogliamo ottenere è un limite di errore o un risultato nella norma di Frobenius.
@@ -218,7 +302,19 @@ Quindi la SVD sarebbe il cavallo di battaglia per l'approssimazione a basso rang
 Okay, ora vedremo un'applicazione, un'altra applicazione della SVD, che è, in pratica, sto anticipando, non è niente di concettualmente diverso da quello che abbiamo visto finora. Quindi, è, se volete, un'approssimazione a basso rango, o se volete una reinterpretazione di un dataset in termini delle sue componenti principali, e questo si chiama analisi delle componenti principali.
 
 `00:18:26` 
-In pratica, il nome suona abbastanza strano, ma in pratica non è nient'altro che l'applicazione di quello che abbiamo visto, la SVD, alla matrice di covarianza di un dataset. Okay, in realtà la matrice di covarianza X trasposta X è stata già introdotta nel contesto della SVD quando abbiamo dovuto dimostrare l'esistenza della SVD.
+**PCA (Principal Component Analysis)** non è altro che l'applicazione della SVD alla **matrice di covarianza** di un dataset.
+
+**Matrice di Covarianza:**
+$$
+C = \frac{1}{n-1} X^T X \in \mathbb{R}^{p \times p}
+$$
+
+Dove:
+- $X \in \mathbb{R}^{n \times p}$: dataset ($n$ campioni, $p$ features)
+- $C_{ij}$: covarianza tra feature $i$ e feature $j$
+- $C_{ii}$: varianza della feature $i$
+
+*Nota storica:* Abbiamo già incontrato $X^T X$ quando abbiamo dimostrato l'esistenza della SVD tramite decomposizione spettrale.
 
 ### 2.2 Matrice di covarianza e SVD {#matrice-covarianza}
 
@@ -226,43 +322,129 @@ In pratica, il nome suona abbastanza strano, ma in pratica non è nient'altro ch
 Abbiamo visto che per dimostrare, dato che la SVD, abbiamo affermato che esiste per qualsiasi matrice, quello che abbiamo fatto è partire dalla matrice X, che può essere qualsiasi cosa vogliate, costruite la matrice X trasposta X, che è simmetrica e definita positiva. Per queste matrici, potete ottenere la decomposizione spettrale. E poi sfruttando quel particolare trucco di introdurre i vettori AV su sigma I, potete dimostrare che a parte gli autovettori di X trasposta X, che sono...
 
 `00:19:42` 
-Naturalmente unitari e ortogonali. Potete anche ottenere un altro insieme di vettori, che abbiamo chiamato UI, che sono descritti esattamente da quella relazione, AVI su sigma I, che sono i vettori della matrice U, okay, nella decomposizione SVD. Quindi, la PCA è un'altra tecnica di riduzione della dimensionalità, e l'idea è essere in grado, come stavo menzionando un paio di lezioni fa, di estrarre quali sono le più importanti, o, sì, le più importanti.
+**Obiettivi della PCA:**
+
+1. **Riduzione della dimensionalità:** Trasformare dataset da $p$ dimensioni a $k << p$ dimensioni preservando la massima informazione possibile
+
+2. **Identificazione direzioni di massima varianza:** Le **componenti principali** sono direzioni ortogonali lungo cui i dati variano maggiormente
+
+3. **Decorrelazione features:** Nel nuovo sistema di riferimento (assi principali), le componenti sono **non correlate** (ortogonali)
 
 `00:20:42` 
-informazioni dal vostro dataset o in altri modi di ridisegnare il vostro dataset se il dataset è menzionato come una nuvola di punti in un nuovo sistema di riferimento che è chiamato l'asse principale e questo sistema di riferimento è importante perché vi dà ciò che in 2D vedremo tra un momento in 2D vi darà.
+**Interpretazione geometrica:** Dato un cloud di punti in $\mathbb{R}^p$, la PCA trova un nuovo sistema di coordinate (gli **assi principali**) che:
+- **Allinea** il primo asse con la direzione di massima varianza
+- **Allinea** il secondo asse con la direzione di massima varianza residua (ortogonale al primo)
+- E così via per tutti gli assi
+
+In 2D, visualizziamo due assi principali che descrivono l'orientamento dell'ellisse dei dati.
 
 `00:21:18` 
-due direzioni per esempio dove avete la varianza più alta del vostro dataset okay quindi state ri-tracciando i dati in questo nuovo framework. E ovviamente, esattamente come nell'SVD originale, le componenti principali in 2D, avrete solo due componenti, ma in dimensione superiore, avrete molte componenti.
+**In 2D:** Le componenti principali sono **due direzioni ortogonali** che catturano:
+- **PC1 (prima componente principale):** direzione di **massima varianza**
+- **PC2 (seconda componente principale):** direzione di massima varianza **ortogonale a PC1**
+
+**In dimensioni superiori ($p > 2$):** Otteniamo $p$ componenti principali ordinate per importanza:
+
+$$
+\text{Var}(\text{PC}_1) \geq \text{Var}(\text{PC}_2) \geq \cdots \geq \text{Var}(\text{PC}_p) \geq 0
+$$
 
 `00:21:52` 
-E se ordinate le componenti secondo quello che è il risultato della SVD applicata alla matrice di covarianza, potete trovare le componenti più importanti che rappresentano il vostro dataset. E l'idea è catturare la... Maggior parte della varianza del dataset senza la necessità di tenere conto di tutte le componenti.
+**Principio fondamentale:** Le prime $k$ componenti catturano la **maggior parte della varianza** del dataset. Possiamo rappresentare i dati usando solo queste $k$ componenti, ottenendo una compressione da $p$ a $k$ dimensioni.
 
 `00:22:27` 
-OK, quindi forse anche un dataset, che in principio dovrebbe avere centinaia di componenti tramite la PCA, potete ottenere una riduzione della dimensionalità in cui usando solo le prime 10 componenti, potete catturare l'80 percento della varianza. OK, quindi potete essere contenti. Ovviamente, dipende dall'applicazione che state affrontando, ma in alcuni casi potrebbe essere sufficiente.
+**Esempio pratico:** Un dataset con 100 features potrebbe avere il 90% della varianza concentrato nelle prime 10 componenti principali. Usando solo queste 10, riduciamo la dimensionalità del 90% preservando il 90% dell'informazione!
+
+L'efficacia dipende dall'applicazione: alcuni problemi richiedono più componenti, altri meno.
 
 `00:22:59` 
-In altri, dovete andare al numero più grande di componenti. OK. E inoltre, le componenti principali esattamente come i. I vettori singolari sono ortogonali l'uno all'altro, quindi l'importante è che come se ricordate quello che abbiamo visto per la procedura di Gram-Schmidt, essenzialmente è come quella procedura dove data una matrice volete, o una matrice, volete riscrivere la matrice in modo tale che la matrice sia rappresentata da vettori ortogonali.
+**Ortonormalità delle componenti principali:**
+
+Le componenti principali $\{u_1, u_2, \ldots, u_p\}$ formano una **base ortonormale** di $\mathbb{R}^p$:
+
+$$
+u_i^T u_j = \begin{cases}
+1 & \text{se } i = j \\
+0 & \text{se } i \neq j
+\end{cases}
+$$
+
+**Analogia con Gram-Schmidt:** Come il processo di Gram-Schmidt trasforma una base arbitraria in una base ortogonale, la PCA trova automaticamente la base ortogonale **ottimale** per i dati, quella che massimizza la varianza lungo ciascun asse.
 
 `00:23:48` 
-Okay, quindi ogni vettore è unitario e ortogonale al precedente. Okay, quindi questa è l'idea. Quindi avete questi dati sparsi, i punti blu, e questo è nel framework pari. E le due componenti, componenti principali, saranno le direzioni date dalle due frecce verdi, okay?
+**Visualizzazione:** Immaginate i dati come punti blu sparsi nello spazio. Le componenti principali sono due frecce verdi ortogonali:
+- La **freccia più lunga** (PC1) punta nella direzione di massimo "allungamento" dei dati
+- La **freccia più corta** (PC2) è ortogonale alla prima e cattura la varianza residua
 
 `00:24:22` 
 E lasciatemi, okay, vedremo alla fine. Quindi, in pratica, a parte il fatto che stiamo usando un nome diverso, ma cos'è la PCA? Qual è l'algoritmo per ottenere la PCA? Quindi, partiamo con la solita matrice X, che è il nostro dataset.
 
 `00:24:52` 
-Quindi, n campioni, p caratteristiche. E la prima cosa che vogliamo fare è rendere ogni caratteristica a media zero. Quindi sottrarremo da ogni colonna la media della riga che è quella particolare caratteristica.
+**Step 1 - Centramento dati (Mean Subtraction):**
+
+Per ogni feature $j$ (colonna di $X$), calcoliamo la media:
+
+$$
+\bar{x}_j = \frac{1}{n} \sum_{i=1}^n X_{ij}
+$$
+
+Poi sottraiamo la media da ciascun dato, ottenendo la matrice centrata $B$:
+
+$$
+B_{ij} = X_{ij} - \bar{x}_j
+$$
+
+In forma matriciale:
+$$
+B = X - \mathbf{1}_n \bar{x}^T
+$$
+
+Dove $\mathbf{1}_n$ è il vettore colonna di $n$ elementi tutti uguali a 1.
+
+**Perché centrare?** La PCA cerca direzioni di massima varianza **rispetto alla media**. Centrare i dati sposta il cloud di punti sull'origine, semplificando i calcoli.
 
 `00:25:27` 
-Poi costruiamo la matrice di covarianza esattamente x trasposta x con il fattore uno su n meno uno. Perché il meno uno? È usuale perché abbiamo già usato la media. Quindi un grado di libertà è già perso in qualche modo dalla media e in questo modo stiamo ottenendo una matrice di dati non distorta.
+**Step 2 - Matrice di Covarianza Campionaria:**
+
+$$
+C = \frac{1}{n-1} B^T B \in \mathbb{R}^{p \times p}
+$$
+
+**Perché $n-1$ invece di $n$?** (Correzione di Bessel)
+
+- Stimatore **non distorto** (unbiased) della covarianza
+- Abbiamo già "usato" 1 grado di libertà per calcolare la media $\bar{x}$
+- La divisione per $n-1$ compensa questo bias
 
 `00:26:00` 
-Okay e in questa matrice quello che abbiamo è sulla diagonale abbiamo le varianze e fuori dalla diagonale abbiamo le covarianze. Essenzialmente quello che vogliamo fare è ottenere una decomposizione di questa matrice dove vogliamo massimizzare le varianze e minimizzare le covarianze che è se ricordate uno degli obiettivi che abbiamo menzionato all'inizio quando abbiamo introdotto la SVD.
-
-`00:26:37` 
-Quindi una volta che abbiamo la matrice C, possiamo calcolare gli autovalori e gli autovettori della matrice C, e i vettori v, j sono chiamati le componenti principali, e le e, v, le direzioni, quindi le direzioni verdi che abbiamo visto nel metodo precedente.
+**Struttura di $C$:**
+- **Diagonale:** $C_{ii} = \text{Var}(\text{feature}_i)$ (varianze)
+- **Off-diagonale:** $C_{ij} = \text{Cov}(\text{feature}_i, \text{feature}_j)$ (covarianze)
+- $C$ è **simmetrica** e **semi-definita positiva**
 
 `00:27:10` 
-E gli autovalori corrispondenti essenzialmente danno quanto ogni autovettore contribuisce alla varianza globale del dataset. Qual è il problema? Il problema è che calcolare questa matrice, X trasposta X, può essere impegnativo dal punto di vista computazionale e anche instabile nel senso che potete finire con problemi relativi all'aritmetica in virgola mobile.
+**Step 3 - Eigende composition di $C$:**
+
+$$
+C = V \Lambda V^T
+$$
+
+Dove:
+- $V$: matrice ortogonale con eigenvectors di $C$ come colonne
+- $\Lambda = \text{diag}(\lambda_1, \ldots, \lambda_p)$: eigenvalues (ordinati decrescenti)
+
+**Output:**
+- **Componenti principali:** $\text{PC}_i = v_i$ (colonne di $V$)
+- **Varianza lungo PC$_i$:** $\text{Var}(\text{PC}_i) = \lambda_i$
+
+`00:27:10` 
+**PROBLEMA COMPUTAZIONALE:** Calcolare esplicitamente $C = B^T B$ è:
+1. **Costoso:** Complessità $O(np^2)$ se $p$ è grande
+2. **Instabile numericamente:** Il **numero di condizione** di $C$ è il quadrato di quello di $B$:
+   $$\kappa(C) = \kappa(B)^2$$
+   Questo amplifica gli errori di arrotondamento nell'aritmetica floating-point!
+
+**SOLUZIONE:** Usare la SVD direttamente su $B$ invece di calcolare $C$!
 
 ### 2.4 PCA via SVD: approccio stabile {#pca-via-svd}
 
@@ -356,27 +538,84 @@ E come potete vedere, non è niente di concettualmente diverso dall'applicazione
 ### 4.1 Formulazione del problema {#formulazione-problema}
 
 `00:43:53` 
-Qui voglio solo impostare il problema, quindi siamo, come al solito, data la matrice, x, n per p, e numero di campioni, e p, le caratteristiche. Poi abbiamo un vettore y, che è, per esempio, il vettore delle etichette. Esattamente. Supponiamo che nella matrice X abbiate molte immagini in bianco e nero o in scala di grigi di dimensione, diciamo, 200 per 200. Avete appiattito ogni immagine e nell'immagine avete o un gatto o un cane o diciamo gatto o un cane per semplicità.
+## Formulazione del Problema di Regressione Lineare
+
+**Dati:**
+- $X \in \mathbb{R}^{n \times p}$: matrice dei dati ($n$ campioni, $p$ features)
+- $y \in \mathbb{R}^n$: vettore target
+
+**Esempio concreto:** Classificazione immagini cani vs gatti
+- Dataset: $n$ immagini in scala di grigi $200 \times 200$ pixel
+- Ogni immagine viene **appiattita** in un vettore di $p = 40000$ valori
+- Ciascuna riga di $X$ è un'immagine appiattita
+- $y$ contiene le etichette: $y_i = 1$ se gatto, $y_i = 0$ se cane
 
 `00:44:49` 
-In Y potete avere, usando una tecnica di codifica one-hot, potete avere uno per un gatto e zero per un cane. Quindi avete le etichette delle immagini. Quello con cui potete venire fuori è, data la matrice X e il vettore Y, Volete trovare un cosiddetto vettore di pesi w tale che potete costruire questa predizione del modello.
+**Obiettivo:** Trovare un vettore di pesi $w \in \mathbb{R}^p$ tale che:
+
+$$
+Xw \approx y
+$$
+
+Cioè, vogliamo un modello lineare dove $Xw$ predice le etichette $y$.
 
 `00:45:28` 
-x w che è la migliore approssimazione di y. Quindi essenzialmente l'idea è che dati x e y volete costruire un modello dove y è uguale a x w. Qual è il problema? Beh in generale avete molti campioni n e.
+**Assunzioni tipiche:**
+1. $n >> p$ (più campioni che features)
+2. $\text{rank}(X) = p$ (colonne linearmente indipendenti)
+3. Il sistema $Xw = y$ è **sovradeterminato** (più equazioni che incognite)
 
 `00:46:15` 
-Di solito, n è, possiamo assumere, per esempio, qui, abbiamo più campioni che incognite, e la matrice ha rango di colonna pieno, quindi il rango di x è p, okay? Quindi, significa che le colonne sono linearmente indipendenti.
+**Problema:** Il sistema $Xw = y$ è **sovradeterminato**:
+- $n$ equazioni (una per ogni campione)
+- $p$ incognite (i pesi $w$)
+- $n > p$
+
+In generale, **non esiste soluzione esatta**! Non possiamo trovare $w$ tale che $Xw = y$ esattamente.
+
+**Soluzione:** Minimizzare l'errore in senso di **least squares**:
+
+$$
+\min_w \|y - Xw\|_2^2
+$$
+
+**Soluzione analitica (equazioni normali):**
+
+$$
+w^* = (X^T X)^{-1} X^T y = X^{\dagger} y
+$$
+
+Dove $X^{\dagger} = (X^T X)^{-1} X^T$ è la **pseudo-inversa** (o inversa di Moore-Penrose) di $X$.
 
 ### 4.2 Sistema sovradeterminato {#sistema-sovradeterminato}
 
 `00:46:48` 
-Qual è il problema principale? Dato che abbiamo, come è scritto qui, un sistema sovradeterminato, e vogliamo ottenere qualcosa di questo tipo, siamo nei guai. Perché? Perché, in generale... sappiamo che questa espressione significa cosa se è risolvibile significa cosa significa che il vettore y.
+**Perché $Xw = y$ non è risolvibile?**
 
-`00:47:22` 
-appartiene allo spazio colonna di x okay perché anche w che è un vettore di pesi, questo prodotto matrice-vettore abbiamo visto può essere interpretato come una combinazione lineare delle colonne di x quindi y dovrebbe essere nello spazio colonna di x perché questa uguaglianza sia risolvibile perché questo sistema sia risolvibile ma in generale se avete un sistema sovradeterminato questo non è vero okay quindi in quale senso vogliamo trovare questo w quindi.
+L'equazione $Xw = y$ ha soluzione se e solo se $y \in \text{span}(X)$ (spazio colonna di $X$).
+
+**Interpretazione:** $Xw$ è una **combinazione lineare** delle colonne di $X$:
+
+$$
+Xw = w_1 \begin{pmatrix} | \\ x^{(1)} \\ | \end{pmatrix} + w_2 \begin{pmatrix} | \\ x^{(2)} \\ | \end{pmatrix} + \cdots + w_p \begin{pmatrix} | \\ x^{(p)} \\ | \end{pmatrix}
+$$
+
+In un sistema sovradeterminato ($n > p$), **in generale** $y \notin \text{span}(X)$. Quindi non esiste soluzione esatta!
 
 `00:47:57` 
-Dato che questo sistema scritto in questo modo non è risolvibile, dobbiamo trovare un modo per ottenere il valore di w in qualche altro, usando qualche altra idea. L'idea è, introduciamo una quantità chiamata residuo, che è qualcosa con cui dovreste avere familiarità nel contesto di un sistema lineare.
+**Soluzione:** Introduciamo il **residuo**:
+
+$$
+r(w) = y - Xw
+$$
+
+Il residuo misura "quanto lontano" siamo da una soluzione esatta.
+
+**Obiettivo Least Squares:** Trovare $w^*$ che minimizza $\|r(w)\|_2^2$:
+
+$$
+w^* = \arg\min_{w \in \mathbb{R}^p} \|y - Xw\|_2^2
+$$
 
 `00:48:35` 
 È una quantità che è usata anche per, per esempio, calcolare o valutare la convergenza di un metodo iterativo. La norma del residuo è uno dei possibili indicatori della convergenza. Quindi qui stiamo calcolando il residuo. Quindi dato il vettore w, stiamo calcolando questa quantità r.
@@ -444,16 +683,39 @@ Quindi, che non è nient'altro che un'immagine geometrica che vi mostra che l'or
 ### 5.3 Derivazione delle equazioni normali {#equazioni-normali}
 
 `00:58:47` 
-Quindi, qui abbiamo che abbiamo definito il residuo come y meno x w cappello, e quello che abbiamo affermato è che il residuo deve essere ortogonale a ogni vettore nello spazio colonna di x.
+## Derivazione Algebrica: Equazioni Normali
 
-`00:59:21` 
-Ricordate, il residuo è cosa? Questo è x w cappello e questo è y. Quindi questo è essenzialmente il residuo che stiamo considerando è y meno x w cappello. Quindi quello che è chiamato qui y perpendicolare è essenzialmente il residuo.
+**Condizione chiave:** Il residuo $r = y - X\hat{w}$ è **ortogonale** a $\text{span}(X)$:
+
+$$
+X^T r = X^T (y - X\hat{w}) = 0
+$$
+
+**Perché?** Se $r \perp \text{span}(X)$, allora $r$ è ortogonale a **ogni colonna** di $X$:
+
+$$
+\langle x^{(j)}, r \rangle = 0 \quad \text{per } j = 1, \ldots, p
+$$
+
+In forma matriciale: $X^T r = 0$
 
 `00:59:53` 
-OK, quindi dato che y meno x w cappello deve essere ortogonale a ogni colonna di x. Significa che potete prendere questo vettore e moltiplicare per qualsiasi con qualsiasi colonna di x. Questo dovrebbe essere uguale a zero.
+**Espandendo:**
+
+$$
+X^T (y - X\hat{w}) = 0 \quad \Rightarrow \quad X^T y = X^T X \hat{w}
+$$
+
+Queste sono le **equazioni normali** (normal equations).
 
 `01:00:30` 
-Ricordate, il residuo deve essere ortogonale allo spazio colonna di X. Quindi se prendo qualsiasi colonna di X e calcolo il prodotto scalare tra il residuo e la colonna, il risultato dovrebbe essere deve essere zero. OK, quindi in pratica, potete scrivere in forma matriciale dicendo che questo è uguale a X trasposta Y meno X W cappello dovrebbe essere uguale a zero.
+**Soluzione:** Se $X$ ha rango colonna pieno ($\text{rank}(X) = p$), allora $X^T X$ è invertibile:
+
+$$
+\hat{w} = (X^T X)^{-1} X^T y
+$$
+
+**Nota:** Questa è la stessa formula vista nel corso di Analisi Numerica per calcolare i coefficienti $m$ e $q$ della retta di regressione!
 
 `01:01:07` 
 OK, o come abbiamo qui, X trasposta Y deve essere uguale a X trasposta X W cappello. Quindi questo sistema. È chiamato il sistema delle equazioni normali, che è il nome che probabilmente avete visto anche nel corso di analisi numerica quando avete scritto esempi semplici, per esempio, per la regressione lineare.
@@ -645,29 +907,66 @@ che è molto grande in norma quindi un'idea potrebbe essere è possibile in qual
 ### 9.2 Termine di penalizzazione λ||w||² {#termine-penalizzazione}
 
 `01:33:25` 
-qui è modificare la funzione che vogliamo minimizzare dopo ora abbiamo considerato una funzione J di W composta solo dalla prima parte di questa espressione che è il residuo il quadrato del residuo, Ora, quello che vogliamo aggiungere è un secondo termine, che è chiamato il termine di penalizzazione o termine di penalità, composto da due parti, da uno scalare lambda, che è positivo, ed è chiamato il parametro di regolarizzazione, e omega di w è la cosiddetta funzione di penalità.
+## Regolarizzazione Ridge (L2)
+
+**Nuova funzione obiettivo:**
+
+$$
+J_{\text{Ridge}}(w) = \|y - Xw\|_2^2 + \lambda \|w\|_2^2
+$$
+
+Dove:
+- **Primo termine:** Errore di fitting (loss originale)
+- **Secondo termine:** **Penalizzazione** sulla norma di $w$
+- $\lambda > 0$: **Parametro di regolarizzazione** (iperparametro)
 
 `01:34:14` 
-E tipicamente, è una norma di w. Supponiamo che qui mettiamo la norma due del vettore w. Cosa stiamo dicendo? Dato un certo valore di lambda, diciamo che in qualche modo vogliamo penalizzare.
+**Interpretazione:**
+
+Vogliamo minimizzare **sia** l'errore di predizione **sia** la lunghezza di $w$.
+
+- $\lambda$ grande: Priorità a $w$ piccolo (rischio underfitting)
+- $\lambda$ piccolo: Priorità a fit accurato (rischio overfitting)
+- $\lambda = 0$: Torniamo a OLS standard
 
 `01:34:46` 
-il valore della norma di w che sono troppo grandi quindi vogliamo mantenere il, il valore della norma il più piccolo possibile poi quanto dipende dal valore di lambda, okay quindi lambda misura l'importanza del termine di penalizzazione se eseguite esattamente.
+**Vantaggi:**
+1. **Stabilità numerica:** Anche se $X^T X$ è mal condizionata
+2. **Previene overfitting:** Pesi grandi sono penalizzati
+3. **Soluzione chiusa:** Esiste formula analitica!
 
 `01:35:20` 
-lo stesso calcolo che abbiamo fatto prima per ottenere l'espressione di w cappello, nella versione semplice dei minimi quadrati quello con cui potete venire fuori è con, questa espressione che come potete vedere è una modifica dell'equazione normale, Questo metodo è chiamato la regressione ridge. Quindi regressione ridge significa che invece di usare un funzionale composto solo dal quadrato della norma del residuo, stiamo aggiungendo un termine di penalizzazione in cui abbiamo un parametro di penalizzazione per il quadrato della norma due del vettore di pesi.
+**Soluzione analitica (Equazioni Normali modificate):**
 
-`01:36:10` 
-Qui avete la nuova versione delle equazioni normali e il valore di w cappello che possiamo calcolare ora è dato da questa espressione. Ora quello che potremmo fare è...
+Derivando $J_{\text{Ridge}}$ e ponendo uguale a zero:
 
-### 9.3 Nuove equazioni normali {#nuove-equazioni}
+$$
+\hat{w}_{\text{Ridge}} = (X^T X + \lambda I)^{-1} X^T y
+$$
+
+Notare: $X^T X + \lambda I$ è **sempre invertibile** anche se $X^T X$ è singolare!
 
 `01:36:40` 
-sostituire. Okay, qui avete i calcoli. Ho dimenticato di mettere una cosa che aggiungerò prima di pubblicare. Quindi se qui inserite la SVD, quello con cui potete venire fuori è che nella versione di W ridge in termini della SVD, invece di avere solo questo termine,
+**Interpretazione via SVD:**
 
-### 9.4 Soluzione ridge via SVD {#soluzione-ridge-svd}
+Se $X = U \Sigma V^T$, allora:
+
+$$
+\hat{w}_{\text{Ridge}} = \sum_{i=1}^p \frac{\sigma_i}{\sigma_i^2 + \lambda} u_i^T y \cdot v_i
+$$
 
 `01:37:25` 
-avete qui un più lambda i al quadrato che è dovuto alla presenza di questo lambda i. Okay. Quindi, cosa significa in pratica? Significa che anche se avete piccoli autovalori, e conseguentemente i corrispondenti valori singolari,
+**Effetto su valori singolari piccoli:**
+
+Nella soluzione OLS: coefficiente $\frac{1}{\sigma_i}$ **esplode** se $\sigma_i \to 0$
+
+Con Ridge: coefficiente $\frac{\sigma_i}{\sigma_i^2 + \lambda}$ **rimane limitato**:
+
+$$
+\frac{\sigma_i}{\sigma_i^2 + \lambda} \leq \frac{1}{\lambda}
+$$
+
+Questo **stabilizza** la soluzione rispetto a perturbazioni!
 
 `01:38:02` 
 il problema è ben-condizionato. E quindi, la soluzione che avete qui per il W-ridge è una soluzione migliore in termini di robustezza rispetto ai possibili piccoli valori di piccoli valori singolari. E qual è l'idea dietro la regressione ridge è trovare un W, che sia il più piccolo possibile in norma due, nella norma due.
@@ -682,15 +981,33 @@ Okay, quindi la norma due del vettore W è minimizzata in qualche modo. State ce
 ### 10.1 Norma L1 e sparsità {#norma-l1}
 
 `01:39:21` 
-C'è un'altra possibilità. Usare la norma uno invece della norma due. Quindi qui avete lambda e la norma, la norma uno di W. Quindi la norma uno è essenzialmente la somma dei valori assoluti delle componenti del vettore. Qual è la differenza?
+## Regolarizzazione LASSO (L1) - Least Absolute Shrinkage and Selection Operator
+
+**Funzione obiettivo:**
+
+$$
+J_{\text{LASSO}}(w) = \|y - Xw\|_2^2 + \lambda \|w\|_1
+$$
+
+Dove $\|w\|_1 = \sum_{i=1}^p |w_i|$ (norma L1)
 
 `01:39:51` 
-Quindi con la norma due, stiamo cercando il W più corto. Con la norma uno, stiamo cercando un W che è sparso. Cosa significa, sparso? Significa che vorremmo avere un W con il maggior numero di zeri possibile. Quindi l'idea dietro le due regolarizzazioni è diversa.
+**Differenza chiave con Ridge:**
 
-### 10.2 Feature selection automatica {#feature-selection}
+| **Ridge (L2)** | **LASSO (L1)** |
+|---|---|
+| $\lambda \|w\|_2^2 = \lambda \sum w_i^2$ | $\lambda \|w\|_1 = \lambda \sum |w_i|$ |
+| Pesi **piccoli** ma **non zero** | Pesi **esattamente zero** (sparsità) |
+| Soluzione **chiusa** | Soluzione **iterativa** (no formula chiusa) |
+| Lunghezza minima | **Feature selection automatica** |
 
 `01:40:26` 
-Lunghezza minima e sparsità. Perché la sparsità potrebbe essere importante? Perché in qualche modo è un altro modo per ottenere una riduzione della dimensionalità, perché se avete un vettore di pesi, che in principio è composto da 20 componenti, e potete ottenere un W-cappello in cui solo otto di loro sono diversi da zero, è chiaro che invece di, significa che 12 caratteristiche,
+**Sparsità = Riduzione dimensionalità automatica:**
+
+Se $w$ ha 20 componenti ma LASSO restituisce $\hat{w}$ con solo 8 valori non-zero:
+- Le **12 features** corrispondenti ai pesi zero sono **irrilevanti**
+- Possiamo **scartarle** senza perdere performance
+- **Selezione automatica** delle features più importanti!
 
 `01:41:01` 
 non sono così importanti in pratica, okay? O potete ottenere un modello che è ancora significativo, considerando solo otto su 20. Qual è... Il, questo tipo di regolarizzazione è chiamato LASSO, L-A-S-S-O, e quindi il, lasciatemi, prima, questa è un'immagine di cosa sta succedendo.
@@ -698,16 +1015,37 @@ non sono così importanti in pratica, okay? O potete ottenere un modello che è 
 ### 10.3 Visualizzazione geometrica: norma L2 vs L1 {#visualizzazione-geometrica}
 
 `01:41:41` 
-Quindi, supponiamo che abbiate, abbiamo visto che il residuo, ricordate, la prima parte di questo era, come abbiamo trovato qui, è una funzione quadratica, quindi è un paraboloide nello spazio n-dimensionale, okay? Quindi, qui, stiamo disegnando i livelli.
+### Interpretazione Geometrica: Level Sets
+
+**Formulazione equivalente (problema vincolato):**
+
+Minimizzare $\|y - Xw\|_2^2$ soggetto a $\|w\| \leq t$ (con $t$ dipendente da $\lambda$)
 
 `01:42:16` 
-L'insieme di questo paraboloide, okay? E al centro, avete l'ottimo. Poi, e questo è il, diciamo, problema originale. Quando stavamo considerando i minimi quadrati classici, stavamo minimizzando questo paraboloide, e stavamo cercando questo valore, okay? Questo è quello che abbiamo detto.
+**Visualizzazione 2D:**
 
-`01:42:47` 
-Quando abbiamo introdotto la regolarizzazione con norma due, abbiamo detto, okay, quello che vogliamo è minimizzare, cercare di trovare il minimo del paraboloide, soggetto a, quindi abbiamo un vincolo, al fatto che vogliamo ottenere anche la lunghezza minima in qualche modo. Quindi, abbiamo questo.
+```
+Ridge (L2):              LASSO (L1):
+
+   w₂                      w₂
+    │   ○○○                 │    /\
+    │  ○ ● ○                │   /  \
+    │   ○○○                 │  /____\
+    └───── w₁              └───── w₁
+  (cerchi)              (rombi/quadrati)
+```
+
+- **Ellissi concentriche:** Livelli di $\|y - Xw\|_2^2$
+- **Vincolo L2:** $w_1^2 + w_2^2 \leq t$ (cerchio)
+- **Vincolo L1:** $|w_1| + |w_2| \leq t$ (rombo)
 
 `01:43:19` 
-Il valore di questo quadrato dà. Dato il valore di lambda è un vincolo sulla lunghezza del vettore di parametri. OK, quindi alla fine, in questo caso, quello che possiamo scegliere come soluzione è il punto verde. OK, quindi è un mix tra soddisfare il minimo del paraboloide e il vincolo.
+**Soluzione ottima:** Punto di **contatto** tra ellisse e regione vincolata
+
+- **Ridge:** Contatto in punto **generico** → $w_1, w_2 \neq 0$
+- **LASSO:** Contatto spesso su **spigoli** → $w_1 = 0$ o $w_2 = 0$ (**sparsità**!)
+
+Gli **spigoli** del rombo L1 inducono naturalmente soluzioni sparse!
 
 `01:43:51` 
 Quindi è un problema di minimizzazione vincolata, essenzialmente. OK, e come potete vedere, il vettore di pesi con cui stiamo venendo fuori è un vettore in cui abbiamo entrambe le componenti. In questo caso, sono chiamate theta uno e theta due che sono diverse da zero. OK, è un vettore. Poi se andiamo alla norma L1. La rappresentazione della L1, l'insieme di livello della norma L1 di un vettore, invece di essere cerchi, come per la norma due, sono quadrati, okay?
@@ -730,12 +1068,32 @@ Quindi invece di avere due componenti per W, avete solo una. In altri termini, s
 ### 11.1 Combinazione di L1 e L2 {#combinazione-l1-l2}
 
 `01:46:18` 
-Questo è buono perché minimizza la distanza. Entrambi hanno i propri svantaggi e vantaggi. Quindi in pratica, il metodo che è spesso usato è la cosiddetta elastic net. Elastic net è un metodo che combina le due idee. Quindi avete sia la norma uno che la norma due combinate insieme,
+## Elastic Net: Combinazione L1 + L2
 
-### 11.2 Parametri λ e α {#parametri-lambda-alpha}
+**Funzione obiettivo:**
+
+$$
+J_{\text{ElasticNet}}(w) = \|y - Xw\|_2^2 + \lambda \left( \alpha \|w\|_1 + (1-\alpha) \|w\|_2^2 \right)
+$$
+
+Dove:
+- $\lambda > 0$: Intensità complessiva della regolarizzazione
+- $\alpha \in [0,1]$: **Mixing parameter** tra L1 e L2
 
 `01:46:54` 
-e spesso avete un singolo parametro di regolarizzazione lambda, e poi avete una combinazione convessa delle due. E anche in molte implementazioni del metodo dei minimi quadrati regolarizzati, avete l'elastic net come regolarizzazione.
+**Casi speciali:**
+
+| $\alpha$ | Metodo | Effetto |
+|---------|--------|--------|
+| $\alpha = 0$ | **Ridge puro** | Solo lunghezza minima |
+| $\alpha = 1$ | **LASSO puro** | Solo sparsità |
+| $0 < \alpha < 1$ | **Elastic Net** | Compromesso |
+| $\lambda = 0$ | **OLS** | Nessuna regolarizzazione |
+
+**Vantaggi:**
+1. **Feature selection** (da L1) + **Stabilità** (da L2)
+2. Gestisce **gruppi di features correlate** meglio di LASSO
+3. **Flessibilità:** Due iperparametri per tuning fine
 
 `01:47:27` 
 E potete giocare con il parametro dell'elastic net per ottenere la vera elastic net se lambda e alpha. Quindi se alpha non è uno o zero, o potete recuperare o il lasso o il ridge se sono o uno o zero. E ovviamente, se scegliete lambda uguale a zero, state solo recuperando il metodo semplice originale.
@@ -749,18 +1107,52 @@ E in quel caso pure, l'introduzione di qualche regolarizzazione è... Qualcosa c
 ### 11.3 Confronto: Ridge vs LASSO vs Elastic Net {#confronto-metodi}
 
 `01:49:16` 
-Okay, qui è solo scritto a parole quello che è raffigurato nell'immagine che vi ho mostrato. Quindi, per riassumere, L2, lunghezza minima.
+## Tabella di Confronto: Ridge vs LASSO vs Elastic Net
+
+| **Metodo** | **Penalizzazione** | **Obiettivo** | **Sparsità** | **Soluzione** |
+|------------|-------------------|---------------|---------------|---------------|
+| **OLS** | Nessuna | Fit esatto | No | $(X^T X)^{-1} X^T y$ |
+| **Ridge (L2)** | $\lambda \|w\|_2^2$ | Lunghezza minima | No | $(X^T X + \lambda I)^{-1} X^T y$ |
+| **LASSO (L1)** | $\lambda \|w\|_1$ | Sparsità | **Sì** | Iterativa (soft-thresholding) |
+| **Elastic Net** | $\lambda(\alpha \|w\|_1 + (1-\alpha)\|w\|_2^2)$ | Compromesso | **Sì** | Iterativa |
 
 `01:49:47` 
-L1 sparsità. Elastic net, è qualcosa come nel mezzo. Quindi cerca di eseguire la selezione delle caratteristiche come L1, ma d'altra parte, la L2, la presenza della L2 cerca anche di considerare il fatto che.
+**Quando usare ciascun metodo:**
+
+- **Ridge:** Features correlate, tutte potenzialmente importanti, problema mal condizionato
+- **LASSO:** Feature selection, molte features irrilevanti, interpretabilità
+- **Elastic Net:** Gruppi di features correlate + desiderio di sparsità
+- **OLS:** Solo se $n >> p$, problema ben condizionato, no overfitting
 
 `01:50:20` 
-forse anche qualche gruppo di caratteristiche potrebbe essere importante. Quindi è qualcosa che è nel mezzo. Come vedremo anche più tardi in altre applicazioni, non possiamo dire che c'è una ricetta per dire che lasso è migliore in questa applicazione, ridge è migliore in questa, o elastic net con questo parametro è migliore per questa particolare applicazione.
+### Selezione degli Iperparametri
 
-### 11.4 Selezione degli iperparametri {#selezione-iperparametri}
+**Problema:** Come scegliere $\lambda$ (e $\alpha$ per Elastic Net)?
+
+**Approcci:**
+
+1. **Cross-Validation (CV):**
+   - Griglia di valori: $\lambda \in \{10^{-4}, 10^{-3}, \ldots, 10^2\}$
+   - k-fold CV (tipicamente k=5 o k=10)
+   - Scegli $\lambda$ che minimizza errore di validazione
+
+2. **Information Criteria:**
+   - AIC (Akaike Information Criterion)
+   - BIC (Bayesian Information Criterion)
+
+3. **Path Algorithms:**
+   - Calcola soluzioni per **tutti** i $\lambda$ efficientemente
+   - Esempio: LARS (Least Angle Regression) per LASSO
 
 `01:51:04` 
-Dipende, e molto spesso è una procedura di prova ed errore. A meno che non dobbiate risolvere un problema che è ben stabilito, ben conosciuto, e il dataset non sta cambiando così tanto, anche se aggiungete nuovi dati, e poi sperabilmente potete usare tutti gli iperparametri che sono già stati usati. In altri casi, specialmente se state affrontando un nuovo problema, almeno all'inizio, dovete in qualche modo eseguire una sorta di procedura di prova ed errore per ottenere un insieme significativo di iperparametri per questo tipo di problema.
+**Nota importante:**
+
+Non esiste "ricetta universale"! La scelta dipende da:
+- Struttura del dataset (correlazioni tra features)
+- Obiettivo (predizione vs interpretabilità)
+- Constraints computazionali
+
+**Regola pratica:** Inizia con Elastic Net ($\alpha = 0.5$) e CV, poi specializza se necessario.
 
 ### 12. Riepilogo e Comunicazioni {#riepilogo}
 
