@@ -1,4 +1,4 @@
-# Lab 2 NAML - Approssimazione a Basso Rango e PCA
+# NAML - Approssimazione a Basso Rango e PCA
 
 ---
 

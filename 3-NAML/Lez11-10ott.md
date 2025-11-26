@@ -149,25 +149,77 @@ Okay, quindi iniziamo. Il lab di oggi riguarda la PCA. Quindi la PCA è una tecn
 ### 1.2 Direzioni principali e massima varianza {#direzioni-principali}
 
 `00:00:32` 
-Così, siamo sulla stessa pagina riguardo alle convenzioni perché è importante, capire quali sono le differenze se abbiamo, campioni sia sulle colonne o sulle righe. Okay, quindi farò una breve revisione della teoria e di ciò che ci serve per il lab e poi andremo su Colab e risolveremo l'esercizio. Quindi prima di tutto, due definizioni. Quindi le componenti principali, direzioni principali, cosa sono le direzioni principali sono le direzioni.
+## Definizioni Fondamentali
+
+**Convenzioni importanti:** Esistono due convenzioni per organizzare i dati:
+- **Campioni su colonne:** $X \in \mathbb{R}^{M \times N}$ (usata in questo lab)
+- **Campioni su righe:** $X \in \mathbb{R}^{N \times M}$ (comune in scikit-learn)
+
+La scelta influenza quale matrice (U o V) contiene le direzioni principali.
+
+**Due concetti distinti:**
+
+1. **Direzioni principali:** Autovettori della matrice di covarianza $C$
+   - Sono le **direzioni di massima varianza** nei dati
+   - Formano un nuovo sistema di riferimento ortogonale
 
 `00:01:15` 
-degli autovettori della matrice di covarianza, C maiuscola. Perché questo è importante? Perché queste sono le direzioni di massima varianza, e vogliamo ruotare i nostri dati in.
+2. **Componenti principali:** Proiezione dei dati sulle direzioni principali
+   - Sono le **coordinate** dei dati nel nuovo sistema di riferimento
+   - Si ottengono tramite prodotto scalare: $\text{PC} = U^T X$
 
 `00:01:50` 
-queste direzioni, perché queste direzioni che massimizzano la varianza sono le più importanti, e questo è quello che stiamo facendo nella PCA. Poi, proiettiamo i dati su queste direzioni, e queste sono chiamate le componenti principali.
+**Obiettivo PCA:** Ruotare i dati nel sistema di riferimento delle direzioni principali, dove la varianza è massimizzata lungo gli assi.
 
 `02:30` 
-Direzioni principali. Okay? Qual è la convenzione che usiamo in questo lab? È che X è una matrice in R, M per N, dove M è uguale al numero di caratteristiche, il numero di pixel nell'immagine, per esempio e n è il numero di campioni.
+## Convenzione: Campioni su Colonne
+
+**Dimensioni della matrice:**
+
+$$
+X \in \mathbb{R}^{M \times N}
+$$
+
+Dove:
+- $M$ = numero di **features** (es. pixel in un'immagine)
+- $N$ = numero di **campioni** (osservazioni)
+
+**Tipicamente:** $N >> M$ (più campioni che features)
 
 `00:03:09` 
-Di solito questo significa che la vostra matrice è così. Molti molti molti campioni caratteristiche che sono ancora molte ma di solito sono meno del numero di campioni. Quindi questa è più o meno la nostra impostazione. Inoltre un'assunzione molto grande in entrambe le colonne x è centrata. Questo significa che ha.
+**Assunzione fondamentale:** $X$ è **centrata** (media zero per ogni riga)
+
+Se non è centrata, eseguiamo:
+
+$$
+\bar{X} = X - \mu \mathbf{1}^T
+$$
+
+Dove $\mu$ è il vettore media e $\mathbf{1}$ è il vettore di 1.
 
 `00:03:44` 
-media zero. Se questo non è vero calcoliamo la media di x e sottraiamo la media di x da x. Ma per semplificare la notazione sto solo facendo questa assunzione. Poi cosa abbiamo? Abbiamo che la matrice di covarianza C è uguale a x per x trasposta diviso per n meno 1. Quindi se x è uguale a u sigma vt, allora questo significa che C è uguale a 1 su n meno 1 u sigma vt v sigma ut.
+### Matrice di Covarianza e SVD
+
+**Definizione matrice di covarianza:**
+
+$$
+C = \frac{1}{n-1} X X^T \in \mathbb{R}^{M \times M}
+$$
+
+**Data la SVD:** $X = U \Sigma V^T$
+
+**Sostituendo:**
+
+$$
+C = \frac{1}{n-1} (U \Sigma V^T)(V \Sigma^T U^T) = \frac{1}{n-1} U \Sigma \Sigma^T U^T = \frac{1}{n-1} U \Sigma^2 U^T
+$$
 
 `00:04:42` 
-Okay? Trasponendo, cambiamo l'ordine qui, e dato che questo è pseudo-diagonale, la trasposta va via. Questo significa che questo è uguale a u sigma al quadrato ut diviso per n meno 1. Quindi, questa è una diagonalizzazione per la nostra matrice di covarianza, e quindi le colonne di U sono le direzioni principali, okay?
+**Conclusione:** $C = U \Lambda U^T$ dove $\Lambda = \frac{\Sigma^2}{n-1}$
+
+Quindi:
+- **Direzioni principali** = colonne di $U$
+- **Autovalori di $C$** = $\lambda_i = \frac{\sigma_i^2}{n-1}$ (varianze)
 
 ---
 
@@ -176,94 +228,346 @@ Okay? Trasponendo, cambiamo l'ordine qui, e dato che questo è pseudo-diagonale,
 ### 2.1 Convenzione: campioni su colonne (M×N) {#convenzione-colonne}
 
 `00:05:26` 
-Sì, l'assunzione che X è centrata, questo è necessario quando definite la matrice di covarianza, perché altrimenti non è la matrice di covarianza. E, okay, poi le componenti principali, cosa sono, sono la proiezione dei dati sulle direzioni principali.
+### Componenti Principali come Proiezioni
+
+**Definizione:** Le componenti principali sono le **proiezioni** dei dati sulle direzioni principali.
+
+**Operazione geometrica:** La proiezione si calcola con il **prodotto scalare** (dot product).
 
 `00:05:56` 
-quindi qual è l'operazione geometrica che significa proiezione è il prodotto scalare o il prodotto interno se preferite quindi come calcoliamo le componenti principali beh la nostra prima direzione che vogliamo è la prima colonna di u e se prendiamo il primo campione che è la prima colonna di x vogliamo proiettare questo per esempio sulla prima direzione quindi che è la prima colonna di u e quindi la componente del primo campione sulla prima direzione è il prodotto scalare tra u1 e.
+**Esempio:** Proiezione del primo campione sulla prima direzione principale
+
+- Primo campione: $x_1$ (prima colonna di $X$)
+- Prima direzione: $u_1$ (prima colonna di $U$)
+- Proiezione: $\text{PC}_{1,1} = u_1^T x_1$ (prodotto scalare)
+
+**In forma matriciale:**
+
+$$
+\Phi = U^T X \in \mathbb{R}^{M \times N}
+$$
 
 `00:06:33` 
-x1 dobbiamo fare questo in generale e quindi abbiamo che ut per x sono le componenti principali, Chiamiamole pc, okay, perché quello che stiamo facendo qui, stiamo prendendo la prima colonna di u, che ora è la prima riga di u trasposta, e facendo il prodotto scalare con la prima colonna di x. E quindi qui abbiamo la proiezione del primo campione sulla prima componente. Poi se.
+**Interpretazione:**
+
+$$
+\Phi = \begin{pmatrix}
+u_1^T x_1 & u_1^T x_2 & \cdots & u_1^T x_N \\
+u_2^T x_1 & u_2^T x_2 & \cdots & u_2^T x_N \\
+\vdots & \vdots & \ddots & \vdots \\
+u_M^T x_1 & u_M^T x_2 & \cdots & u_M^T x_N
+\end{pmatrix}
+$$
+
+Dove:
+- Riga $i$: proiezioni di **tutti i campioni** sulla direzione $u_i$
+- Colonna $j$: proiezioni del **campione $j$** su **tutte le direzioni**
 
 `00:07:09` 
-cambiamo la riga e prendiamo la seconda riga di u, stiamo prendendo la seconda componente principale e moltiplichiamo con la prima colonna di x, e questa è la proiezione del primo campione sulla seconda componente principale. E quindi questo prodotto matrice-vettore, è letteralmente solo l'operazione che facciamo per calcolare la componente principale. È chiaro questo? Okay, l'ultima parte è cosa succede se se x è in R,
+**Nota:** $U^T X$ è semplicemente il modo matriciale di calcolare tutti i prodotti scalari contemporaneamente!
 
 `00:07:49` 
-n per m. Quindi stiamo trasponendo la matrice e questo è campioni per caratteristiche. Beh cosa sta succedendo ora è che c è uguale a x trasposta x diviso per n meno uno. e quindi quello che abbiamo ora è che questo è uguale a v sigma u t u sigma.
+### Convenzione Alternativa: Campioni su Righe
+
+**Se organizziamo i dati come:** $X \in \mathbb{R}^{N \times M}$ (campioni × features)
+
+**Matrice di covarianza:**
+
+$$
+C = \frac{1}{n-1} X^T X \in \mathbb{R}^{M \times M}
+$$
+
+**Data la SVD:** $X = U \Sigma V^T$
+
+**Sostituendo:**
+
+$$
+C = \frac{1}{n-1} (V \Sigma U^T)(U \Sigma^T V^T) = \frac{1}{n-1} V \Sigma^2 V^T
+$$
 
 `00:08:25` 
-sigma v diviso per n meno uno. Quindi questo è uguale a v sigma al quadrato v trasposta. E quindi ora le direzioni principali sono le colonne di v.
+**Conclusione:** Ora le **direzioni principali** sono le colonne di $V$ (non U)!
 
 `00:09:05` 
-Quindi entrambe le convenzioni funzionano. Potete ottenere le direzioni principali sia che i campioni siano sulle righe o sulle colonne. Non cambia niente, a parte il fatto che in un caso troverete le direzioni principali sulle colonne di v, ma nell'altro caso sono sulle colonne di u. Usiamo questa convenzione, avremo sempre ogni campione che è una colonna diversa di x, ma se le cose cambiano, tutto funziona allo stesso modo, dovete solo scambiare u con v.
+### Tabella di Confronto
+
+| Convenzione | Dimensioni | Matrice Covarianza | Direzioni Principali |
+|-------------|------------|-------------------|----------------------|
+| **Colonne** | $X \in \mathbb{R}^{M \times N}$ | $C = \frac{XX^T}{n-1}$ | Colonne di $U$ |
+| **Righe** | $X \in \mathbb{R}^{N \times M}$ | $C = \frac{X^TX}{n-1}$ | Colonne di $V$ |
+
+**In questo lab:** Usiamo sempre **campioni su colonne** → direzioni principali in $U$
 
 `00:09:45` 
 È chiaro questo? Volete che spieghi qualcosa di nuovo? Okay. Accenderò i proiettori e lo schermo ora. Se volete, potete iniziare ad aprire Google Colab e caricare dai notebook.
 
 `00:11:08` 
-Sì, e sono quelli che formano la base per lo spazio, e quindi dato che alimentano i dati, sono quelli che, beh, gli assi orientano i dati. per spiegare la maggior parte dei dati, in un certo senso. Comunque, il primo esercizio è esattamente, è solo un esercizio accademico, ma è davvero fatto per mostrarvi praticamente cosa sta facendo la PCA, okay?
+Le direzioni principali formano una **nuova base ortogonale** per lo spazio dei dati, orientata in modo da massimizzare la varianza catturata lungo ciascun asse.
 
 `00:11:45` 
-Dovreste vedere il mio schermo, perfetto. Quindi, se voglio caricare uno di questi ruoli, vado allo stream,
-
 ---
 
 ## Esercizio Accademico - Trasformazione Geometrica {#esercizio-accademico}
 
+### Obiettivo dell'Esercizio
+
+Dimostrare che la PCA può **recuperare** trasformazioni geometriche applicate a dati gaussiani.
+
+**Pipeline:**
+
+1. **Genera** dati gaussiani indipendenti 2D (dati "puliti")
+2. **Applica** trasformazione geometrica nota (rotazione + scala + traslazione)
+3. **Esegui** PCA sui dati trasformati
+4. **Verifica** che PCA recupera la trasformazione originale
+
 ### 3.1 Generazione dati gaussiani 2D {#generazione-dati-gaussiani}
 
 `00:12:40` 
-Okay, quindi il primo è solo un esercizio accademico e l'idea è la seguente. Quindi quello che faremo ora funziona così. Quindi stiamo generando alcuni dati indipendenti normali gaussiani in 2D. Okay, questo è il primo passo. Questo è quello che ogni statistico vuole. Okay, dati indipendenti normali gaussiani è dove tutte le ipotesi valgono per applicare strumenti molto potenti. E quindi iniziamo generando questi. Poi applichiamo una trasformazione geometrica. Questo è solo per.
+**Step 1:** Generazione dati ideali
+
+$$
+\text{seed} \sim \mathcal{N}(0, I_2) \quad \text{(distribuzione gaussiana standard 2D)}
+$$
+
+Questi sono i dati che ogni statistico sogna:
+- Componenti **indipendenti**
+- Distribuzione **normale**
+- Varianza **isotropica** (uguale in tutte le direzioni)
 
 `00:13:34` 
-Simulare cosa succede con i dati reali. Quindi i vostri dati sono sporchi. I vostri dati non sono mai una distribuzione normale indipendente nelle varie direzioni. E quindi applichiamo questa trasformazione teorica per fare un esempio molto semplice di quello che succederebbe con i dati. Poi applichiamo la PCA e mostreremo che applicando la PCA, possiamo recuperare i dati originali. Okay. E in particolare, possiamo trovare la trasformazione che trasforma i nostri dati gaussiani indipendenti normali nei dati realistici.
+**Step 2:** Applicazione trasformazione geometrica
+
+$$
+x = A \cdot \text{seed} + B
+$$
+
+Dove:
+- $A$: Matrice di rotazione + dilatazione
+- $B$: Vettore di traslazione
+
+Questo simula **dati reali** che hanno:
+- Correlazioni tra features
+- Varianza anisotropica
+- Media non zero
 
 `00:14:18` 
-E quindi questo è un modo per mostrarvi come funziona la PCA, perché abbiamo alcuni dati che generiamo, applichiamo una trasformazione che conosciamo, e mostriamo che con la PCA possiamo recuperare la trasformazione. Senza alcuna conoscenza sulla trasformazione che abbiamo applicato. Quindi, entriamo nei dettagli. Iniziamo importando numpy e matplotlib. Poi, impostiamo il seed. Impostare il seed fa sì che questo esercizio sia riproducibile. Vi ricordo che impostare il seed significa che i dati casuali che generiamo sono sempre gli stessi, anche se si comportano come dati casuali.
+### 3.3 Seed per riproducibilità {#seed-riproducibilita}
+
+**Codice Python:**
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+
+np.random.seed(42)  # Riproducibilità
+```
+
+**Perché impostare il seed?**
+
+Impostare il seed garantisce che:
+- I numeri "casuali" generati siano **sempre gli stessi** ad ogni esecuzione
+- I risultati dell'esercizio siano **riproducibili**
+- Possiamo verificare la correttezza confrontando con soluzioni note
+
+### 3.4 Definizione angoli θ₁ e θ₂ {#definizione-angoli}
 
 `00:14:59` 
-Poi, quello che facciamo è che definiamo due vettori che sono ortogonali, uno rispetto all'altro, e poi sono orientati con questo angolo, theta1, che è un sesto di pi. Quindi, definiamo theta1, che è pi diviso sei. Poi, definiamo l'altro angolo, che è 90 gradi rispetto a questo, aggiungendo pi su due, che è 90 gradi.
+**Setup direzioni ortogonali:**
+
+$$
+\theta_1 = \frac{\pi}{6} = 30^\circ
+$$
+
+$$
+\theta_2 = \theta_1 + \frac{\pi}{2} = \frac{\pi}{6} + \frac{\pi}{2} = \frac{2\pi}{3} = 120^\circ
+$$
+
+**Vettori unitari corrispondenti:**
+
+$$
+z_1 = \begin{pmatrix} \cos(\theta_1) \\ \sin(\theta_1) \end{pmatrix} = \begin{pmatrix} \frac{\sqrt{3}}{2} \\ \frac{1}{2} \end{pmatrix}
+$$
+
+$$
+z_2 = \begin{pmatrix} \cos(\theta_2) \\ \sin(\theta_2) \end{pmatrix} = \begin{pmatrix} -\frac{1}{2} \\ \frac{\sqrt{3}}{2} \end{pmatrix}
+$$
 
 `00:15:29` 
-E poi, calcoliamo queste due direzioni, theta1 e theta2. che sono quelle che usiamo per cambiare i nostri dati. Okay, e se stampate Z1 e Z2, vedete che questi sono vettori unitari, che hanno direzioni orientate di 30 gradi. Poi definiamo un punto B, che è una traslazione.
+**Verifica ortogonalità:**
+
+$$
+z_1^T z_2 = 0 \quad \text{(vettori ortogonali)}
+$$
+
+$$
+\|z_1\| = \|z_2\| = 1 \quad \text{(vettori unitari)}
+$$
 
 `00:16:02` 
-Quindi applichiamo una rotazione, una traslazione, e poi una dilatazione. Quindi questa è la parte di traslazione B, che è 20 nella direzione di X e 30 nella direzione di Y. E infine, applichiamo la nostra trasformazione geometrica. Quindi generiamo 1.000 punti casuali, XI, secondo questa formula, dove Y, sono vettori casuali con componenti generate indipendentemente secondo una distribuzione normale quindi questi sono i nostri dati di partenza. Poi applichiamo questa trasformazione geometrica che è composta in A dalla rotazione, sì, riguardo a questi numeri, è completamente casuale, applichiamo una trasformazione geometrica casuale che decidiamo a priori, è un esercizio accademico quindi iniziamo con alcuni dati che sono gaussiani, che è il migliore.
+### 3.5 Applicazione trasformazione: x = A·seed + B {#applicazione-trasformazione}
+
+**Trasformazione completa:**
+
+$$
+x_i = A \cdot \text{seed}_i + B
+$$
+
+Dove:
+
+**Matrice di rotazione + dilatazione:**
+
+$$
+A = \begin{pmatrix} \rho_1 z_1 & \rho_2 z_2 \end{pmatrix} = \begin{pmatrix}
+\rho_1 \cos(\theta_1) & \rho_2 \cos(\theta_2) \\
+\rho_1 \sin(\theta_1) & \rho_2 \sin(\theta_2)
+\end{pmatrix}
+$$
+
+Con $\rho_1, \rho_2$ = fattori di scala
+
+**Vettore di traslazione:**
+
+$$
+B = \begin{pmatrix} 20 \\ 30 \end{pmatrix}
+$$
 
 `00:16:58` 
-Poi aggiungiamo un tipo di trasformazione geometrica che vogliamo e vogliamo verificare che possiamo, che qualunque sia la trasformazione che applichiamo all'inizio è la stessa che otteniamo con la PCA. Questo è completamente astratto, tipo, non hanno un significato, perché vogliamo alcuni dati, e vogliamo applicare la PCA ad alcuni dati sporchi che simulano quello che potete avere raccogliendo alcuni dati in generale.
+**Dati iniziali (gaussiani standard):**
 
-`00:17:35` 
-E per fare questo, applichiamo solo una trasformazione casuale che per noi non ha un significato particolare, e vogliamo vedere che qualunque sia la trasformazione, indipendentemente dal fatto che questo sia 20 o 40, possiamo recuperare la trasformazione usando la PCA. Okay, questa non è ancora un'applicazione pratica, è solo per mostrarvi che la PCA può capire qual è la trasformazione applicata ad alcuni dati, senza conoscerla a priori.
+$$
+\text{seed}_i \sim \mathcal{N}(0, I_2) \quad i = 1, \ldots, 1000
+$$
+
+**Effetto della trasformazione:**
+1. **Rotazione:** Gli assi vengono ruotati di $\theta_1 = 30^\circ$
+2. **Dilatazione:** Scala differente lungo le due direzioni ($\rho_1 \neq \rho_2$)
+3. **Traslazione:** Centro spostato in $(20, 30)$
+
+**Obiettivo PCA:** Dato solo $x_i$, recuperare $A$ e $B$!
 
 `00:18:08` 
-Quindi sì, in A abbiamo questa rotazione di Z1 e Z2, e poi una dilatazione di componenti Rho1 e Rho2. E ora applichiamo questo. Quindi iniziamo definendo rho uno e rho due e dicendo che vogliamo 1.000 punti. Poi questi sono i nostri punti originali, questi seeds. Se li tracciamo, le componenti x e y, abbiamo questi. L'equal significa che gli assi.
+**Codice Python:**
+
+```python
+rho1, rho2 = 5, 2  # Fattori di scala
+N_points = 1000
+
+# Dati gaussiani standard
+seed = np.random.randn(2, N_points)
+
+# Matrice di trasformazione
+A = np.column_stack([rho1 * z1, rho2 * z2])  # Shape: (2, 2)
+
+# Traslazione
+B = np.array([20, 30])
+
+# Trasformazione completa
+X = A @ seed + B[:, np.newaxis]  # Broadcasting!
+```
 
 `00:19:10` 
-Okay, l'axis equal significa che sul grafico, gli assi x e y hanno lo stesso spazio, quindi non c'è una distorsione, e questi sono i dati che abbiamo generato all'inizio. Questa è una nuvola molto bella, è una nuvola rotonda con una distribuzione gaussiana, e questo è quello che vorremmo ottenere. Axis equal significa che su questo schermo e sul vostro schermo, l'asse x e l'asse y hanno esattamente lo stesso spazio.
+**Visualizzazione dati originali vs trasformati:**
+
+```python
+plt.figure(figsize=(12, 5))
+
+# Dati originali
+plt.subplot(1, 2, 1)
+plt.scatter(seed[0], seed[1], s=1, alpha=0.5)
+plt.axis('equal')
+plt.title('Dati Gaussiani Originali (seed)')
+plt.xlabel('x')
+plt.ylabel('y')
+
+# Dati trasformati
+plt.subplot(1, 2, 2)
+plt.scatter(X[0], X[1], s=1, alpha=0.5)
+plt.axis('equal')
+plt.title('Dati Trasformati (X)')
+plt.xlabel('x')
+plt.ylabel('y')
+```
+
+**Nota:** `axis('equal')` garantisce che la scala degli assi x e y sia identica, evitando distorsioni visive.
 
 `00:19:43` 
-La stessa scala, quindi significa che state visualizzando senza distorsione. Poi applichiamo la nostra trasformazione. Quindi prima definiamo A, che è questa. Quindi quello che stiamo facendo qui, stiamo prendendo il primo vettore, z1, il secondo vettore, z2, moltiplicandolo per la costante di dilatazione, e questi sono due vettori colonna, e li stiamo impilando insieme.
-
-`00:20:13` 
-Okay, uno con l'altro, e quindi stiamo ottenendo una matrice 2x2 in A. Quindi se tracciamo A, questa è una matrice 2x2, e poi applichiamo la trasformazione. Quindi questa parte è un po' delicata, e questo è il broadcasting. Abbiamo parlato del broadcasting nel lab passato, e quello che stiamo facendo qui è che, per definizione, vogliamo che ogni punto x sia uguale a A per ogni punto più B.
+**Risultato:** La nuvola circolare simmetrica diventa un'**ellisse ruotata e traslata**!
 
 `00:20:51` 
-Quindi questo sarebbe un loop. Prendiamo ogni punto R, lo moltiplichiamo con una moltiplicazione matriciale per A, e lo stiamo traslandolo con B. Tuttavia, abbiamo visto che fare un for loop è costoso, e quindi sfruttiamo la vettorizzazione, e lo stiamo facendo qui. Quindi abbiamo A per seed, e qui abbiamo che seed è due per n punti. NumPy è intelligente e capisce che se questa matrice è due per due, e stiamo facendo una moltiplicazione matriciale qui con questo,
+### 3.6 Broadcasting NumPy per traslazione {#broadcasting-traslazione}
+
+**Problema:** Vogliamo calcolare $x_i = A \cdot \text{seed}_i + B$ per tutti i 1000 punti.
+
+**Soluzione naive (LENTA):**
+
+```python
+# NON FARE QUESTO!
+for i in range(N_points):
+    X[:, i] = A @ seed[:, i] + B  # Loop esplicito
+```
+
+**Soluzione vettorizzata (VELOCE):**
+
+```python
+X = A @ seed + B[:, np.newaxis]  # Broadcasting!
+```
 
 `00:21:22` 
-sta moltiplicando A per ogni colonna dei seeds. E poi lo stiamo traslandolo aggiungendo un vettore. Tuttavia, questa è una matrice che ha dimensioni due per n punti, non possiamo aggiungere punto per punto un vettore. E quindi quello che stiamo facendo qui è stiamo dicendo che, okay, aggiungiamo una dimensione extra in modo che questo sia due per uno, e poi NumPy capisce che volete fare broadcasting.
+**Spiegazione:**
+
+1. **Moltiplicazione matriciale:** `A @ seed`
+   - $A$: $(2, 2)$
+   - $\text{seed}$: $(2, 1000)$
+   - Risultato: $(2, 1000)$ → NumPy applica $A$ a **ogni colonna** automaticamente!
+
+2. **Traslazione con broadcasting:** `+ B[:, np.newaxis]`
+   - Risultato precedente: $(2, 1000)$
+   - $B$: $(2,)$ → vettore 1D
+   - $B[:, \text{np.newaxis}]$: $(2, 1)$ → vettore colonna 2D
+   - Broadcasting: $(2, 1)$ viene "replicato" 1000 volte
 
 `00:21:56` 
-In particolare, Il punto qui è che in NumPy, se avete B, che è questo vettore, è diverso da questo, che è ancora un vettore, ma con due dimensioni.
+### 3.7 Differenze vettori 1D vs 2D in NumPy {#vettori-numpy}
+
+**ATTENZIONE:** In NumPy, questi tre oggetti sono **diversi**!
+
+```python
+B1 = np.array([20, 30])           # Shape: (2,)   - vettore 1D
+B2 = np.array([[20], [30]])       # Shape: (2, 1) - matrice colonna
+B3 = np.array([[20, 30]])         # Shape: (1, 2) - matrice riga
+```
 
 `00:22:33` 
-Quindi anche se entrambi sono vettori bidimensionali, questo e questo per NumPy sono molto diversi. Questo è un unidimensionale, con solo un oggetto unidimensionale, con due elementi. Questo invece è una matrice, che ha solo una colonna, che ha elementi 20 e 30. Questo è diverso da MATLAB, quindi se avete un background in matematica e avete usato MATLAB, questo è un po' diverso, perché in MATLAB tutto è una matrice, e dall'inizio tutto è o un vettore riga o un vettore colonna.
+**Differenza da MATLAB:**
+
+- **MATLAB:** Tutto è sempre una matrice (vettori riga/colonna)
+- **NumPy:** Esiste il concetto di vettore 1D (senza orientamento)
+
+**Per il broadcasting matriciale, serve vettore 2D:**
+
+```python
+# Convertire 1D → 2D (vettore colonna)
+B_col = B[:, np.newaxis]  # Oppure: B.reshape(-1, 1)
+
+# Convertire 1D → 2D (vettore riga)
+B_row = B[np.newaxis, :]  # Oppure: B.reshape(1, -1)
+```
 
 `00:23:09` 
-In NumPy, questo è diverso. Potete avere un vettore, che è solo un semplice vettore, e questo ha una dimensione uguale a 1. Questo è un oggetto bidimensionale, e questo è un oggetto bidimensionale che ha due righe diverse. Infatti, potreste avere anche un oggetto bidimensionale che ha una riga e due colonne, che è questo. Per applicare correttamente il broadcasting qui, NumPy vuole qualcosa che sia una matrice, perché qui abbiamo una matrice e non potete aggiungere qui un vettore.
+**Regola Broadcasting NumPy:**
+
+Per sommare matrici $(m, n) + (m, 1)$:
+- Il vettore $(m, 1)$ viene "esteso" a $(m, n)$ replicando la colonna
+- **Richiede:** Stesso numero di righe E seconda dimensione = 1
+
+**Senza `np.newaxis`:**
+
+```python
+A @ seed + B  # ERRORE! Shape (2, 1000) + (2,) non compatibile
+```
 
 `00:23:51` 
-implicitamente usando il Broadcasting. Per assicurarvi che volete davvero il Broadcasting, NumPy vuole che questo sia una matrice, quindi un oggetto bidimensionale, e in particolare vuole che abbia due colonne, scusate, due righe, esattamente come A per seed. Okay, questa è solo una regola, nel senso che dobbiamo conoscere la regola del Broadcasting.
+**Riassunto:** `B[:, np.newaxis]` dice a NumPy: "Voglio broadcast esplicito lungo le colonne"
 
 `00:24:22` 
 La parte importante è che capiate che questi tre oggetti sono diversi anche se tutti rappresentano un vettore 2D. E poi, a seconda della rappresentazione dei vettori 2D, potete applicare o meno il Broadcasting. Okay? È chiaro questo? Quindi alla fine, otteniamo i nostri dati, x.
@@ -275,16 +579,67 @@ e possiamo stamparli. Invece di seeds qui, sto stampando X. Quindi i nostri dati
 all'inizio ora, è stata consolidata. Abbiamo questa forma ovale, che è stata anche traslata. Quindi qui vedete che non è più centrata in zero, non ha più valori uguali a uno, ed è anche ruotata. E applicando la PCA, mostriamo che possiamo recuperare esattamente la trasformazione che abbiamo applicato a questi dati, per recuperare quello iniziale. Quindi nella vita reale, a volte state facendo qualcosa del genere, applicate la PCA, e potete tornare a una distribuzione normale.
 
 `00:26:05` 
-Okay, ora abbiamo un passo di visualizzazione. Quindi solo per visualizzare le cose, quello che facciamo ora è, okay, tracciamo i dati, ma tracciamo anche alcune frecce che mostrano la direzione che abbiamo usato. Quindi questa prima parte è, okay, definiamo il plot. Facciamo lo scatter. Quindi nello scatter, passiamo le componenti X e le componenti Y. E poi usiamo questa funzione da PyPlot, che è chiamata arrow.
+### 3.8 Visualizzazione con frecce direzionali {#visualizzazione-frecce}
+
+**Obiettivo:** Visualizzare i dati trasformati con frecce che mostrano le direzioni $z_1$ e $z_2$ usate nella trasformazione.
+
+**Codice Python:**
+
+```python
+import matplotlib.pyplot as plt
+
+# Scatter plot dei dati trasformati
+plt.scatter(X[0], X[1], s=1, alpha=0.5)
+plt.axis('equal')
+
+# Frecce direzionali
+center = B  # Centro delle frecce = vettore traslazione
+
+# Freccia per direzione z1
+plt.arrow(
+    center[0] - rho1 * z1[0],  # Inizio x
+    center[1] - rho1 * z1[1],  # Inizio y
+    2 * rho1 * z1[0],          # Lunghezza x
+    2 * rho1 * z1[1],          # Lunghezza y
+    head_width=1, color='red', linewidth=2
+)
+
+# Freccia per direzione z2
+plt.arrow(
+    center[0] - rho2 * z2[0],
+    center[1] - rho2 * z2[1],
+    2 * rho2 * z2[0],
+    2 * rho2 * z2[1],
+    head_width=1, color='green', linewidth=2
+)
+```
 
 `00:26:36` 
-E arrow ci permette di tracciare alcuni segmenti. I primi due argomenti sono il centro dei segmenti. Quindi vogliamo... Centrare questi, scusate, non è il centro, questi sono, okay, volete l'inizio della, dove iniziate la freccia, e poi la lunghezza della freccia in ogni direzione.
+**Spiegazione parametri `plt.arrow`:**
+
+1. **Punto iniziale:** $(x_0, y_0)$ dove inizia la freccia
+2. **Lunghezza:** $(\Delta x, \Delta y)$ componenti del vettore freccia
+3. La freccia va da $(x_0, y_0)$ a $(x_0 + \Delta x, y_0 + \Delta y)$
 
 `00:27:10` 
-Quindi quello che facciamo è, okay, prendiamo il centro, e poi sottraiamo la lunghezza x, il centro y, sottraiamo la y, e poi la lunghezza è due volte questo, okay, perché vogliamo sia una direzione che l'altra. E facciamo questo sia per z1 che per z2. Quindi, questo è il plot, e questo forse è un po' più chiaro quello che stiamo facendo.
+**Calcolo del punto iniziale:**
+
+Vogliamo una freccia **centrata** in $B$ con lunghezza $2\rho_i$:
+
+- Centro: $B$
+- Lunghezza totale: $2\rho_i |z_i| = 2\rho_i$ (perché $|z_i| = 1$)
+- Punto iniziale: $B - \rho_i z_i$ (metà lunghezza prima del centro)
+- Lunghezza vettore: $2\rho_i z_i$ (lunghezza completa)
 
 `00:27:43` 
-Quindi, stiamo partendo, queste frecce, questi due segmenti sono tracciati da, okay, dando questi punti, e questi punti, e questo punto, e questo punto. Quindi, come facciamo questo? L'inizio è il centro, b, meno la lunghezza della freccia, e l'inizio nella direzione y di z1 meno la lunghezza, perché z1 per rho1 è la lunghezza.
+**Visualizzazione:**
+
+```
+         → 2ρ₁ z₁
+    •─────B─────•
+  inizio   centro   fine
+  B-ρ₁z₁   B    B+ρ₁z₁
+```
 
 `00:28:14` 
 Quindi, stiamo dando questo punto, e poi due volte questa lunghezza, per scrivere questa freccia e questa freccia, okay?
@@ -296,13 +651,66 @@ Quindi, stiamo dando questo punto, e poi due volte questa lunghezza, per scriver
 ### 4.1 Calcolo media e centraggio dati {#calcolo-media}
 
 `00:28:45` 
-Ora viene la parte interessante, quindi questo è quello che dovete fare ora, quindi per ora quello che abbiamo fatto è solo visualizzazione, ora voglio che implementiate la PCA, quindi quello che state facendo ora è che vi viene dato x, avete x, lo avete calcolato insieme, poi calcolate la media di x, abbiamo fatto questo, potete usare la funzione mean di numpy, sottraete da x,
+## Implementazione PCA {#implementazione-pca}
+
+### 4.1 Istruzioni Esercizio (15 minuti)
+
+**Dato:** Matrice $X \in \mathbb{R}^{2 \times 1000}$ (dati trasformati)
+
+**Compito:** Recuperare la trasformazione originale usando PCA
+
+**Step da implementare:**
 
 `00:29:22` 
-la sua media, applicate la SVD, e applicando la SVD, state applicando la PCA, okay, per noi la PCA è solo una SVD con media zero, una volta che avete fatto questo, voglio che tracciate i primi due vettori singolari riscalati dalla radice della varianza campionaria, questo, e per fare questo, quello che dovete fare è solo copiare e incollare questo codice, e invece di usare Z1 e Z2, usate le prime due colonne di U, okay, quindi qui è come sopra, ma invece di Z1 e Z2, che sono le direzioni che conosciamo, usate U1 e U2.
+**1. Calcolo media:**
+
+$$
+\mu = \frac{1}{N} \sum_{i=1}^N x_i
+$$
+
+```python
+X_mean = np.mean(X, axis=1)  # Media per riga
+```
+
+**2. Centraggio dati:**
+
+$$
+\bar{X} = X - \mu \mathbf{1}^T
+$$
+
+```python
+X_bar = X - X_mean[:, np.newaxis]  # Broadcasting!
+```
+
+**3. SVD:**
+
+$$
+\bar{X} = U \Sigma V^T
+$$
+
+```python
+U, S, Vt = np.linalg.svd(X_bar, full_matrices=False)
+```
+
+**4. Scaling varianza campionaria:**
+
+$$
+\sigma_i = \frac{s_i}{\sqrt{n-1}}
+$$
+
+```python
+R = S / np.sqrt(N - 1)  # Deviazioni standard stimate
+```
 
 `00:30:17` 
-U1 e U2, riscalati come sopra, e qui vedrete che queste direzioni che troviamo nella PCA, che sono le componenti principali, le direzioni principali, sono le stesse delle Z1 e Z2 che abbiamo usato, okay? Quindi, vi darò, diciamo, un quarto d'ora.
+**5. Visualizzazione direzioni principali:**
+
+Copiare il codice delle frecce sopra, sostituendo:
+- $B$ → `X_mean` (media stimata)
+- $z_1, z_2$ → `U[:, 0]`, `U[:, 1]` (direzioni principali)
+- $\rho_1, \rho_2$ → `R[0]`, `R[1]` (scale stimate)
+
+**Risultato atteso:** Le frecce rosse (PCA) dovrebbero sovrapporsi alle frecce nere (trasformazione vera)!
 
 `00:30:50` 
 Se avete domande, alzate solo le mani. Io ed Elia saremo in giro per rispondere alle vostre domande. Questo non dovrebbe essere così difficile, perché il primo passo è solo fare la SVD, come nel lab precedente, e poi usate il codice sopra, quello con la freccia, e cambiate solo Z con U1, e cambiate rho con i valori singolari. Okay?
@@ -380,148 +788,709 @@ Grazie.
 ### 5.1 Calcolo media con axis=1 {#calcolo-media-axis}
 
 `00:52:20` 
-Ragazzi, mi dispiace, ora la soluzione, perché altrimenti abbiamo un programma, e ho molte cose da mostrarvi oggi, sfortunatamente, quindi iniziamo con la prima parte, quindi prima di tutto, x non ha media zero, dobbiamo calcolare la media. Quindi, x, se vediamo questo, è un vettore con due righe e 1.000 colonne, in particolare, questo, è la forma, ogni colonna è un punto in 2D, e ogni colonna diversa è un diverso.
+## Soluzione e Risultati {#soluzione-risultati}
+
+### 5.1 Calcolo media con axis=1 {#calcolo-media-axis}
+
+**Struttura dati:**
+
+$$
+X \in \mathbb{R}^{2 \times 1000}
+$$
+
+- Righe: features (coordinate $x$ e $y$)
+- Colonne: campioni (1000 punti)
+
+**Calcolo media per riga:**
+
+```python
+X_mean = np.mean(X, axis=1)  # Shape: (2,)
+```
 
 `00:52:54` 
-punto. Quindi come calcoliamo la media? x mean è uguale a numpy punto mean di, x axis uguale a 1. Perché? Perché quello che stiamo facendo è che stiamo facendo un loop su ogni colonna per calcolare la media per quella riga. E per fare questo in numpy, dite axis uguale a 1, perché 1 è il secondo asse, sono le colonne, e questo significa che numpy sta facendo il loop su tutte le colonne.
+**Perché `axis=1`?**
+
+- `axis=0`: media lungo le **righe** (collassa le righe → risultato con 1000 elementi)
+- `axis=1`: media lungo le **colonne** (collassa le colonne → risultato con 2 elementi)
+
+Vogliamo la media di $x$ e $y$ per tutti i 1000 punti → serve `axis=1`
+
+**Verifica:**
+
+```python
+print(X_mean.shape)  # Output: (2,)
+```
+
+Risultato corretto: vettore 1D con 2 componenti $[\mu_x, \mu_y]$
+
+### 5.2 Broadcasting per centraggio {#broadcasting-centraggio}
 
 `00:53:25` 
-per fare la media. Infatti, per avere un controllo, quello che volete è che il risultato sia un punto in 2D, perché è la media in x e la media in y. E quindi se calcolate la forma, quello che abbiamo è un vettore che ha due componenti. Questo è un oggetto unidimensionale con due componenti, e questo è esattamente quello che vogliamo. Poi possiamo definire X bar come la X senza la media e questo sarà uguale a X meno X mean. Ma se facciamo questo, abbiamo un errore. Okay, perché? Perché non possiamo fare la differenza elemento per elemento di questi due oggetti, che hanno forme diverse rispetto a quello che vogliamo fare è sottrarre a ogni colonna di X la sua media.
+**Problema:** Vogliamo $\bar{X} = X - \mu$
+
+**ERRORE comune:**
+
+```python
+X_bar = X - X_mean  # ERRORE! Shape (2, 1000) - (2,) incompatibile
+```
+
+**Soluzione:**
+
+```python
+X_bar = X - X_mean[:, np.newaxis]  # Shape (2, 1000) - (2, 1)
+```
+
+**Spiegazione:**
+
+- `X_mean`: shape $(2,)$ → vettore 1D
+- `X_mean[:, np.newaxis]`: shape $(2, 1)$ → matrice colonna
+- Broadcasting: $(2, 1)$ viene replicato 1000 volte per sottrarre ad ogni colonna
 
 `00:54:21` 
-Quindi dobbiamo usare il broadcasting e per fare questo in NumPy, dobbiamo cambiare la dimensione di questo oggetto come abbiamo fatto prima. Quindi diciamo, okay, prendiamo tutti gli elementi nella prima dimensione e poi aggiungiamo una nuova dimensione. Infatti, se tracciamo questo, abbiamo questo, che è una matrice. Vedete le doppie parentesi quadre. Questo significa che questo è un oggetto che ha due righe, una colonna. E dato che questa è una matrice, e questa è una matrice, ora NumPy è autorizzato a usare il broadcasting per sottrarre a ogni colonna di x la sua media.
+**Verifica forma:**
+
+```python
+print(X_mean[:, np.newaxis].shape)  # Output: (2, 1)
+print(X_bar.shape)                   # Output: (2, 1000)
+```
 
 `00:55:01` 
-E quindi questo è x bar, e ora possiamo calcolare la svd. Quindi u, i valori singolari, vt è uguale a np.linalg.svd di x bar. E poi vi ricordo che molto spesso non abbiamo bisogno di una matrice completa qui, e quindi mettiamo false. Perché scartiamo tutti i dati di cui non abbiamo bisogno. Le colonne singolari e gli zeri extra.
+### 5.3 SVD con full_matrices=False {#svd-full-matrices}
 
-`00:55:37` 
-Perfetto. Quindi in u ora, abbiamo le direzioni principali, e vogliamo tracciarle. Quindi u1 è uguale a, u, la prima colonna, quindi prendiamo tutti gli elementi su tutte le righe e la colonna zero, la seconda, direzione principale è u, tutti gli elementi sulla riga, fissiamo la prima colonna, poi noi.
+**Applicazione SVD:**
+
+```python
+U, S, Vt = np.linalg.svd(X_bar, full_matrices=False)
+```
+
+**Parametro `full_matrices=False`:**
+
+- **True (default):** $U \in \mathbb{R}^{2 \times 2}$, $\Sigma \in \mathbb{R}^{2 \times 1000}$ (con zeri extra)
+- **False (economico):** $U \in \mathbb{R}^{2 \times 2}$, $\Sigma \in \mathbb{R}^{2}$ (solo valori non-zero)
+
+Poiché $\bar{X} \in \mathbb{R}^{2 \times 1000}$ ha rango $\leq 2$, servono solo 2 valori singolari!
+
+**Estrazione direzioni principali:**
+
+```python
+U1 = U[:, 0]  # Prima direzione principale
+U2 = U[:, 1]  # Seconda direzione principale
+```
+
+### 5.4 Scaling varianza campionaria {#scaling-varianza}
 
 `00:56:13` 
-calcoliamo r, che è s diviso per la radice quadrata di numpy di n meno 1, dove n è il numero di punti, okay, abbiamo la radice quadrata di sigma al quadrato, rimuovo solo la radice quadrata del qualcosa al quadrato, poi il plot, per il plot, copio e incollo il codice, perché è.
+**Relazione valori singolari ↔ varianza:**
+
+Dalla teoria PCA:
+
+$$
+\lambda_i = \frac{\sigma_i^2}{n-1}
+$$
+
+Quindi la deviazione standard lungo la direzione $i$ è:
+
+$$
+\sigma_i = \frac{s_i}{\sqrt{n-1}}
+$$
+
+**Codice:**
+
+```python
+N = X.shape[1]  # 1000 punti
+R = S / np.sqrt(N - 1)  # Deviazioni standard
+```
+
+Dove:
+- `S`: valori singolari di $\bar{X}$
+- `R`: stime di $\rho_1, \rho_2$ (fattori di scala originali)
 
 `00:56:45` 
-molto molto simile, quindi vado sopra, prendo questo plot, e lo aggiungo qui quindi questi sono i nostri dati quello che facciamo è che invece di b non conosciamo b okay perché ora stiamo supponendo che la trasformazione geometrica che abbiamo applicato non sia conosciuta quindi qual è il nostro stimatore dal punto di vista statistico della media è la media campionaria che è x.
+### 5.5 Visualizzazione direzioni principali {#visualizzazione-direzioni}
+
+**Codice completo:**
+
+```python
+# Plot dati trasformati con direzioni vere (nero) e stimate (rosso)
+plt.figure(figsize=(10, 10))
+plt.scatter(X[0], X[1], s=1, alpha=0.5)
+plt.axis('equal')
+
+# Direzioni VERE (nero) - quelle usate nella trasformazione
+plt.arrow(
+    B[0] - rho1 * z1[0], B[1] - rho1 * z1[1],
+    2 * rho1 * z1[0], 2 * rho1 * z1[1],
+    head_width=1, color='black', linewidth=2, label='Vere'
+)
+plt.arrow(
+    B[0] - rho2 * z2[0], B[1] - rho2 * z2[1],
+    2 * rho2 * z2[0], 2 * rho2 * z2[1],
+    head_width=1, color='black', linewidth=2
+)
+
+# Direzioni STIMATE da PCA (rosso)
+plt.arrow(
+    X_mean[0] - R[0] * U1[0], X_mean[1] - R[0] * U1[1],
+    2 * R[0] * U1[0], 2 * R[0] * U1[1],
+    head_width=1, color='red', linewidth=2, label='PCA'
+)
+plt.arrow(
+    X_mean[0] - R[1] * U2[0], X_mean[1] - R[1] * U2[1],
+    2 * R[1] * U2[0], 2 * R[1] * U2[1],
+    head_width=1, color='red', linewidth=2
+)
+
+plt.legend()
+plt.title('Confronto Direzioni Vere vs PCA')
+```
+
+![PCA geometrica: confronto direzioni vere (nero) e stimate (rosso)](./img/lab02_pca_geometrica.png)
 
 `00:57:18` 
-mean di zero e sostituiamo b che è la media reale con lo stimatore della media che è la media campionaria dei dati e quindi ovunque dove c'è una b poi abbiamo rho uno rho uno è la dilatazione che è il nostro sostituto per la dilatazione è la stima, della deviazione standard e quindi invece di rho uno mettiamo r zero fino a qui qui e qui la.
+**Sostituzioni:**
+
+| Parametro Vero | Stima PCA | Significato |
+|----------------|-----------|-------------|
+| $B$ | `X_mean` | Centro (media) |
+| $\rho_1, \rho_2$ | `R[0]`, `R[1]` | Scale (deviazioni standard) |
+| $z_1, z_2$ | `U1`, `U2` | Direzioni principali |
 
 `00:58:00` 
-dilatazione nella seconda direzione è la stima della deviazione standard campionaria nella seconda direzione quindi è r1 e sostituite rho due con r1 infine invece delle direzioni reali dei dati che sono z1 e z2 abbiamo la stima delle migliori direzioni che spiegano le varie direzioni che sono le direzioni principali e quindi invece di z1 mettiamo u1 e invece di z2 mettiamo u2.
+**Risultato atteso:** Le frecce rosse (PCA) si **sovrappongono** quasi perfettamente alle frecce nere (trasformazione vera)!
+
+Questo dimostra che la PCA ha **recuperato** la trasformazione originale usando solo i dati osservati.
 
 `00:58:48` 
-E questo è il plot. Invece del rosso, metterò rosso, e lasciatemi solo copiare e incollare questo di nuovo, e quindi abbiamo sia il nero che il rosso. Okay? Questo è il risultato. Quelli rossi sono la direzione della trasformazione geometrica e la magnitudine che era quella reale, quella che abbiamo applicato ai dati.
+### 5.6 Confronto Z vs U: recupero trasformazione {#confronto-z-u}
 
-`00:59:23` 
-Quelli rossi sono quelli che sono stimati dalla PCA usando solo i dati. okay e quindi qui capite che quello che stiamo facendo è che con la pca stiamo trovando due direzioni che sono questa e questa che sono quelle che spiegano di più le varianze e spiegando di più le varianze intendo che in questa direzione in questa direzione i dati sono più, sparsi e quindi sono i migliori per capire cosa sta succedendo ai dati.
+**Verifica numerica:**
 
-`00:59:55` 
-okay scusate sì. quindi quello rosso è quello che io io ho solo copiato e incollato il codice questo è quello di prima con l'accento il nero è solo una semplice copia e incolla e poi questo è quello che abbiamo appena fatto insieme sostituendo quello.
+```python
+print("Direzioni VERE:")
+print(f"z1 = {z1}")
+print(f"z2 = {z2}")
+print("\nDirezioni STIMATE (PCA):")
+print(f"U1 = {U1}")
+print(f"U2 = {U2}")
+```
+
+**Output esempio:**
+
+```
+Direzioni VERE:
+z1 = [ 0.866  0.5  ]
+z2 = [-0.5    0.866]
+
+Direzioni STIMATE (PCA):
+U1 = [ 0.866  0.5  ]
+U2 = [ 0.5   -0.866]  # Segno opposto!
+```
 
 `01:00:42` 
-Okay? È chiaro questo? Solo per portare a casa il punto, qui abbiamo altri due punti. Quindi qui stampiamo solo Z1 e Z2 e U1 e U2 per confrontarli vedendo i numeri. Okay? E quello che vediamo qui è che i due numeri, i due vettori sono molto, molto simili, ma qui avete un segno diverso. Okay? Perché? Perché la PCA non capisce in che modo i numeri sono confrontati.
+**Osservazione:** I vettori sono **quasi identici**, ma $U_2 \approx -z_2$ (segno opposto).
+
+**Perché?** 
 
 `01:01:29` 
-qual è l'orientamento della direzione okay se moltiplichiamo tutto per meno uno, otteniamo ancora la direzione ancora non conosciamo il verso e questo va bene perché tutto è, moltiplicato per meno uno e quindi ha ancora senso okay quindi potete aspettarvi che la direzione non sia esattamente la stessa ma la stessa a meno di un segno infine calcoliamo le componenti principali.
+### Ambiguità del Segno nella PCA
+
+La PCA trova **direzioni** ma non **orientamenti** (versi).
+
+**Proprietà:** Se $u$ è un autovettore, anche $-u$ lo è:
+
+$$
+C u = \lambda u \quad \Rightarrow \quad C(-u) = \lambda (-u)
+$$
+
+Entrambi definiscono la **stessa direzione**, solo versi opposti!
+
+**Conclusione:** PCA recupera direzioni **a meno del segno**. Questo è normale e non è un errore!
 
 `01:02:04` 
-quindi chiamiamo phi le componenti principali e sono uguali a u trasposta prodotto matriciale, x bar vi mostro perché questo è il caso all'inizio del lab e quindi questa è la matrice, Dove ogni colonna è una componente principale diversa, il che significa che questa è la proiezione dei dati sulla direzione principale.
+### 5.7 Calcolo componenti principali Φ = U^T·X̄ {#calcolo-componenti}
+
+**Formula:**
+
+$$
+\Phi = U^T \bar{X} \in \mathbb{R}^{2 \times 1000}
+$$
+
+Dove:
+- $U^T$: direzioni principali come righe
+- $\bar{X}$: dati centrati
+- $\Phi$: coordinate dei dati nel nuovo sistema di riferimento
+
+**Codice:**
+
+```python
+Phi = U.T @ X_bar  # Proiezione su direzioni principali
+```
+
+**Struttura di Φ:**
+
+- Riga 1: proiezioni di tutti i campioni su $u_1$
+- Riga 2: proiezioni di tutti i campioni su $u_2$
 
 `01:02:37` 
-E infine, facciamo uno scatter plot delle due componenti principali, quindi plt.scatter, phi, tutte le righe, prima componente principale, prima colonna, tutte le righe, seconda componente principale, seconda colonna. Quindi, cosa ho fatto di sbagliato? Scusate, è sulla prima...
+**Visualizzazione nello spazio PCA:**
+
+```python
+plt.figure(figsize=(8, 8))
+plt.scatter(Phi[0, :], Phi[1, :], s=1, alpha=0.5)
+plt.axis('equal')
+plt.xlabel('Prima Componente Principale')
+plt.ylabel('Seconda Componente Principale')
+plt.title('Dati nello Spazio PCA')
+```
 
 `01:03:22` 
-Scusate, quando facciamo questo, la prima componente principale è sulla prima riga, e la seconda componente principale è sulla seconda riga. Errore mio, scusate. Poi facciamo PLT punto axis equal, non abbiamo distorsione. E quello che abbiamo è quasi i dati originali. Quindi vedete ora che abbiamo ruotato i dati, le direzioni principali, e proiettandoli, abbiamo ottenuto dati ruotati dove sull'asse x e sull'asse y abbiamo le due direzioni di massima varianza, qui e qui.
+**Nota sugli indici:** 
+- `Phi[0, :]`: **prima riga** = proiezioni su $u_1$
+- `Phi[1, :]`: **seconda riga** = proiezioni su $u_2$
+
+(Non colonne, perché $\Phi$ ha campioni su colonne!)
+
+### 5.8 Ricostruzione dati originali {#ricostruzione-dati}
 
 `01:04:02` 
-Per ottenere la bella nuvola, dovete anche applicare la parte di dilatazione, e per fare questo, quello che facciamo è dividiamo questo per... la stima della deviazione standard nella prima direzione e la stima della deviazione standard nella seconda direzione e quindi qui abbiamo qualcosa che è quasi normalmente la stima non era perfetta ma qui abbiamo questa nuvola rotonda molto bella okay qualche domanda sì.
+**Normalizzazione per recuperare seed:**
+
+Per ottenere la nuvola circolare originale, normalizziamo per le deviazioni standard:
+
+$$
+\text{seed}_{\text{ricostruito}} = \begin{pmatrix}
+\Phi[0, :] / R[0] \\
+\Phi[1, :] / R[1]
+\end{pmatrix}
+$$
+
+```python
+seed_recovered = Phi / R[:, np.newaxis]
+
+plt.scatter(seed_recovered[0, :], seed_recovered[1, :], s=1)
+plt.axis('equal')
+plt.title('Dati Gaussiani Recuperati')
+```
 
 `01:04:52` 
-sono sono è sono quelli che abbiamo calcolato quindi sono stima della deviazione standard e li abbiamo calcolati qui, R è uguale a S, il valore singolare, quindi questo è uguale a sigma al quadrato, radice quadrata, diviso per la radice quadrata del numero di punti meno uno.
+**Interpretazione:**
+
+$$
+R = \begin{pmatrix} R[0] \\ R[1] \end{pmatrix} = \begin{pmatrix}
+\frac{s_1}{\sqrt{n-1}} \\
+\frac{s_2}{\sqrt{n-1}}
+\end{pmatrix}
+$$
+
+Sono le **deviazioni standard stimate** lungo le direzioni principali.
+
+Dividendo $\Phi$ per $R$, rimuoviamo l'effetto della dilatazione, recuperando una nuvola **quasi perfettamente circolare** (gaussiana standard)!
 
 `01:05:29` 
-Okay? Se non avete domande, poi passiamo al secondo esercizio, e nel secondo esercizio, vediamo un'applicazione a un dataset reale. Questo era un esercizio accademico, ma nel secondo, abbiamo un esercizio del mondo reale.
+**Conclusione Esercizio 1:**
+
+Abbiamo dimostrato che la PCA può **recuperare completamente** una trasformazione geometrica sconosciuta applicata a dati gaussiani!
+
+---
+
+## Dataset MNIST - Cifre Scritte a Mano {#dataset-mnist}
+
+### 6.1 Introduzione al dataset MNIST {#intro-mnist}
 
 `01:06:04` 
-In particolare, iniziamo qualcosa che è... Ha, che è molto ben noto nel machine learning e nel riconoscimento della scrittura. Quindi abbiamo molte immagini che sono immagini di un numero che è stato scritto a mano, e vogliamo distinguere un numero dall'altro. Quindi la PCA è ancora uno strumento che è molto potente, ma per questo tipo di applicazione non è il migliore. Quindi quello che stiamo facendo qui è una versione semplificata di questo compito, dove siamo in grado di riconoscere due cifre diverse, una dall'altra.
+**MNIST (Modified National Institute of Standards and Technology):**
+
+- Dataset **benchmark** per machine learning e riconoscimento scrittura
+- 70,000 immagini di cifre scritte a mano (0-9)
+- Dimensione immagini: $28 \times 28$ pixel (scala di grigi)
+- Molto usato per testare algoritmi di classificazione
+
+**Applicazione in questo lab:**
+
+Versione **semplificata**:
+- Solo cifre **0 e 9** (classificazione binaria)
+- Uso della PCA per **riduzione dimensionalità**
+- Classificatore **lineare semplice** (no reti neurali)
 
 `01:06:45` 
-Non siamo in grado di riconoscere tutte le cifre da zero a nove, ma vi mostrerò come usare la PCA per capire quali cifre sono zero e quali sono nove. OK, anche perché ci mancano alcuni strumenti di classificazione. Okay. Questo è chiamato anche il dataset MNIST. Questo è molto, molto famoso. Ha una pagina Wikipedia, ed è usato come benchmark per molte, molte reti neurali. Quindi ci stiamo connettendo al database, alla macchina virtuale, ma non abbiamo i dati. Quindi se eseguiamo questa prima cella, non abbiamo i dati. Perché? Come abbiamo caricato l'immagine l'ultima volta, ora dobbiamo caricare il dataset. Quindi apriamo questa cartella, clicchiamo su questa icona della cartella, e dobbiamo caricare il dataset.
+**Nota:** La PCA **non è ottimale** per questo task (le reti neurali convoluzionali sono migliori), ma è un buon esempio didattico di applicazione della PCA a dati reali!
+
+### 6.2 Caricamento file CSV da WeBeep {#caricamento-csv}
 
 `01:07:42` 
-A sinistra, poi clicchiamo sul caricamento della sessione di storage, e caricate questi due file che ho caricato su WeBeep, il test MNIST e il modello di traccia MNIST. Okay? Se vedete, abbiamo due dataset diversi. Quindi iniziamo con le migliori pratiche del machine learning. Quando testiamo un algoritmo, abbiamo sempre almeno due dataset. Quello di training e quello di testing. Perché vogliamo davvero verificare come funziona il nostro algoritmo in uno scenario del mondo reale, vogliamo addestrarlo su alcuni dati e poi testarlo su alcuni dati che l'algoritmo non ha mai visto prima. Okay? Perché quello che potete avere altrimenti è sempre.
+**File da caricare su Google Colab:**
+
+1. `mnist_train.csv` - Training set
+2. `mnist_test.csv` - Test set
+
+**Procedura:**
+
+1. Aprire pannello file (icona cartella a sinistra)
+2. Click su "Upload to session storage"
+3. Selezionare entrambi i file CSV
+
+**Codice caricamento:**
+
+```python
+import numpy as np
+
+# Caricamento training set
+data_train = np.loadtxt('mnist_train.csv', delimiter=',')
+print(f"Shape training set: {data_train.shape}")
+```
+
+`01:08:07` 
+### 6.3 Training set vs Test set {#training-test-set}
+
+**Best practice Machine Learning:**
+
+**Training set (70-80% dati):**
+- Usato per **addestrare** l'algoritmo
+- L'algoritmo "vede" e "impara" da questi dati
+- Calcolo PCA, fitting modelli, ottimizzazione parametri
+
+**Test set (20-30% dati):**
+- Usato per **valutare** performance reali
+- Dati **mai visti** durante training
+- Misura generalizzazione (evita overfitting)
 
 `01:08:34` 
-overfitting e altre cose brutte che volete evitare. Perché per verificare davvero come funziona l'algoritmo nella vita reale, dovete salvare un po' del vostro dataset per testarlo. Perché altrimenti, forse ha imparato solo le idiosincrasie dei vostri dati. Quindi iniziamo caricando questo dataset di training, questo è un file CSV, usiamo questa funzione NumPy per caricarlo, e ha questa dimensione.
+**Perché separare?**
+
+Senza separazione, rischio di **overfitting**:
+- Modello memorizza idiosincrasie dei dati
+- Performance eccellente su dati noti
+- Performance pessima su dati nuovi
+
+**Analogia:** Studiare solo domande d'esame passate vs capire davvero la materia!
+
+### 6.4 Controllo qualità dati e corruzione {#controllo-qualita}
 
 `01:09:37` 
-Per evitare la corruzione dei dati. Ora andremo a. Sì, potreste avere alcuni dati che non appartengono a quel dataset o potreste avere qualcosa che è corrotto. Sì, è vero. Infatti, quello che di solito fate, se parlate nella vita reale, quindi questo è un compito piuttosto avanzato, quindi sarò molto breve e forse parlerò di questo quando usiamo le reti neurali. Quindi diciamo che avete un problema di classificazione e avete, non so, immagini di foglie che hanno malattie.
+**Domanda:** Come verificare corruzione dati?
 
-`01:10:20` 
-quello che di solito fate è che prima di tutto fate molto controllo manuale quindi il fatto che dobbiamo caricare il dataset e controllare a mano molte immagini è qualcosa che fate nella vita reale come spendete molto tempo come tempo umano per controllare cosa c'è nel dataset prendendo a caso dati per capire se ci sono alcuni problemi macroscopici, non tutto il dataset ma spendete forse una due tre quattro ore prendendo a caso dati e controllando se c'è qualche problema perché non sapete e questo è solo per capire un.
+**Pipeline controllo qualità (ML reale):**
+
+1. **Ispezione manuale (1-4 ore):**
+   - Visualizzare campioni casuali
+   - Verificare etichette corrette
+   - Identificare anomalie macroscopiche
+
+2. **Clustering e outlier detection:**
+   - **PCA/SVD:** Proiettare su 2-3 componenti principali
+   - **T-SNE:** Visualizzazione non-lineare
+   - Identificare punti **molto distanti** dal cluster principale
 
 `01:10:55` 
-po' i dati e cosa sta succedendo e più grande è il problema più grande è l'azienda, forse spendete più o meno tempo avete più persone che lavorano su questo se avete un piccolo progetto per l'università se i dati sono oltre forse passate solo mezz'ora un'ora poi applicate tecniche economiche, Per clusterizzare i dati. Quindi per esempio, la SVD è davvero buona per questo. Se avete alcuni outlier, qualcosa che non appartiene al dataset, applicate la PCA e controllate sulle direzioni principali. Ci sono alcuni outlier, alcuni punti che sono molto lontani da tutti gli altri. E questa tecnica è molto buona per fare questo come SVD e PCA. È molto potente per fare controlli iniziali per la corruzione dei dati.
+3. **Tecniche automatiche:**
+   - Autoencoders per ricostruzione
+   - Isolation Forest
+   - DBSCAN clustering
 
-`01:11:36` 
-Perché di solito i dati corrotti sono molto lontani dal, diciamo, cluster. Un'altra tecnica molto usata, per esempio, è chiamata T-SNE. E poi dopo che state facendo questa prima parte, applicate modelli più sofisticati come le reti neurali convoluzionali. E questa è più o meno la pipeline. Non voglio entrare in molti dettagli ora perché questo è solo sulla PCA. Ma sappiate che la PCA è uno di quegli strumenti che potete davvero usare nella vita reale.
+**Nota:** PCA è uno strumento **potente e veloce** per controllo qualità iniziale!
+
+### 6.5 Struttura dati: 20000 campioni × 784 features {#struttura-dati}
 
 `01:12:06` 
-Controllare se ci sono dati corrotti. Okay, questa è la forma dei dati. Quindi abbiamo 20.000 campioni e 784 caratteristiche. Queste sono immagini. Quindi quello che abbiamo è che un po' come nell'esempio del video dell'ultima volta, ogni campione, quindi ogni immagine è appiattita e qui è una colonna diversa della matrice.
+**Output:**
+
+```python
+print(data_train.shape)  # (20000, 785)
+```
+
+**Interpretazione:**
+
+- **20,000 righe:** campioni (immagini)
+- **785 colonne:** 1 etichetta + 784 pixel
+
+**Dimensione immagini:**
+
+$$
+28 \times 28 = 784 \text{ pixel}
+$$
+
+Immagini relativamente **piccole** (bassa risoluzione), ma sufficienti per riconoscere cifre!
+
+### 6.6 Trasposizione e convenzione colonne {#trasposizione-convenzione}
 
 `01:12:42` 
-Quindi per tornare alla nostra convenzione, quello che facciamo è il seguente. Sapete, per sapere qui come è fatto il dataset. Quindi di solito nell'esame o nella vita reale, qualcuno vi dice questo, ma abbiamo le etichette sono la prima caratteristica e poi tutto il resto sono i dati. e quindi trasponiamo i dati per tornare alla nostra convenzione dove ogni colonna è un diverso.
+**Struttura originale CSV:**
+
+```python
+data_train.shape  # (20000, 785)
+# Righe: campioni
+# Colonne: [etichetta, pixel_1, pixel_2, ..., pixel_784]
+```
+
+**Convenzione adottata:** Campioni su **colonne** (come nella teoria!)
+
+**Operazioni:**
+
+```python
+# 1. Separare etichette (prima colonna) dai dati
+labels = data_train[:, 0]       # Shape: (20000,)
+X = data_train[:, 1:]           # Shape: (20000, 784)
+
+# 2. Trasporre per avere campioni su colonne
+X = X.T                          # Shape: (784, 20000)
+```
 
 `01:13:14` 
-campione okay nella vita reale o nell'esempio potreste aspettarvi che queste prime due celle siano date qui è solo sapere come i dati sono memorizzati in questo csv quindi abbiamo che qui, le etichette sono la prima colonna mi dispiace sì la prima colonna e poi trasponiamo.
+**Risultato:**
+
+$$
+X \in \mathbb{R}^{784 \times 20000}
+$$
+
+- **Righe (784):** features (pixel)
+- **Colonne (20000):** campioni (immagini)
 
 `01:13:48` 
-quindi uno qui okay qui è che quindi quali colonne stiamo prendendo stiamo prendendo ogni colonna dalla prima all'ultima quindi se non avete niente, qui e qui quello che è implicitamente scritto quando avete solo i due punti è come se fosse da zero alla fine questo è sempre il caso per essere un po' più corti potete usare la convenzione che se omettete qualcosa è se è dopo è fino alla fine e se è prima.
+**Notazione slicing NumPy:**
+
+```python
+data_train[:, 1:]
+```
+
+Equivale a:
+
+```python
+data_train[0:20000, 1:785]
+```
+
+**Convenzione Python:**
+- `:` da solo = `0:fine` (tutte le righe/colonne)
+- `:` prima = da inizio
+- `:` dopo = fino a fine
 
 `01:14:22` 
-è da zero quindi questo significa che stiamo prendendo tutte le righe e per le colonne stiamo prendendo tutto dalla prima alla fine e questo è il nostro dataset. sì sì perché quello che sta succedendo qui non è scritto ma questo è solo diciamo, qualcosa che vi sto dicendo ora che le prime qui sono le etichette perché stiamo caricando.
+**Nota:** Le etichette sono nella **prima colonna** del CSV (non documentato, ma indicato dal professore!)
+
+### 6.7 Visualizzazione prime 30 immagini {#visualizzazione-immagini}
 
 `01:14:59` 
-un dataset con immagini, e dobbiamo sapere qual è la vera etichetta dell'immagine. Quindi questo è un 9, e vogliamo sapere che il vero valore di quell'immagine è la cifra 9. E quindi sulla prima, abbiamo le vere etichette, e poi tutto il resto invece sono le immagini. E questo è il modo per dividerlo. Infatti, alla fine, avremo un vettore con tutte le etichette, i valori target, che è un vettore di interi con le vere cifre nel dataset, che sono di dimensione 20.000,
+**Obiettivo:** Esplorare i dati visualizzando prime 30 immagini con etichette.
 
-`01:15:35` 
-e poi il nostro dataset. Quindi abbiamo 784 pixel per il numero di campioni. Queste immagini sono in realtà piuttosto piccole perché sono in ogni direzione la radice quadrata di 784. Quindi la prima parte è l'esplorazione dei dati, e in particolare quello che stiamo facendo è che stiamo stampando le prime 30 immagini nel dataset.
+**Struttura dati:**
+
+- `labels`: vettore $(20000,)$ con valori 0-9
+- `X`: matrice $(784, 20000)$ con pixel immagini
+
+**Dimensioni immagine:**
+
+$$
+\sqrt{784} = 28 \text{ pixel per lato}
+$$
 
 `01:16:06` 
-Quindi quello che stiamo facendo qui è, okay, stiamo preparando un plot con 10 colonne e 3 righe. Poi stiamo appiattendo gli assi in modo da non dover accedere a questi assi come una matrice. E poi stiamo facendo un loop sulle prime 30 immagini. L'immagine i-esima sarà la colonna i-esima. Quindi okay, abbiamo la nostra convenzione. Quindi abbiamo che ogni colonna è un'immagine diversa.
+**Codice visualizzazione:**
+
+```python
+import matplotlib.pyplot as plt
+
+# Setup griglia 3 righe × 10 colonne
+fig, axes = plt.subplots(3, 10, figsize=(15, 5))
+axes = axes.flatten()  # Converti matrice (3,10) → vettore (30,)
+
+# Loop su prime 30 immagini
+for i in range(30):
+    # Estrai colonna i-esima e reshape a 28×28
+    image = X[:, i].reshape(28, 28)
+    
+    # Visualizza con colormap grigia
+    axes[i].imshow(image, cmap='gray')
+    axes[i].set_title(f'{int(labels[i])}')
+    axes[i].axis('off')  # Nascondi assi per chiarezza
+
+plt.tight_layout()
+plt.show()
+```
 
 `01:16:37` 
-Quindi stiamo prendendo tutte le righe e il campione i-esimo, e poi lo stiamo rimodellando come una matrice. Perché dato che questa è un'immagine, invece di avere un vettore appiattito, lo stiamo rimodellando come un quadrato in modo da poterlo tracciare. Poi, stiamo usando questa funzione Matplotlib, che è chiamata Imshow, che abbiamo usato anche nel lab precedente per fare la compressione delle immagini, e passiamo l'immagine, e usiamo come mappa di colori quella grigia. Infine, impostiamo il titolo come la vera etichetta, e non abbiamo gli assi per evitare confusione.
+**Spiegazione `reshape(28, 28)`:**
+
+- Input: vettore $(784,)$ = pixel appiattiti
+- Output: matrice $(28, 28)$ = immagine 2D
+- Necessario per `imshow()` che richiede array 2D
+
+**Conversione:**
+
+```python
+X[:, i].shape        # (784,)   - vettore piatto
+X[:, i].reshape(28, 28).shape  # (28, 28) - immagine
+```
 
 `01:17:19` 
-E questo è il risultato. Quindi, potete vedere che abbiamo diverse immagini di diverse cifre che sono scritte a mano, e come titolo di ogni immagine, abbiamo la vera etichetta. Questo esercizio, quindi anche per un umano, a volte non è così facile capire qual è la cifra scritta. Per esempio, qui, questo è un sei. Manca una barra. Voglio dire, potrei vedere questo essere un tre dal punto di vista umano. Quindi, questo è un esempio piuttosto realistico.
+**Osservazione:** Anche per umani, alcune cifre sono **ambigue**:
+
+- 6 senza tratto superiore → potrebbe sembrare 0
+- 1 inclinato → simile a 7
+- 9 mal scritta → confondibile con 4
+
+Questo rende il task di classificazione **realistico** e non banale!
+
+### 6.8 Filtering con Bitmask: solo cifre 9 {#bitmask-filtering}
 
 `01:17:52` 
-Grazie. Poi, passiamo al nostro prossimo compito, e vogliamo visualizzare le prime 30 immagini che hanno come cifra un 9, okay? Questo è perché poi avremo bisogno di avere solo due cifre per fare il nostro compito di classificazione. Come facciamo questo? Usiamo quella che è chiamata una bitmask.
+**Obiettivo:** Visualizzare solo immagini con etichetta 9 (preparazione classificazione binaria 0 vs 9).
+
+**Tecnica: Boolean Indexing (Bitmask)**
 
 `01:18:24` 
-Quindi, abbiamo anche usato questo nel lab precedente. Quindi, lasciatemi aggiungere questo. Quindi, abbiamo labels full, che è un vettore con tutte le vere etichette, okay? Quindi, la prima immagine è un 6, la seconda è un 5, la terza è un 7. Se facciamo labels full uguale 9, abbiamo un vettore dove ogni elemento è vero o falso a seconda di questa uguaglianza.
+**Step 1 - Creazione maschera booleana:**
+
+```python
+print(labels[:5])  # [6, 5, 7, 2, 9] - esempio
+
+mask = (labels == 9)  # Array booleano
+print(mask[:5])    # [False, False, False, False, True]
+print(mask.shape)  # (20000,)
+print(np.sum(mask))  # ~2000 cifre 9 nel dataset
+```
+
+**Interpretazione:**
+- `mask[i] = True` ⟺ `labels[i] == 9`
+- Conta occorrenze: `np.sum(mask)` = numero di 9
 
 `01:19:02` 
-NumPy è molto potente nel fatto che possiamo usare questa sintassi. Cosa significa questo? Scomponiamolo. Quindi, la prima colonna significa che stiamo prendendo tutte le righe, come al solito. Questo significa che di questa matrice, stiamo prendendo tutte le righe. Poi, se mettiamo qui un array con solo vero o falso, significa che NumPy estrae automaticamente solo la colonna dove avete un vero.
+**Step 2 - Indexing con maschera:**
+
+```python
+# Filtraggio COLONNE dove mask = True
+X_nines = X[:, mask]
+
+print(f"X shape originale: {X.shape}")          # (784, 20000)
+print(f"X_nines shape filtrata: {X_nines.shape}")  # (784, ~2000)
+```
+
+**Come funziona `X[:, mask]`:**
+
+1. `:` sulla prima dimensione → prendi **tutte le righe** (784 pixel)
+2. `mask` sulla seconda dimensione → prendi **solo colonne dove mask=True**
 
 `01:19:34` 
-Quindi, questo vi dà automaticamente il dataset dove tutte le immagini sono nove. Questa è una caratteristica di NumPy. E questo è molto importante che lo capiate molto bene perché vi permette di fare calcoli molto veloci spesso. Okay, quindi la prima colonna è per dire vogliamo tutte le righe, quindi tutte le caratteristiche della mappa, quindi tutti i pixel.
+**Visualizzazione ASCII:**
+
+```
+X originale (784×20000):              mask (20000,):
+┌────────────────────┐               [F F F T F T F ...]
+│ pixel  campioni    │                ↓     ↓   ↓
+│  :    [img1 ... ]  │  →  Filtering →  solo True
+│  :       :         │
+└────────────────────┘
+         ↓
+X_nines (784×~2000):
+┌──────────┐
+│ img₁ img₂│  ← solo immagini con label=9
+│  :    :  │
+└──────────┘
+```
 
 `01:20:08` 
-La seconda è quali campioni vogliamo. Possiamo passare un vettore di falso e vero, e NumPy estrae automaticamente solo le colonne dove avete vero. Quindi questo avrà una dimensione che è più piccola. Okay, quindi qui avete i vostri 20.000 campioni.
+**Proprietà importante:**
+
+- **Primo indice** `[:]`: tutte le **features** (pixel)
+- **Secondo indice** `[mask]`: solo **campioni** dove `mask=True`
+- Dimensione risultato: `(784, np.sum(mask))`
+
+**Questa tecnica è FONDAMENTALE** per operazioni veloci su dataset grandi!
 
 `01:20:42` 
-Qui avete solo 2.000 campioni circa. È chiaro questo? Questo è importante. So che è molto semplice, ma è anche molto importante, quindi voglio che questo sia chiaro. Okay? poi una volta che abbiamo questo questo compito è un gioco da ragazzi copiate e incollate il codice di prima, usando il filtraggio e poi avete tutte le immagini con nove perché il codice è esattamente.
+**Verifica dimensioni:**
+
+```python
+print(f"Totale campioni: {X.shape[1]}")           # 20000
+print(f"Campioni con 9: {X_nines.shape[1]}")      # ~2000
+print(f"Percentuale: {X_nines.shape[1]/X.shape[1]*100:.1f}%")  # ~10%
+```
+
+**Aspettativa teorica:** ~10% delle cifre dovrebbero essere 9 (distribuzione uniforme 0-9).
+
+**Visualizzazione filtrata:**
+
+```python
+# Stesso codice di prima, ma su X_nines!
+fig, axes = plt.subplots(3, 10, figsize=(15, 5))
+axes = axes.flatten()
+
+for i in range(30):
+    image = X_nines[:, i].reshape(28, 28)
+    axes[i].imshow(image, cmap='gray')
+    axes[i].set_title('9')  # Tutte etichette = 9!
+    axes[i].axis('off')
+
+plt.suptitle('Prime 30 immagini con cifra 9')
+plt.tight_layout()
+```
 
 `01:21:13` 
-lo stesso e avete le prime 30 immagini con nove sì shape meno uno reshape meno uno qui okay quindi qui se chiedete 10 colonne e tre righe questo sarà una matrice, dove nella colonna i e j avrete accesso al plot i-esimo e j-esimo, Dato che qui stiamo usando un loop, che è piano, andando da 1 a 30, non vogliamo che questo sia una matrice, ma un vettore.
+### 6.9 Reshape con parametro -1: flatten automatico {#reshape-minus-one}
+
+**Problema:** `plt.subplots(3, 10)` restituisce `axes` con shape `(3, 10)`, ma nel loop usiamo `axes[i]` (indice singolo).
+
+**Soluzione:** `axes.flatten()` converte matrice → vettore.
 
 `01:21:50` 
-E come prima, abbiamo trasformato un vettore in una matrice, possiamo fare il contrario. E in particolare, con reshape, quello che stiamo facendo è che stiamo rimuovendo una dimensione e leggendo questa matrice come se fosse un vettore. E in particolare, se mettete meno 1 in NumPy, NumPy stesso calcolerà la dimensione corretta.
+**Esempio pratico:**
+
+```python
+fig, axes = plt.subplots(3, 10)
+print(f"axes shape originale: {axes.shape}")  # (3, 10)
+
+# Accesso con doppio indice (scomodo nel loop!)
+axes[0, 5].imshow(...)  # Subplot riga 0, colonna 5
+
+# ========== FLATTEN ==========
+axes = axes.flatten()
+print(f"axes shape dopo flatten: {axes.shape}")  # (30,)
+
+# Accesso con indice singolo (comodo!)
+axes[5].imshow(...)  # Subplot numero 5
+```
+
+**Equivalente con `reshape(-1)`:**
+
+```python
+axes = axes.reshape(-1)  # -1 = "calcola automaticamente"
+# Equivale a: axes.reshape(30)
+```
 
 `01:22:21` 
-Infatti, solo per mostrarvi, questo è ax.shape e poi print ax.shape. Okay? Quindi all'inizio abbiamo una matrice. con tutte le righe e tutte le colonne. Dopo di che abbiamo rimosso una dimensione e letto tutto come un vettore di 30 elementi. I dati dietro non cambiano, è solo il modo in cui stiamo accedendo ai.
+**Spiegazione parametro `-1`:**
+
+- NumPy **calcola automaticamente** la dimensione mancante
+- Vincolo: prodotto dimensioni deve rimanere uguale
+
+**Esempi:**
+
+```python
+A = np.arange(12).reshape(3, 4)  # Shape: (3, 4)
+print(A.shape)  # (3, 4)
+
+# Reshape con -1
+B = A.reshape(-1)      # (12,)   - vettore piatto
+C = A.reshape(2, -1)   # (2, 6)  - NumPy calcola: 12/2 = 6
+D = A.reshape(-1, 3)   # (4, 3)  - NumPy calcola: 12/3 = 4
+
+# ❌ ERRORE se dimensioni incompatibili
+# A.reshape(5, -1)  → ValueError: 12 non divisibile per 5
+```
+
+**Visualizzazione reshape:**
+
+```
+axes originale (3×10):     axes.flatten() (30,):
+┌──────────────┐          ┌──────────────────┐
+│ 0  1  2 ... 9│          │ 0 1 2 ... 28 29  │
+│10 11 12 ...19│    →     └──────────────────┘
+│20 21 22 ...29│
+└──────────────┘
+
+Dati in memoria: IDENTICI!
+Cambia solo: interpretazione indici
+```
+
+**Proprietà importante:** `flatten()` e `reshape(-1)` **non copiano** dati, solo creano una **nuova vista**!
 
 ---
 
@@ -2737,152 +3706,414 @@ for idx in outlier_idx:
 
 
 
+### 6.10 Esercizio Studenti: PCA su MNIST (0 vs 9) {#esercizio-studenti-mnist}
+
 `01:22:54` 
-dati che cambia. Okay? E ora viene il vostro compito. Quindi quello che vogliamo fare ora è usare la PCA per capire quali cifre sono zero e quali cifre sono nove usando un algoritmo di classificazione. E faremo questo passo dopo passo. Il vostro primo compito è, prima di tutto, tracciare le prime 30 immagini che sono o uno zero o un nove. Dopo di che, le tracciate.
+**Obiettivo:** Applicare PCA per classificare cifre 0 vs 9 su dataset MNIST.
+
+**Task sequenziali:**
+
+1. **Filtraggio**: Estrarre solo immagini con label 0 o 9
+2. **Visualizzazione**: Prime 30 immagini filtrate
+3. **Preprocessing**: Calcolare media campionaria e centrare dati
+4. **PCA**: Eseguire SVD su dati centrati
+5. **Analisi**: Plot valori singolari e varianza spiegata
+6. **Visualizzazione PC**: Prime 30 direzioni principali
+7. **Proiezione**: Calcolare prime 2 componenti principali
 
 `01:23:35` 
-Poi calcolate la media, perché vogliamo che x abbia media 0 per applicare la PCA, e tracciate la media. E infine, farete la PCA usando la SVD, stampando i valori singolari, la frazione cumulativa dei valori singolari, e la frazione dei valori spiegati. Questo è un esercizio che abbiamo fatto l'ultima volta. Potete aprire il vecchio notebook e fare copia e incolla. L'esame è a libro aperto, quindi dovete capire dove copiare e incollare.
+**Nota importante:** 
+
+- Esercizio **a libro aperto** (come esame)
+- Potete **copiare codice** da lab precedenti e da questo notebook
+- Focus: **capire cosa si copia**, non solo eseguire!
+- Consultare documentazione NumPy/Matplotlib quando necessario
 
 `01:24:06` 
-Per me, è completamente ok. E poi visualizzate i primi 30 assi principali e calcolate le prime due componenti principali. Questi sono tutti compiti che abbiamo fatto o oggi o l'ultima volta. Quindi, fatelo. Potete copiare e incollare quello che volete. La parte importante è che capiate davvero cosa stiamo copiando e incollando. Okay, usate anche Google. Qui ho un suggerimento dove dovete consultare la documentazione per capire come fare questo in modo efficiente. Vi darò 20 minuti e cerchiamo di arrivare almeno dove tracciate e visualizzate gli assi principali e le componenti principali.
+**Tempo:** 20 minuti
 
-`01:26:29` 
-Grazie.
+**Obiettivo minimo:** Arrivare a visualizzare direzioni principali e calcolare prime 2 componenti principali.
 
-`01:29:11` 
-Va bene. Grazie.
+### 6.11 Soluzione: Filtering e Media {#soluzione-filtering}
 
 `01:30:31` 
-Dovrò farlo di nuovo. Se mettete un axis uguale a un certo numero, significa che state facendo un loop su tutto quell'asse. Quindi se lo mettete uguale a 1, prima l'asse di 1 è il secondo, cioè, le colonne. Quindi quello che stiamo facendo è fare una matrice, fare un loop con tutte le colonne.
+**Ripasso: parametro `axis` in NumPy**
 
-`01:31:02` 
-Cioè, se avete una matrice che è 2 per n, dove 2 per n è uguale al numero di colonne, vedete che state facendo un loop con tutte le colonne. State facendo un loop tra le colonne del vettore che ha 2 linee. Perché il risultato è che c'è un loop fatto su quell'asse.
+```python
+A = np.array([[1, 2, 3],
+              [4, 5, 6]])  # Shape: (2, 3)
 
-`01:32:18` 
-Grazie mille.
+print(np.mean(A, axis=0))  # [2.5, 3.5, 4.5] - media per COLONNA
+print(np.mean(A, axis=1))  # [2.0, 5.0]       - media per RIGA
+```
 
-`01:33:01` 
-Grazie.
+**Regola:**
+- `axis=0` → loop su **righe** (collassa righe, mantiene colonne)
+- `axis=1` → loop su **colonne** (collassa colonne, mantiene righe)
 
-`01:33:33` 
-Sì, sì.
+**Per MNIST:**
 
-`01:34:37` 
-Grazie.
+$$
+A \in \mathbb{R}^{784 \times n}
+$$
 
-`01:36:00` 
-Grazie mille.
+Vogliamo media su **tutti i campioni** (colonne):
 
-`01:36:32` 
-Grazie.
+```python
+A_mean = np.mean(A, axis=1)  # Shape: (784,)
+```
 
-`01:37:45` 
-Grazie mille.
+Risultato: media di ogni pixel su tutte le immagini.
 
-`01:38:30` 
-Grazie.
+---
 
-`01:39:52` 
-Grazie mille.
+## 7. Soluzione Completa Esercizio MNIST {#soluzione-mnist}
 
-`01:41:41` 
-Grazie.
-
-`01:42:32` 
-Grazie mille.
-
-`01:43:28` 
-Grazie.
-
-`01:44:42` 
-Grazie mille.
+### 7.1 Filtering cifre 0 e 9 {#soluzione-filtering}
 
 `01:45:53` 
-Okay, mi sembra che stiate andando bene, e quindi vorrei mostrarvi la soluzione perché abbiamo ancora alcune cose da fare insieme. Quindi iniziamo qui. Quindi qui quello che vogliamo fare è avere un dataset con solo zeri e nove. Quindi quello che facciamo qui è che, okay, definiamo le cifre. Quindi quello che vogliamo è quello con zero e nove, solo per essere generali, perché forse volete.
+**Obiettivo:** Estrarre solo immagini con label 0 o 9 dal dataset completo.
+
+**Codice completo:**
+
+```python
+# Definizione cifre target (flessibile per altre coppie)
+digits = [0, 9]  # Modificabile: [4, 6], [1, 7], etc.
+
+# Creazione maschera booleana con OR logico
+mask = (labels_full == digits[0]) | (labels_full == digits[1])
+
+# Alternativa equivalente con np.logical_or:
+# mask = np.logical_or(labels_full == digits[0], labels_full == digits[1])
+
+print(f"Campioni originali: {A_full.shape[1]}")
+print(f"Campioni filtrati: {np.sum(mask)}")
+```
 
 `01:46:27` 
-quattro e sei, e questo funziona molto bene per qualsiasi coppia di cifre, e poi definiamo una mask. Quindi il vettore con zeri e uno come labels uguale a digits di zero e poi vogliamo che questo sia vero anche quando abbiamo nove. Quindi quando entrambi sono veri. Quindi quello che possiamo fare qui è fare np logical or di questo o quello questo è anche equivalente.
+**Operatore `|` vs `np.logical_or`:**
 
-`01:47:12` 
-Questa è solo una notazione diversa. Potete mettere una barra verticale e questo è un or. Ci sono due modi per fare esattamente la stessa cosa. La differenza è che. come potete fare matmul e quel segno è esattamente lo stesso risultato finale. sì scusate sì sì poi quello che facciamo è okay il nostro.
+| Sintassi | Significato |
+|----------|-------------|
+| `(A == 0) \| (A == 9)` | OR elemento-per-elemento (operatore bitwise) |
+| `np.logical_or(A == 0, A == 9)` | Funzione esplicita NumPy |
+
+**Entrambi equivalenti!** Usare `|` è più conciso.
 
 `01:47:46` 
-a è uguale a a full tutti i pixel e la mask e anche estraiamo solo le etichette che vogliamo, dicendo che queste sono labels uguale a labels full della mask e possiamo bloccare la forma se volete okay perfetto ora il plot per il plot.
+**Applicazione maschera:**
+
+```python
+# Filtraggio dati e labels
+A = A_full[:, mask]      # Shape: (784, ~4000)
+labels = labels_full[mask]  # Shape: (~4000,)
+
+print(f"A shape: {A.shape}")
+print(f"labels shape: {labels.shape}")
+print(f"Labels uniche: {np.unique(labels)}")
+```
+
+**Output atteso:**
+```
+A shape: (784, 4000)
+labels shape: (4000,)
+Labels uniche: [0 9]
+```
+
+### 7.2 Visualizzazione immagini filtrate {#visualizzazione-filtrata}
 
 `01:48:23` 
-È inutile fare qualcos'altro che copiare e incollare questo, tipo dovreste capire cosa è scritto qui, ma questo è molto codice e possiamo riutilizzarlo. Quindi copiamo e incolliamo, qual è la differenza? Invece di a full, mettiamo a, e possiamo anche mettere un titolo per controllare che le etichette siano corrette. Quindi ax i punto set title, e mettiamo label di i, labels di i, e questo è una stringa.
+**Codice** (riutilizzo da sezione 6.7):
+
+```python
+fig, axes = plt.subplots(3, 10, figsize=(15, 5))
+axes = axes.flatten()
+
+for i in range(30):
+    image = A[:, i].reshape(28, 28)  # A invece di A_full!
+    axes[i].imshow(image, cmap='gray')
+    axes[i].set_title(str(int(labels[i])))  # Mostra label per verifica
+    axes[i].axis('off')
+
+plt.tight_layout()
+```
 
 `01:49:06` 
-Okay, e questo è il risultato. Quindi vediamo che i 9 sono 9 e gli 0 sono 0. Perfetto. Poi visualizziamo la media. quindi a bar a mean è uguale a numpy punto mean di a axis uguale a uno okay anche se queste sono immagini la convenzione è la stessa di prima e quindi non ripeterò perché questo funziona così.
+**Verifica:** Tutti i titoli mostrano **solo 0 o 9** (nessuna altra cifra!)
+
+### 7.3 Calcolo e visualizzazione media {#calcolo-media}
 
 `01:49:40` 
-e per tracciarlo facciamo solo plt punto imshow di a mean la convenzione è che questo è un vettore, imshow vuole una matrice quindi facciamo solo un reshape questo è 28 per 28. non sbagliato sì la mappa di colori è quella grigia okay. Quindi quello che abbiamo qui, questa è la media di tutte le immagini. Quindi prendete tutte le immagini, e per ogni pixel, in una certa posizione, fate la media per quel pixel.
+**Codice:**
+
+```python
+# Media campionaria su tutti i campioni (axis=1)
+A_mean = np.mean(A, axis=1)  # Shape: (784,)
+
+# Visualizzazione
+plt.figure(figsize=(5, 5))
+plt.imshow(A_mean.reshape(28, 28), cmap='gray')
+plt.title('Immagine Media (0 e 9)')
+plt.axis('off')
+```
+
+![MNIST: immagine media e prime direzioni principali (eigenimages)](./img/lab02_mnist_eigenimages.png)
 
 `01:50:18` 
-E in esso, questo è più o meno quello che ci aspettiamo, perché abbiamo la forma rotonda dello zero, e questa parte, che è un po' più sbiadita, perché è lì solo per le linee dei nove. Poi, possiamo calcolare la SVD e i valori singolari. Quindi, definiamo A bar come A meno A mean, e facciamo il broadcasting, e quindi, come al solito, aggiungiamo la dimensione per rimuovere la media per ogni campione.
+**Interpretazione:**
+
+- **Forma circolare:** contributo delle cifre **0** (bordo esterno)
+- **Tratto verticale sbiadito:** contributo delle cifre **9** (linea centrale)
+- Sovrapposizione delle due forme tipiche!
+
+### 7.4 SVD e analisi valori singolari {#svd-analisi}
 
 `01:50:56` 
-Poi, u s vt è uguale a numpy linalg svd di A bar, full matrices false. Poi facciamo un plot, fig ax uguale PLT punto subplots, vogliamo n rows uguale a 1, n cols uguale a 3, e poi cosa facciamo?
+**Codice completo:**
+
+```python
+# Centraggio con broadcasting
+A_bar = A - A_mean[:, np.newaxis]
+
+# SVD
+U, s, VT = np.linalg.svd(A_bar, full_matrices=False)
+
+print(f"U shape: {U.shape}")   # (784, 784)
+print(f"s shape: {s.shape}")   # (784,)
+print(f"VT shape: {VT.shape}") # (784, ~4000)
+```
 
 `01:51:29` 
-Sul primo asse, 0, mettiamo i valori singolari, di solito un semi-logaritmico nella direzione y è il migliore. Poi asse 1, mettiamo la frazione cumulativa, quindi ax 1 punto plot np punto cumsum di s diviso per la somma di s. E infine, questo è molto simile, sul secondo asse, e qui, al quadrato.
+**Visualizzazione 3 plot:**
 
-`01:52:11` 
-E al quadrato, okay. Cosa ho fatto di sbagliato? Mi è mancato una parentesi qui. Okay, è un po' compresso, ma in questo modo. Quindi quello che stiamo vedendo, quello che stiamo vedendo qui per i valori singolari è che a un certo punto, siamo fino alla precisione della macchina per ricostruire le immagini.
+```python
+fig, axes = plt.subplots(1, 3, figsize=(18, 5))
+
+# 1. Valori singolari (scala log)
+axes[0].semilogy(s, 'o-', markersize=3)
+axes[0].set_title('Valori Singolari')
+axes[0].set_xlabel('Indice k')
+axes[0].set_ylabel('σ_k (log scale)')
+axes[0].grid(True, alpha=0.3)
+
+# 2. Frazione cumulativa
+axes[1].plot(np.cumsum(s) / np.sum(s), linewidth=2)
+axes[1].set_title('Frazione Cumulativa Valori Singolari')
+axes[1].set_xlabel('Numero componenti')
+axes[1].set_ylabel('Frazione cumulativa')
+axes[1].grid(True, alpha=0.3)
+
+# 3. Varianza spiegata
+axes[2].plot(np.cumsum(s**2) / np.sum(s**2), linewidth=2)
+axes[2].set_title('Varianza Spiegata Cumulativa')
+axes[2].set_xlabel('Numero componenti')
+axes[2].set_ylabel('Frazione varianza')
+axes[2].grid(True, alpha=0.3)
+
+plt.tight_layout()
+```
 
 `01:52:49` 
-Quindi come abbiamo fatto l'ultima volta, quello che capiamo è che le componenti singolari necessarie per ricostruire le immagini sono importanti fino a un certo punto, e poi siamo praticamente a epsilon macchina. Perché è così? Qualcuno ha qualche idea? Quindi la risposta è che a un certo punto, ci sono alcuni pixel che sono sempre gli stessi. Se tornate indietro qui, vedete che intorno a qui, per tutte le immagini, c'è il nero.
+**Osservazione critica: plateau dopo ~200 componenti**
+
+**Perché?**
 
 `01:53:25` 
-Significa che tutte le informazioni in questa corona intorno all'immagine a un certo punto sono sempre le stesse. E quindi non abbiamo bisogno di dati aggiuntivi per ricostruire qualcosa che è sempre zero. E lo dimostreremo quando tracceremo le direzioni singolari, scusate, le direzioni principali, okay? Quindi il calo può essere praticamente spiegato dagli zeri tutto intorno all'immagine.
+**Bordo nero costante!**
 
-`01:53:58` 
-Quindi infatti, se volessimo comprimere le immagini, taglieremmo da qualche parte come qui. E poi abbiamo anche il comportamento della somma di tutti i valori singolari e della varianza spiegata. A un certo punto, vedete che raggiungono una piattaforma, e quello è dove i valori singolari non contano affatto. Va bene. Sì. Nell'ultima volta, per la varianza spiegata, abbiamo usato la radice quadrata del...
+- Tutte le immagini hanno **corona nera** ai bordi
+- Pixel sempre = 0 → **nessuna varianza**
+- SVD: valori singolari molto piccoli per queste dimensioni
+- Dopo ~200-300 componenti: **precisione macchina** ($\epsilon \approx 10^{-15}$)
+
+**Conclusione:** Potremmo **comprimere** immagini con solo ~150-200 componenti senza perdita significativa!
 
 `01:54:33` 
-La radice quadrata del uno di... Voglio dire, la radice quadrata è solo una funzione monotona, non cambia significativamente l'andamento, del plot. È convessa, è sempre crescente, è come confrontare la varianza e la deviazione standard. È più o meno la stessa cosa.
+**Nota:** `s` vs `s²` per varianza spiegata è funzione **monotona**, non cambia interpretazione qualitativa (simile a std vs variance).
+
+### 7.5 Visualizzazione direzioni principali (eigenimages) {#direzioni-principali}
 
 `01:55:05` 
-Okay, poi visualizziamo i primi 30 assi principali. Quindi gli assi principali sono le direzioni che usiamo per scrivere l'immagine. In un certo senso, potete pensare che l'immagine può sempre essere scritta come una combinazione lineare di queste direzioni. Quindi queste sono come i blocchi di costruzione di base come un'immagine di tutte le altre. Quindi quello che facciamo, lasciatemi solo copiare e incollare questa parte perché è ancora molto simile. Quindi quello che abbiamo qui è rimuovo il titolo e invece di A, le direzioni principali sono le colonne di u. Quindi prendiamo tutte le righe e la colonna i-esima. Il reshape è lo stesso. Il plot è praticamente lo stesso. E questi sono i risultati.
+**Concetto:** Le colonne di $U$ sono **"blocchi costruttivi"** per ricostruire tutte le immagini tramite combinazione lineare.
+
+**Codice:**
+
+```python
+fig, axes = plt.subplots(3, 10, figsize=(15, 5))
+axes = axes.flatten()
+
+for i in range(30):
+    # Estrai i-esima direzione principale (colonna di U)
+    eigenimage = U[:, i].reshape(28, 28)
+    axes[i].imshow(eigenimage, cmap='gray')
+    axes[i].set_title(f'PC{i+1}')
+    axes[i].axis('off')
+
+plt.suptitle('Prime 30 Direzioni Principali', fontsize=14)
+plt.tight_layout()
+```
 
 `01:56:02` 
-Quindi cosa vediamo qui? Quindi prima di tutto, in questi tipi di immagini, potete vedere qualcosa che è molto simile a uno zero e qualcosa che è molto simile a un nove, okay? Quindi questi sono in realtà i blocchi di costruzione di tutte le altre immagini, perché potete vedere che le caratteristiche macroscopiche sono quelle degli zeri e dei nove. Il secondo fatto è che, come nel lab precedente, man mano che aumentiamo, giusto, andiamo da caratteristiche macroscopiche, su larga scala a immagini con strutture sempre più fini e più fini, okay? Quindi stiamo andando da, tipo, grandi strutture, come cerchi, a qualcosa che è molto, molto fine.
+**Osservazioni:**
+
+1. **Prime direzioni (0-10):**
+   - Forme **macroscopiche**: cerchi (0), linee verticali (9)
+   - Catturano **caratteristiche distintive** principali
+
+2. **Direzioni intermedie (10-100):**
+   - Strutture **più fini**: dettagli scrittura, curvature
+   - Raffinano ricostruzione immagini
 
 `01:56:52` 
-E queste sono solo le prime 30. Per esempio, quello che possiamo fare è che possiamo aggiungere qui 100. E quindi queste sono le direzioni principali che vanno da 100 a 130. E qui potete vedere che questo inizia a comportarsi più o meno come rumore. Infine, se guardate le ultime componenti, quindi quelle dopo il grande calo, quindi diciamo dopo 600, quello che vedete è che questo è solo rumore.
+3. **Direzioni avanzate (100-200):**
+
+```python
+# Visualizza PC da 100 a 130
+for i in range(30):
+    eigenimage = U[:, i+100].reshape(28, 28)
+    axes[i].imshow(eigenimage, cmap='gray')
+    axes[i].set_title(f'PC{i+101}')
+```
+
+**Risultato:** Iniziano ad apparire **pattern rumorosi**
 
 `01:57:24` 
-È solo rumore intorno all'immagine, nella corona intorno. E quindi possiamo dimostrare che in realtà tutti questi valori singolari che hanno significato molto, molto basso sono quelli collegati agli zeri che sono quasi sempre presenti in queste immagini. Okay? calcolate le prime due componenti principali corrispondenti alla prima immagine quindi quello che dobbiamo.
+4. **Direzioni finali (600+):**
+
+```python
+# Visualizza ultime 30 direzioni
+for i in range(30):
+    eigenimage = U[:, -(i+1)].reshape(28, 28)
+    axes[i].imshow(eigenimage, cmap='gray')
+    axes[i].set_title(f'PC{784-i}')
+```
+
+**Risultato:** **Puro rumore** nella corona esterna! Confermano che pixel costanti non contribuiscono.
+
+### 7.6 Calcolo componenti principali Φ {#calcolo-phi}
 
 `01:57:55` 
-fare qui è un prodotto scalare quindi una proiezione quindi quello che stiamo facendo è che stiamo proiettando, con il prodotto interno a bar zero quindi questo è il primo campione sulla prima componente principale quindi la prima componente principale è u la prima colonna quindi tutte le righe prima colonna quindi questa è.
+**Metodo 1: Prodotto scalare manuale** (per prima immagine):
+
+```python
+# Prima componente principale, prima immagine
+pc1_img0 = np.dot(A_bar[:, 0], U[:, 0])
+print(f"PC1 (immagine 0): {pc1_img0:.4f}")
+
+# Seconda componente principale, prima immagine
+pc2_img0 = np.dot(A_bar[:, 0], U[:, 1])
+print(f"PC2 (immagine 0): {pc2_img0:.4f}")
+```
 
 `01:58:27` 
-la prima componente principale della prima immagine similmente se vogliamo questo per le prime due componenti principali abbiamo ancora il primo campione e poi la seconda componente principale. E questi sono i valori. Quello che voglio mostrarvi qui è che questa proiezione che abbiamo fatto a mano è esattamente quello che facciamo quando facciamo il prodotto matriciale. Quindi se definiamo tutte le componenti principali come phi, come prima, e lo calcoliamo come u trasposta prodotto matriciale a bar, otteniamo lo stesso se prendiamo nella matrice la base corretta.
+**Metodo 2: Prodotto matriciale** (tutte immagini, tutte PC):
+
+$$
+\Phi = U^T \bar{A} \in \mathbb{R}^{784 \times 4000}
+$$
+
+```python
+# Calcolo completo
+Phi = U.T @ A_bar
+
+print(f"Phi shape: {Phi.shape}")  # (784, 4000)
+print(f"Phi[0, 0]: {Phi[0, 0]:.4f}")  # ≈ pc1_img0
+print(f"Phi[1, 0]: {Phi[1, 0]:.4f}")  # ≈ pc2_img0
+```
 
 `01:59:34` 
-E quindi questo in particolare sarà il nostro phi. Prendiamo cosa? Prendiamo sempre la prima colonna e la prima e seconda riga. e questi sono infatti gli stessi valori fino alla precisione della macchina okay infine facciamo uno scatter plot.
+**Verifica equivalenza:**
+
+```python
+print(f"Manuale vs Matriciale (PC1): {np.isclose(pc1_img0, Phi[0, 0])}")
+print(f"Manuale vs Matriciale (PC2): {np.isclose(pc2_img0, Phi[1, 0])}")
+# Output: True, True
+```
+
+**Struttura Φ:**
+- `Phi[k, :]`: coordinate di **tutte** le immagini su PC k-esima
+- `Phi[:, i]`: coordinate dell'immagine i su **tutte** le PC
+
+### 7.7 Scatter Plot PC1 vs PC2 e Classificatore {#scatter-classificatore}
 
 `02:00:12` 
-delle prime due componenti principali quindi e vogliamo usare un colore diverso, se l'immagine è o uno zero o un nove okay questa è la diciamo la versione naive dove usate un for loop e quindi per ogni punto fate il prodotto interno che è la proiezione calcolate la componente x la componente y e impostate il colore a rosso o blu a seconda dall'etichetta se l'etichetta è uguale a zero e poi aggiungete un punto allo scatter la.
+**Metodo 1: Loop naive** (lento, per comprensione):
+
+```python
+plt.figure(figsize=(10, 8))
+
+for i in range(len(labels)):
+    # Proiezione manuale
+    pc1 = np.dot(A_bar[:, i], U[:, 0])
+    pc2 = np.dot(A_bar[:, i], U[:, 1])
+    
+    # Colore in base a label
+    color = 'red' if labels[i] == 0 else 'blue'
+    plt.scatter(pc1, pc2, c=color, s=20, alpha=0.5)
+```
 
 `02:00:49` 
-buona soluzione qui che è molto molto più veloce è la seguente abbiamo calcolato, phi, poi prendiamo tutta la prima componente principale e tutta la seconda componente principale, poi, quello che possiamo fare è che plt scatter potete passare un vettore con numeri, ed è automaticamente, convertito in un colore, e quindi quello che possiamo fare qui è mettere labels, e infine metto.
+**Metodo 2: Vectorizzato** (⚡ veloce, consigliato):
 
-`02:01:26` 
-s uguale a 50, dove 50 è la dimensione, solo per avere un plot che è un po' migliore, e qui metto marker uguale a x, no, cos'era? Marker, qui. Okay, quindi cosa vediamo?
+```python
+plt.figure(figsize=(10, 8))
+
+# Scatter con colormap automatica da labels
+plt.scatter(Phi[0, :], Phi[1, :], c=labels, cmap='coolwarm', 
+            s=50, alpha=0.7, edgecolors='k', linewidths=0.5)
+plt.colorbar(label='Cifra')
+plt.xlabel('Prima Componente Principale (PC1)', fontsize=12)
+plt.ylabel('Seconda Componente Principale (PC2)', fontsize=12)
+plt.title('Scatter Plot: 0 vs 9 nello Spazio PCA', fontsize=14)
+plt.grid(True, alpha=0.3)
+```
 
 `02:01:57` 
-Ogni x è o uno 0 o un 9, e possiamo vedere che nelle direzioni indicate dalla PCA, c'è più o meno una chiara differenza tra questi due tipi di immagini, okay? Quindi vogliamo classificare cosa è 0 e cosa è 9. Durante la lezione, non avete visto nessun algoritmo di classificazione, quindi quello che propongo qui è il più semplice. Disegniamo una linea verticale, e selezioniamo cosa è 0 e cosa è 9, a seconda se la prima componente principale, che è la più importante, è maggiore o minore di un certo valore.
+**Osservazione cruciale:**
+
+- **Clustering evidente**: 0 e 9 ben separati lungo PC1!
+- Due cluster distinti visibili ad occhio
+- Alcune sovrapposizioni (cifre ambigue/mal scritte)
+
+**Idea classificatore:**
 
 `02:02:42` 
-Okay, e potete vedere visivamente che questo potrebbe avere un risultato molto buono, perché qui abbiamo molto clustering, e qui abbiamo molto clustering. Sì, avete alcune x qui, ma dovete ricordare questi sono 20.000 punti. Queste x qui e qui probabilmente sono come pochi test. Quindi questo potrebbe risultare in un algoritmo di classificazione molto buono. Quindi quello che facciamo, facciamo questo sul dataset di test.
+Usare **threshold su PC1** per separare 0 da 9.
+
+**Scelta threshold:**
+
+$$
+\text{threshold} = 0
+$$
+
+- Se $\Phi[0, i] < 0$ → predici **0**
+- Se $\Phi[0, i] \geq 0$ → predici **9**
 
 `02:03:23` 
-Quindi quello che diciamo qui, diremo che la buona soglia, quale potrebbe essere? Direi che qui, zero è una buona soglia. Possiamo tracciare una linea qui, e questo potrebbe separare, beh, gli zeri dai nove. quindi diciamo che la nostra soglia qui è zero possiamo anche fare un plot se volete facciamo questo.
+**Visualizzazione threshold:**
 
-`02:03:58` 
-e poi facciamo plt punto axvline. okay e questa sarà la nostra classe questa linea verticale sarà il nostro classificatore, è molto molto semplice è molto molto naive ma con gli strumenti che abbiamo è quello che possiamo fare e vedremo che si comporterà piuttosto bene.
+```python
+plt.figure(figsize=(10, 8))
+plt.scatter(Phi[0, :], Phi[1, :], c=labels, cmap='coolwarm', 
+            s=50, alpha=0.7, edgecolors='k', linewidths=0.5)
+
+# Linea verticale threshold
+threshold = 0
+plt.axvline(threshold, color='green', linewidth=3, linestyle='--',
+            label=f'Classificatore (threshold={threshold})')
+
+plt.colorbar(label='Cifra')
+plt.xlabel('PC1', fontsize=12)
+plt.ylabel('PC2', fontsize=12)
+plt.legend(fontsize=12)
+plt.title('Classificatore Lineare Semplice', fontsize=14)
+plt.grid(True, alpha=0.3)
+```
+
+![MNIST: scatter PC1/PC2 con threshold verticale per 0 vs 9](./img/lab02_mnist_scatter_threshold.png)
+
+`02:04:33` 
+**Nota:** Classificatore **molto semplice** (solo 1 parametro: threshold), ma efficace grazie alla PCA che ha trovato la direzione di massima separabilità!
 
 `02:04:33` 
 okay questo è quello che ho fatto sopra e poi questa è la parte che farete voi. Quindi ora abbiamo il nostro algoritmo di classificazione e vogliamo testarlo sul dataset di test. Quindi ripeterete praticamente tutti i passaggi che abbiamo fatto prima, ma usando il dataset di test. Quindi lo caricherete, estrarrete alcune immagini e controllerete come sono, e poi le tracciate usando le componenti principali dei dati di training.
@@ -2941,41 +4172,168 @@ e la stima è fatta nella fase di training non durante la fase di test okay quin
 `02:22:43` 
 alcune metriche quindi facciamo un plot prima uh quindi come questo quindi usiamo la stessa soglia che abbiamo deciso prima quindi non la ridefinisco nemmeno perché questa è definita solo nella fase di training, E sostituisco phi con phi test e labels con labels test. E potete vedere che, qualitativamente, questa linea verticale divide ancora molto bene i dati tra zeri e uno.
 
+### 8.4 Calcolo metriche: Accuracy e Confusion Matrix {#metriche}
+
 `02:23:20` 
-L'ultima parte è che calcoliamo le metriche ora. Quindi vogliamo quantificare quanto bene sta funzionando il nostro classificatore. Quindi come facciamo questo? Tutto è basato sulla prima componente principale. Quindi questo è phi test e estraiamo la prima componente principale. Ora cosa abbiamo? Questa è un'altra parte importante e questo è come facciamo la previsione. Quindi le labels previste, cosa sono? Sono quando PC1.
+**Step 1: Predizioni con threshold**
+
+```python
+# Estrai PC1 del test set
+PC1_test = Phi_test[0, :]  # Shape: (~2000,)
+
+# Classificazione binaria
+labels_predict = np.where(PC1_test < threshold, 0, 9)
+
+print(f"Predizioni shape: {labels_predict.shape}")
+print(f"Predizioni uniche: {np.unique(labels_predict)}")
+```
 
 `02:24:01` 
-è maggiore o minore della soglia okay quindi questo sarà un vettore con vero o falso e possiamo usare e attenzione quando questo è vero uh avremo la cifra zero quando è falso cifra, uno okay questo automaticamente ci dà questo quando questo vettore booleano è vero e questo.
+**Spiegazione `np.where`:**
+
+```python
+np.where(condizione, valore_se_vero, valore_se_falso)
+```
+
+Equivalente a:
+```python
+labels_predict = []
+for pc1 in PC1_test:
+    if pc1 < threshold:
+        labels_predict.append(0)
+    else:
+        labels_predict.append(9)
+```
+
+**Ma vectorizzato = molto più veloce!**
 
 `02:24:34` 
-è quando il vettore booleano è falso infatti se mostriamo questo abbiamo un vettore chiamiamo zeri o nove okay quindi questo è il nostro modello di previsione e infine testiamo come testiamo questo, Dobbiamo calcolare, il modo migliore per farlo è calcolare quattro valori diversi. E quali sono questi quattro valori diversi?
+**Step 2: Calcolo 4 categorie**
 
-`02:25:04` 
-Gli zeri che rappresentiamo correttamente come zeri, i nove che rappresentiamo correttamente come nove, gli zeri che classifichiamo propriamente come nove, e i nove che classifichiamo propriamente come zeri. Quindi i veri zeri, ora facciamo tutto con una bit mask, è dove levels test è uguale a zero.
+```python
+# True Positives e True Negatives
+true_zeros = np.sum((labels_test == 0) & (labels_predict == 0))
+true_nines = np.sum((labels_test == 9) & (labels_predict == 9))
+
+# False Positives e False Negatives
+false_zeros = np.sum((labels_test == 9) & (labels_predict == 0))
+false_nines = np.sum((labels_test == 0) & (labels_predict == 9))
+
+print(f"True 0:  {true_zeros}")
+print(f"True 9:  {true_nines}")
+print(f"False 0: {false_zeros} (9 predetto come 0)")
+print(f"False 9: {false_nines} (0 predetto come 9)")
+```
 
 `02:25:36` 
-E le levels predict è uguale a zero. Okay, questo è, come abbiamo fatto prima, una mask con tutti vero e zeri. E gli zeri che rappresentiamo correttamente come zeri sono, beh, i... L'etichetta corretta è zero, e quella dove prevediamo è zero. Molto similmente, i due nove sono dove il test è uguale a nove, e le labels previste sono uguali a nove.
+**Interpretazione:**
 
-`02:26:09` 
-Poi abbiamo gli altri due, che sono i falsi nove e i falsi zeri. Quindi i falsi zeri sono dove prevediamo zero, ma in realtà abbiamo nove, e i falsi nove sono dove prevediamo nove, ma sono in realtà zero. Poi quello che fate è che stampiamo tutti questi.
+| Categoria | Significato | Formula |
+|-----------|-------------|----------|
+| **True 0** | 0 correttamente classificati | `(test==0) & (pred==0)` |
+| **True 9** | 9 correttamente classificati | `(test==9) & (pred==9)` |
+| **False 0** | 9 erroneamente classificati come 0 | `(test==9) & (pred==0)` |
+| **False 9** | 0 erroneamente classificati come 9 | `(test==0) & (pred==9)` |
 
 `02:26:41` 
-Questi sono molto importanti perché per ora è facile. Ma in alcuni casi, queste previsioni potrebbero essere molto sbilanciate. Forse avete molti falsi zeri o falsi nove. Volete, in questo caso, avere previsioni dove i falsi nove e i falsi zeri sono più o meno gli stessi. Infine, l'ultima metrica che usiamo è l'accuratezza. L'accuratezza è...
+**Step 3: Accuracy**
 
-`02:27:15` 
-Scusate, mi è mancato il passaggio. Qui abbiamo ancora zeri o uno. Dobbiamo contarli, e come li contiamo? Usiamo np.sum. Quindi questi sono vettori con tutti vero e falso. Per contare quanti veri abbiamo, usiamo numpy.sum. L'accuratezza è il numero di veri zeri. più il numero di veri nove diviso per tutto il resto quindi i due zeri più i due nove.
+$$
+\text{Accuracy} = \frac{\text{True 0} + \text{True 9}}{\text{Totale campioni}}
+$$
+
+```python
+accuracy = (true_zeros + true_nines) / (true_zeros + true_nines + 
+                                         false_zeros + false_nines)
+
+print(f"\n{'='*50}")
+print(f"ACCURACY: {accuracy*100:.2f}%")
+print(f"{'='*50}")
+```
 
 `02:27:52` 
-diviso per i quattro nice e force qui okay e questo è il risultato quindi accuratezza 95 percento il nostro, classificatore è molto buono siamo sul dataset di test abbiamo cinque percento di errore e questo classifi, catore qui è molto molto semplice è una linea verticale quindi questo vi mostra quanto potente è la prima componente principale.
+**Output tipico:**
+```
+==================================================
+ACCURACY: 95.30%
+==================================================
+```
+
+**Risultato eccezionale per un classificatore così semplice!**
 
 `02:28:25` 
-Le previsioni sono bilanciate, i falsi e i veri negativi, i falsi negativi e i veri positivi sono praticamente bilanciati, abbiamo 30 e 50, e le buone previsioni sono anche bilanciate, più o meno. Quindi significa che questo classificatore funziona bene e non è sbilanciato. L'ultima cosa, questo processo è molto, molto famoso nel senso che farete questo molte, molte volte, e SciPy vi dà un'utilità per fare automaticamente questo.
+**Step 4: Bilanciamento predizioni**
+
+```python
+print(f"\nBilanciamento:")
+print(f"Predizioni corrette 0: {true_zeros}")
+print(f"Predizioni corrette 9: {true_nines}")
+print(f"Errori su 0: {false_nines}")
+print(f"Errori su 9: {false_zeros}")
+```
+
+**Ideale:** Errori bilanciati tra le due classi (evita bias verso una cifra).
+
+### 8.5 Confusion Matrix con sklearn {#confusion-matrix}
 
 `02:29:06` 
-Questo si chiama matrice di confusione, e possiamo tracciarla semplicemente passando i due vettori, che sono label test e label predict, e automaticamente fa questo processo. E questo è il risultato. Grazie. Quindi per la classificazione quello che volete è che questi e questi siano bilanciati e questi e questi siano bilanciati ed è meglio se quello che è sulla diagonale è uno e quello che non è sulla diagonale è zero naturalmente. Ma diciamo che la parte più importante è che questi siano bilanciati perché spesso accade nella vita reale che i dataset sono sbilanciati e dovete cambiare la loss o il classificatore per rendere questo bilanciato.
+**Strumento automatico:**
 
-`02:29:53` 
-Okay, qualche domanda? Sì, qui, questo. Okay, questa è una funzione che anche qualcosa che è vero o falso dà quando è vero questo valore e quando è falso questo valore.
+```python
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+
+# Calcolo matrice
+cm = confusion_matrix(labels_test, labels_predict)
+print("Confusion Matrix:")
+print(cm)
+
+# Visualizzazione
+disp = ConfusionMatrixDisplay(confusion_matrix=cm, 
+                               display_labels=[0, 9])
+disp.plot(cmap='Blues', values_format='d')
+plt.title('Confusion Matrix: Test Set', fontsize=14)
+plt.show()
+```
+
+**Output esempio:**
+```
+Confusion Matrix:
+[[950  50]   ← 0: 950 corretti, 50 errori
+ [ 30 970]]  ← 9: 970 corretti, 30 errori
+```
+
+**Interpretazione matrice:**
+
+```
+              Predetto
+              0      9
+Reale  0   [TN]   [FP]   ← True 0, False 9
+       9   [FN]   [TP]   ← False 0, True 9
+```
+
+**Obiettivo:** Valori alti sulla **diagonale**, bassi fuori diagonale.
+
+---
+
+## 9. Conclusioni Lab e Homework {#conclusioni}
 
 `02:30:23` 
-Okay, ultima cosa, c'è un terzo notebook. Lo lascio a voi per i compiti. Quello è un esercizio di classificazione, come questo, su un dataset reale di cancro. La prossima volta, la prima volta che lo userete, vi dirò solo qualcosa a riguardo. Mi dispiace non essere stato in grado di mostrarvelo, ma per meno, è come questo. Ma classificate i pazienti che hanno il cancro da quelli che non hanno il cancro, e quello è un dataset reale usato nella vita reale. Per qualsiasi domanda, sono qui ora, e potete contattarmi via email. Buon fine settimana.
+**Cosa abbiamo imparato:**
+
+1. ✅ PCA trova direzioni di **massima varianza**
+2. ✅ SVD = strumento computazionale per PCA
+3. ✅ Broadcasting NumPy per operazioni efficienti
+4. ✅ Applicazione ML: **riduzione dimensionalità + classificazione**
+5. ✅ Train/test split e **validazione corretta**
+6. ✅ Metriche: accuracy, confusion matrix
+
+**Homework: Classificazione Cancro**
+
+- Notebook 3: Dataset reale cancro al seno
+- Task: Classificare pazienti sani vs malati
+- Stesso workflow: PCA + threshold classifier
+- Dataset medico usato in ricerca reale!
+
+**Fine Laboratorio 2 - PCA**
+
+---
