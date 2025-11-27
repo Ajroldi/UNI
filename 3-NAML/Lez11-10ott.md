@@ -152,21 +152,21 @@ Okay, quindi iniziamo. Il lab di oggi riguarda la PCA. Quindi la PCA è una tecn
 ## Definizioni Fondamentali
 
 **Convenzioni importanti:** Esistono due convenzioni per organizzare i dati:
-- **Campioni su colonne:** X ∈ R^{M×N} (usata in questo lab)
-- **Campioni su righe:** X ∈ R^{N×M} (comune in scikit-learn)
+- **Campioni su colonne:** $X \in \mathbb{R}^{M \times N}$ (usata in questo lab)
+- **Campioni su righe:** $X \in \mathbb{R}^{N \times M}$ (comune in scikit-learn)
 
 La scelta influenza quale matrice (U o V) contiene le direzioni principali.
 
 **Due concetti distinti:**
 
-1. **Direzioni principali:** Autovettori della matrice di covarianza C
+1. **Direzioni principali:** Autovettori della matrice di covarianza $C$
    - Sono le **direzioni di massima varianza** nei dati
    - Formano un nuovo sistema di riferimento ortogonale
 
 `00:01:15` 
 2. **Componenti principali:** Proiezione dei dati sulle direzioni principali
     - Sono le **coordinate** dei dati nel nuovo sistema di riferimento
-    - Si ottengono tramite prodotto scalare: PC = U^T X
+    - Si ottengono tramite prodotto scalare: $\text{PC} = U^T X$
 
 `00:01:50` 
 **Obiettivo PCA:** Ruotare i dati nel sistema di riferimento delle direzioni principali, dove la varianza è massimizzata lungo gli assi.
@@ -176,42 +176,50 @@ La scelta influenza quale matrice (U o V) contiene le direzioni principali.
 
 **Dimensioni della matrice:**
 
-X ∈ R^{M×N}
+$$
+X \in \mathbb{R}^{M \times N}
+$$
 
 Domini:
-- M = numero di **features** (es. pixel in un'immagine)
-- N = numero di **campioni** (osservazioni)
+- $M$ = numero di **features** (es. pixel in un'immagine)
+- $N$ = numero di **campioni** (osservazioni)
 
-**Tipicamente:** N >> M (più campioni che features)
+**Tipicamente:** $N >> M$ (più campioni che features)
 
 `00:03:09` 
-**Assunzione fondamentale:** X è **centrata** (media zero per ogni riga)
+**Assunzione fondamentale:** $X$ è **centrata** (media zero per ogni riga)
 
 Se non è centrata, eseguiamo:
 
-X_bar = X - μ * 1^T
+$$
+\bar{X} = X - \mu \mathbf{1}^T
+$$
 
-Dove μ è il vettore media e 1 è il vettore di 1.
+Dove $\mu$ è il vettore media e $\mathbf{1}$ è il vettore di 1.
 
 `00:03:44` 
 ### Matrice di Covarianza e SVD
 
 **Definizione matrice di covarianza:**
 
-C = (1/(n-1)) X X^T ∈ R^{M×M}
+$$
+C = \frac{1}{n-1} X X^T \in \mathbb{R}^{M \times M}
+$$
 
-**Data la SVD:** X = U Σ V^T
+**Data la SVD:** $X = U \Sigma V^T$
 
 **Sostituendo:**
 
-C = (1/(n-1)) (U Σ V^T)(V Σ^T U^T) = (1/(n-1)) U Σ Σ^T U^T = (1/(n-1)) U Σ^2 U^T
+$$
+C = \frac{1}{n-1} (U \Sigma V^T)(V \Sigma^T U^T) = \frac{1}{n-1} U \Sigma \Sigma^T U^T = \frac{1}{n-1} U \Sigma^2 U^T
+$$
 
 `00:04:42` 
-**Conclusione:** C = U Λ U^T con Λ = Σ^2 / (n-1)
+**Conclusione:** $C = U \Lambda U^T$ dove $\Lambda = \frac{\Sigma^2}{n-1}$
 
 Quindi:
-- **Direzioni principali** = colonne di U
-- **Autovalori di C** = λ_i = σ_i^2 / (n-1) (varianze)
+- **Direzioni principali** = colonne di $U$
+- **Autovalori di $C$** = $\lambda_i = \frac{\sigma_i^2}{n-1}$ (varianze)
 
 ---
 
@@ -229,59 +237,67 @@ Quindi:
 `00:05:56` 
 **Esempio:** Proiezione del primo campione sulla prima direzione principale
 
-- Primo campione: x_1 (prima colonna di X)
-- Prima direzione: u_1 (prima colonna di U)
-- Proiezione: PC[1,1] = u_1^T x_1 (prodotto scalare)
+- Primo campione: $x_1$ (prima colonna di $X$)
+- Prima direzione: $u_1$ (prima colonna di $U$)
+- Proiezione: $\text{PC}_{1,1} = u_1^T x_1$ (prodotto scalare)
 
 **In forma matriciale:**
 
-Φ = U^T X ∈ R^{M×N}
+$$
+\Phi = U^T X \in \mathbb{R}^{M \times N}
+$$
 
 `00:06:33` 
 **Interpretazione:**
 
-Struttura di Φ (righe = direzioni, colonne = campioni):
-[
- u_1^T x_1   u_1^T x_2   …   u_1^T x_N
- u_2^T x_1   u_2^T x_2   …   u_2^T x_N
-     ⋮           ⋮         ⋱      ⋮
- u_M^T x_1   u_M^T x_2   …   u_M^T x_N
-]
+$$
+\Phi = \begin{pmatrix}
+u_1^T x_1 & u_1^T x_2 & \cdots & u_1^T x_N \\
+u_2^T x_1 & u_2^T x_2 & \cdots & u_2^T x_N \\
+\vdots & \vdots & \ddots & \vdots \\
+u_M^T x_1 & u_M^T x_2 & \cdots & u_M^T x_N
+\end{pmatrix}
+$$
 
 Dove:
-- Riga i: proiezioni di tutti i campioni sulla direzione u_i
-- Colonna j: proiezioni del campione j su tutte le direzioni
+- Riga $i$: proiezioni di **tutti i campioni** sulla direzione $u_i$
+- Colonna $j$: proiezioni del **campione $j$** su **tutte le direzioni**
 
 `00:07:09` 
-**Nota:** U^T X è il modo matriciale di calcolare tutti i prodotti scalari contemporaneamente.
+**Nota:** $U^T X$ è semplicemente il modo matriciale di calcolare tutti i prodotti scalari contemporaneamente!
 
 `00:07:49` 
 ### Convenzione Alternativa: Campioni su Righe
 
-**Se organizziamo i dati come:** X ∈ R^{N×M} (campioni × features)
+**Se organizziamo i dati come:** $X \in \mathbb{R}^{N \times M}$ (campioni × features)
 
 **Matrice di covarianza:**
 
-C = (1/(n-1)) X^T X ∈ R^{M×M}
+$$
+C = \frac{1}{n-1} X^T X \in \mathbb{R}^{M \times M}
+$$
 
-**Data la SVD:** X = U Σ V^T
+**Data la SVD:** $X = U \Sigma V^T$
 
 **Sostituendo:**
 
-C = (1/(n-1)) (V Σ U^T)(U Σ^T V^T) = (1/(n-1)) V Σ^2 V^T
+$$
+C = \frac{1}{n-1} (V \Sigma U^T)(U \Sigma^T V^T) = \frac{1}{n-1} V \Sigma^2 V^T
+$$
 
 `00:08:25` 
-**Conclusione:** Ora le direzioni principali sono le colonne di V (non U).
+**Conclusione:** Ora le **direzioni principali** sono le colonne di $V$ (non U)!
 
 `00:09:05` 
 ### Tabella di Confronto
 
 | Convenzione | Dimensioni | Matrice Covarianza | Direzioni Principali |
 |-------------|------------|-------------------|----------------------|
-| **Colonne** | X ∈ R^{M×N} | C = (XX^T)/(n-1) | Colonne di U |
-| **Righe** | X ∈ R^{N×M} | C = (X^T X)/(n-1) | Colonne di V |
+| **Colonne** | $X \in \mathbb{R}^{M \times N}$ | $C = \frac{XX^T}{n-1}$ | Colonne di $U$ |
+| **Righe** | $X \in \mathbb{R}^{N \times M}$ | $C = \frac{X^TX}{n-1}$ | Colonne di $V$ |
 
-**In questo lab:** Usiamo sempre campioni su colonne → direzioni principali in U
+**In questo lab:** Usiamo sempre **campioni su colonne** → direzioni principali in $U$
+> Nota rendering: GitHub Flavored Markdown non mostra matematica LaTeX; questi blocchi $...$ e $$...$$ renderanno correttamente in PDF/HTML generati con Pandoc o visualizzatori locali.
 
 `00:09:45` 
 È chiaro questo? Volete che spieghi qualcosa di nuovo? Okay. Accenderò i proiettori e lo schermo ora. Se volete, potete iniziare ad aprire Google Colab e caricare dai notebook.
