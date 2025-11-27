@@ -1027,7 +1027,7 @@ Dove:
 Phi = U.T @ X_bar  # Proiezione su direzioni principali
 ```
 
-**Struttura di Φ:**
+**Struttura di $\Phi$:**
 
 - Riga 1: proiezioni di tutti i campioni su $u_1$
 - Riga 2: proiezioni di tutti i campioni su $u_2$
@@ -2681,10 +2681,10 @@ plt.show()
 
 **Regola classificazione**:
 $$
-\text{label}_{\text{predicted}} = 
+	ext{label}_{\text{predicted}} =
 \begin{cases}
-0 & \text{se } \text{PC1} > \text{threshold} \\
-9 & \text{se } \text{PC1} \leq \text{threshold}
+    0 & \text{se } \text{PC1} > \text{threshold} \\
+    9 & \text{se } \text{PC1} \leq \text{threshold}
 \end{cases}
 $$
 
