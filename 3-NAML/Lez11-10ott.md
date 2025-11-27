@@ -1,4 +1,4 @@
-# Lab 3 NAML - Principal Component Analysis (PCA)
+# Lab 2 NAML - Principal Component Analysis (PCA)
 
 ---
 
@@ -3686,7 +3686,7 @@ for idx in outlier_idx:
 - `axis=1` per mean su samples
 
 **Prossimi passi**:
-- Lab 3: Applicazioni avanzate PCA (immagini, text mining)
+- Lab 2: Applicazioni avanzate PCA (immagini, text mining)
 - Teoria: Kernel PCA, Sparse PCA, Robust PCA
 - ML: Integrazione PCA in pipeline complesse
 
