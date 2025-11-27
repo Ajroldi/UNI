@@ -2682,10 +2682,10 @@ plt.show()
 Regola di classificazione:
 
 $$
-\text{label}_{\text{predicted}} =
+\text{label}_{\text{predicted}} = 
 \begin{cases}
 0 & \text{se } \text{PC1} > \text{threshold} \\
-9 & \text{se } \text{PC1} \le \text{threshold}
+9 & \text{se } \text{PC1} \leq \text{threshold}
 \end{cases}
 $$
 

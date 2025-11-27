@@ -1,4 +1,4 @@
-# Lab 4 NAML - Metodo Kernel e PageRank
+# NAML - Metodo Kernel e PageRank
 
 ## 🎯 Obiettivi della Lezione
 
@@ -119,6 +119,9 @@
 **Durata: ~35 min (00:45:49 - 01:20:35)**
 
 #### 9. PageRank - Introduzione {#pagerank-introduzione}
+   ![PR1 slide 1: introduzione PageRank](./img/PR1_page_01.png)
+   ![PR1 slide 2: idea di base](./img/PR1_page_02.png)
+   ![PR1 slide 3: motivazione del ranking](./img/PR1_page_03.png)
    - 9.1. Storia: algoritmo alla base di Google Search `00:46:20`
    - 9.2. Riferimento: libro "Google's PageRank and Beyond" `00:47:24`
    - 9.3. Versione semplificata dell'algoritmo `00:48:01`
@@ -127,6 +130,8 @@
    - 9.6. Soluzione: pesare importanza delle pagine linkanti `00:49:43`
 
 #### 10. Modello Matematico PageRank {#modello-matematico-pagerank}
+   ![PR1 slide 4: modello di transizione](./img/PR1_page_04.png)
+   ![PR1 slide 5: matrice stocastica e damping](./img/PR1_page_05.png)
    - 10.1. Rappresentazione rete come grafo orientato `00:50:15`
    - 10.2. Esempio: 4 siti web con link bidirezionali `00:51:00`
    - 10.3. Idea: navigazione casuale cliccando link random `00:51:31`
@@ -362,6 +367,10 @@ L'immagine mostra la trasformazione:
 - **Asse Z (verticale)**: $z_1 = x_1^2$
 - **Asse Y (profondità)**: $z_2 = x_2^2$  
 - **Asse X (orizzontale)**: $z_3 = x_1 x_2$
+
+![KM1 slide 7: separazione circolare](./img/KM1_page_07.png)
+![KM1 slide 8: feature map polinomiale](./img/KM1_page_08.png)
+![KM1 slide 9: iperpiano nel nuovo spazio](./img/KM1_page_09.png)
 
 **Nel nuovo spazio 3D:**
 - Punti **interni** al cerchio: basso valore di $x_1^2 + x_2^2$ → bassa "altezza"
@@ -681,6 +690,8 @@ $$
 - $\Phi^T\Phi$: $D \times D$ (soluzione primal - può essere enorme)
 - $\Phi\Phi^T$: $n \times n$ (soluzione dual - sempre gestibile!)
 
+![KM1 slide 25: matrice di Gram K](./img/KM1_page_25.png)
+
 **Proprietà matematiche:**
 
 1. **Simmetrica**: $K_{ij} = K_{ji}$ (perché prodotto scalare è commutativo)
@@ -693,6 +704,9 @@ $$
 ### Esempi di Funzioni Kernel {#esempi-kernel}
 
 `00:21:02` 
+![PR1 slide 6: metodo delle potenze](./img/PR1_page_06.png)
+![PR1 slide 7: convergenza all’autovettore dominante](./img/PR1_page_07.png)
+![PR1 slide 8: esempio di iterazioni](./img/PR1_page_08.png)
 
 **Da KM1.pdf slide 17-18: Kernel Più Usati**
 
@@ -701,6 +715,8 @@ $$
 $$
 \boxed{K(\mathbf{x}, \mathbf{z}) = (\mathbf{x}^T \mathbf{z} + c)^q}
 $$
+
+![KM1 slide 17: kernel polinomiale](./img/KM1_page_17.png)
 
 **Parametri:**
 - $c \geq 0$: termine costante
@@ -723,6 +739,8 @@ K(\mathbf{x}, \mathbf{z}) = (\mathbf{x}^T \mathbf{z} + 1)^q
 $$
 - Include termini di **tutti i gradi** da 0 a $q$
 - Esempio $q=2$, $p=2$: $1, x_1, x_2, x_1^2, x_2^2, x_1 x_2$
+
+![KM1 slide 18: kernel RBF e feature space](./img/KM1_page_18.png)
 
 **Dimensione feature space:**
 
@@ -2460,7 +2478,7 @@ Velocità dipende da gap spettrale $1 - |\lambda_2|$.
 
 ---
 
-## ✅ Checklist Lab 4: Kernel Methods & PageRank
+## ✅ Checklist: Kernel Methods & PageRank
 
 ### Teoria Kernel Methods
 
@@ -2713,7 +2731,7 @@ d) Implementa kernel ridge regression con entrambi e confronta
 
 ---
 
-**Fine Lab 4 - Kernel Methods & PageRank**
+**Fine - Kernel Methods & PageRank**
 
 **Statistiche arricchimento:**
 - **Righe originali:** 599
