@@ -34,18 +34,18 @@
 ## Regressione: impostazione del notebook e obiettivi
 [10:00] Su WeBip, cartella “lab03”, è disponibile il notebook 1 “least square regression, kernel regression”. Si consiglia di aprire Colab e caricare il notebook per implementare il codice.
 [10:20] Il primo compito è eseguire una regressione ai minimi quadrati usando la pseudo-inversa di Moore–Penrose, calcolata tramite SVD. Si implementa la pseudo-inversa basata sulla SVD.
-[10:40] Si può scegliere tra SVD “full” ($\mathrm{full matrices} = \mathrm{True}$) e SVD “thin” ($\text{full\_matrices}=\text{False}$). Si confronta il risultato con la funzione standard che calcola la pseudo-inversa, verificando una differenza dell’ordine di $10^{-15}$.
+[10:40] Si può scegliere tra SVD “full” ($\mathrm{full-matrices} = \mathrm{True}$) e SVD “thin” ($\text{full-matrices}=\text{False}$). Si confronta il risultato con la funzione standard che calcola la pseudo-inversa, verificando una differenza dell’ordine di $10^{-15}$.
 [11:00] Si eseguono misure dei tempi di esecuzione, confrontando la pseudo-inversa standard con la versione via SVD, in particolare l’implementazione ottimizzata. La valutazione temporale aiuta a capire l’efficienza delle scelte implementative.
 [11:20] Il codice richiesto è conciso: poche linee basate sulla formula matematica della pseudo-inversa. Si dedica tempo all’implementazione.
 ## Implementazione della pseudo-inversa via SVD
-[11:40] Per la versione full, si esegue la SVD come: $U, s, V^\top = \text{svd}(A, \text{full\_matrices}=\text{True})$, dove $s$ contiene i valori singolari e $U$, $V^\top$ sono matrici ortogonali. La SVD decompone $A$ in rotazioni ($U$, $V$) e scalature ($\Sigma$).
+[11:40] Per la versione full, si esegue la SVD come: $U, s, V^\top = \text{svd}(A, \text{full-matrices}=\text{True})$, dove $s$ contiene i valori singolari e $U$, $V^\top$ sono matrici ortogonali. La SVD decompone $A$ in rotazioni ($U$, $V$) e scalature ($\Sigma$).
 [12:00] Per invertire $\Sigma$, si considerano solo i valori singolari maggiori di zero: gli zero non sono invertibili. Essendo $\Sigma$ diagonale, l’inversione consiste nel prendere i reciproci degli elementi diagonali. Si costruisce $\Sigma^\dagger$ con $1/s_i$ per $s_i>0$ e 0 altrimenti.
 [12:20] La pseudo-inversa di Moore–Penrose è:
 ```math
 A^\dagger = V \,\Sigma^\dagger\, U^\top.
 ```
 Questa espressione deriva da $A = U \Sigma V^\top$ e dalla proprietà che $U$ e $V$ sono ortogonali, mentre $\Sigma$ è diagonale con valori singolari non negativi.
-[12:40] La differenza con la versione thin riguarda $\text{full\_matrices}=\text{False}$. L’inversione della diagonale segue lo stesso principio. Con matrici non quadrate, si possono ottimizzare i prodotti evitando di costruire esplicitamente la matrice diagonale e sfruttando il broadcasting.
+[12:40] La differenza con la versione thin riguarda $\text{full-matrices}=\text{False}$. L’inversione della diagonale segue lo stesso principio. Con matrici non quadrate, si possono ottimizzare i prodotti evitando di costruire esplicitamente la matrice diagonale e sfruttando il broadcasting.
 [13:00] La verifica mostra che la pseudo-inversa calcolata coincide con quella della funzione standard, con errore numerico dell’ordine di $10^{-16}$, compatibile con l’epsilon di macchina.
 [13:20] Si misurano i tempi con “%timeit”: molte ripetizioni e report di media e deviazione standard. L’implementazione SVD thin con prodotti ottimizzati è circa due volte più veloce della versione di default, a parità di condizioni.
 [13:40] Uno studio di scaling rispetto alla dimensione di $A$ darebbe conferme ulteriori, ma ci si attende differenze non drammatiche. La buona vettorializzazione e il broadcasting possono superare implementazioni standard in alcuni casi.
