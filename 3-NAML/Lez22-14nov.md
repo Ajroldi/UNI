@@ -115,17 +115,17 @@ In questo caso, definiamo il numero di strati nascosti e la loro dimensione. Le 
 [03:40] Per fare ciò, dobbiamo definire una **funzione di costo** (o *loss function*), ovvero una funzione che misura l'errore della rete e che vogliamo minimizzare. Implementeremo il Gradient Descent su questa funzione. Vengono proposte due diverse funzioni di costo.
 ## Funzione di Costo Quadratica (Mean Squared Error)
 [03:48] La prima funzione di costo è la `loss_quadratic`. Dati l'input `x`, il target `y` (il valore corretto) e i parametri della rete, questa funzione calcola l'**errore quadratico medio** (*Mean Squared Error*, MSE) tra la predizione e il valore reale.
-$$
+```math
 L_{MSE} = \frac{1}{N} \sum_{i=1}^{N} (y_{pred, i} - y_{true, i})^2
-$$
+```
 Questa è la funzione di costo standard, già utilizzata in altre occasioni. Per implementarla, si utilizza la funzione `artificial_neural_network` per ottenere la predizione e si calcola l'MSE rispetto al target `y`.
 ## Funzione di Costo Cross-Entropy
 [03:58] La seconda funzione di costo è la **Cross-Entropy** (entropia incrociata). Poiché il nostro è un compito di classificazione e gli output sono interpretati come probabilità, l'uso della cross-entropy è più appropriato.
 [04:04] La ragione matematica è che la cross-entropy è una misura della distanza tra distribuzioni di probabilità. Dal punto di vista pratico, questa funzione di costo è efficace perché penalizza pesantemente le predizioni errate fatte con alta confidenza.
 [04:10] Consideriamo un esempio: supponiamo che il valore corretto `yi` sia `1`. Se la rete predice con alta confidenza un valore errato, ad esempio `0.01`, la funzione di costo reagisce in modo significativo. La formula della cross-entropy per la classificazione binaria è:
-$$
+```math
 L_{CE} = - \frac{1}{N} \sum_{i=1}^{N} [y_i \log(\hat{y}_i) + (1 - y_i) \log(1 - \hat{y}_i)]
-$$
+```
 -   Se `yi = 1`, il secondo termine `(1 - yi)` si annulla. Rimane `yi * log(y_hat_i)`, che diventa `log(0.01)`.
 -   Il logaritmo di un numero molto vicino a zero (come `0.01`) è un numero negativo molto grande.
 [04:20] Il logaritmo di `0.01` è un valore molto negativo. A causa del segno meno davanti alla sommatoria nella formula della cross-entropy, il contributo alla loss diventa un numero positivo molto grande.
@@ -141,9 +141,9 @@ $$
 ## Entropia Incrociata (Cross-Entropy)
 [01:03] L'implementazione della funzione di perdita basata sull'entropia incrociata (cross-entropy) segue un approccio simile. Anche in questo caso, il punto di partenza è il calcolo della predizione, che si ottiene applicando la rete neurale `ann` agli input `x` e ai parametri `params`.
 [01:10] La formula dell'entropia incrociata per la classificazione binaria è:
-$$
+```math
 L(\theta) = - \sum_i [y_i \log(p(x_i; \theta)) + (1 - y_i) \log(1 - p(x_i; \theta))]
-$$
+```
 dove $p(x_i; \theta)$ è la predizione della rete. L'implementazione in codice traduce questa formula come segue: `y * jmp.log(predizione) + (1 - y) * jmp.log(1 - predizione)`.
 [01:20] È importante osservare che, per ogni campione, solo uno dei due termini della somma è attivo. Poiché `y` può assumere solo i valori 0 o 1, se `y` è 1, il secondo termine si annulla e rimane solo il primo; se `y` è 0, si annulla il primo termine e rimane solo il secondo.
 [01:36] Successivamente, si applica la somma (`jmp.sum`) su tutti i campioni per calcolare la similarità tra le distribuzioni di probabilità. Poiché la funzione di perdita deve misurare una discrepanza (un errore), si antepone un segno negativo al risultato della somma, ottenendo così l'implementazione completa della formula dell'entropia incrociata.
@@ -262,9 +262,9 @@ dove $p(x_i; \theta)$ è la predizione della rete. L'implementazione in codice t
 [04:15] Si implementa la funzione di perdita, chiamata `binary_cross_entropy`, che accetta i parametri `params`, l'input `X` e le etichette reali `Y`.
 [04:19] Per prima cosa, si calcolano le predizioni `y_pred` della rete tramite la funzione `forward(params, X)`.
 [04:22] La formula della binary cross-entropy viene implementata calcolando la media su tutti i campioni:
-$$
+```math
 \text{loss} = - \frac{1}{N} \sum_{i=1}^{N} [y_i \log(\hat{y}_i) + (1 - y_i) \log(1 - \hat{y}_i)]
-$$
+```
 Il codice corrispondente è `jnp.mean(-(Y * jnp.log(y_pred) + (1 - Y) * jnp.log(1 - y_pred)))`.
 [04:35] L'ultimo componente fondamentale è la funzione `update`, che aggiorna i parametri della rete.
 [04:39] Questa funzione riceve i parametri correnti `params`, un minibatch di dati (`x`, `y`) e il `learning_rate`.

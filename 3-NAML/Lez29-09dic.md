@@ -16,29 +16,29 @@
 [01:45] Si richiama il concetto di densità: uno spazio $U$ è denso in uno spazio più grande $S$ se, per ogni elemento scelto nello spazio grande, è sempre possibile trovare un elemento dello spazio più piccolo che lo approssima con la precisione desiderata.
 [01:58] Formalmente, ciò significa che per ogni funzione $f \in S$ e per ogni tolleranza $\varepsilon > 0$, è possibile trovare una funzione $g \in U$ (che rappresenta una rete neurale) tale che la distanza tra $f$ e $g$ sia arbitrariamente piccola.
 [02:07] In altre parole, la distanza $D(f, g)$ deve essere minore di $\varepsilon$:
-$$
+```math
 \forall f \in S, \forall \varepsilon > 0, \exists g \in U \text{ tale che } D(f, g) < \varepsilon
-$$
+```
 Questo implica che si è in grado di approssimare qualsiasi funzione $f$ con una precisione arbitraria utilizzando una funzione $g$ appartenente allo spazio delle reti neurali.
 [02:13] Il risultato che verrà dimostrato è che questa proprietà è vera sotto specifiche ipotesi.
 ## Il Ruolo della Funzione di Attivazione
 [02:21] Un ingrediente chiave nella definizione di una rete neurale, oltre all'architettura (numero di strati, numero di neuroni per strato), è la funzione di attivazione.
 [02:34] In questo contesto, l'analisi si concentra sulle funzioni *sigmoidali*. È importante distinguere tra la funzione sigmoide e la funzione sigmoidale: quest'ultima è una generalizzazione della prima.
 [02:42] Una funzione $\sigma: \mathbb{R} \to [0, 1]$ è definita sigmoidale se soddisfa le seguenti condizioni sui limiti:
-$$
+```math
 \lim_{x \to -\infty} \sigma(x) = 0
-$$
-$$
+```
+```math
 \lim_{x \to +\infty} \sigma(x) = 1
-$$
+```
 [02:56] Qualsiasi funzione che presenti questo comportamento asintotico è una funzione sigmoidale. Esempi includono la classica funzione a "S", ma anche funzioni con andamenti diversi che rispettino i limiti, come la tangente iperbolica opportunamente riscalata e traslata.
 # La Proprietà Discriminatoria
 ## Definizione di Funzione Discriminatoria
 [03:08] Una proprietà fondamentale per la dimostrazione del teorema di approssimazione universale è la cosiddetta *proprietà discriminatoria* della funzione di attivazione.
 [03:15] Dato un intero $m$, una funzione di attivazione $f: \mathbb{R} \to \mathbb{R}$ è detta *$m$-discriminatoria* se l'unica misura $\mu$ tale che il seguente integrale sia nullo è la misura nulla stessa:
-$$
+```math
 \int_{\mathbb{R}^m} f(w^T x + \theta) \, d\mu(x) = 0
-$$
+```
 [03:26] È importante notare che questi integrali sono definiti secondo Lebesgue, motivo per cui si utilizza la notazione $d\mu$ invece di $dx$. Una delle differenze principali tra l'integrale di Riemann e quello di Lebesgue risiede nella capacità di quest'ultimo di definire una misura per gli insiemi nel dominio della funzione.
 [03:42] In generale, una funzione di attivazione è detta *discriminatoria* se la proprietà sopra descritta vale per qualsiasi dimensione $m$.
 ## Significato Intuitivo della Proprietà Discriminatoria
@@ -58,9 +58,9 @@ $$
 ## Teorema di Rappresentazione di Riesz
 [04:47] Un risultato fondamentale è il Teorema di Rappresentazione di Riesz, già menzionato in precedenza.
 [04:53] Questo teorema afferma che, dato un funzionale lineare $L$, è sempre possibile trovare una misura $\mu$ tale che il funzionale possa essere espresso come un integrale. La potenza del teorema risiede nel garantire l'esistenza di una misura $\mu$ che permette di scrivere:
-$$
+```math
 L(f) = \int f \, d\mu
-$$
+```
 dove $f$ è l'argomento del funzionale.
 ## Teorema di Hahn-Banach
 [05:07] Un altro strumento essenziale è il Teorema di Hahn-Banach.
@@ -77,17 +77,17 @@ dove $f$ è l'argomento del funzionale.
 2.  Dal **Teorema di Rappresentazione di Riesz**: questo funzionale $L$ può essere rappresentato tramite un integrale.
 [06:06] Di conseguenza, si può affermare che esiste una misura $\mu$ tale che il funzionale può essere scritto come $\int h \, d\mu$, dove $h$ è una funzione.
 [06:13] Poiché il funzionale è nullo su $U$, si conclude che per ogni funzione $h \in U$, l'integrale corrispondente deve essere zero:
-$$
+```math
 \int_{I_n} h(x) \, d\mu(x) = 0, \quad \forall h \in U
-$$
+```
 [06:23] Questo risultato, che unisce il teorema di Hahn-Banach e il teorema di rappresentazione di Riesz, è fondamentale per la dimostrazione che seguirà.
 # Teorema di Approssimazione Universale per Reti a Singolo Strato
 ## Enunciato del Teorema
 [06:33] Si è ora pronti per enunciare il teorema. Si considera una funzione di attivazione $\sigma$ che sia *discriminatoria*.
 [06:38] Si analizza una classe di funzioni $g(x)$ definite come segue:
-$$
+```math
 g(x) = \sum_{j=1}^{N} \alpha_j \sigma(w_j^T x + \theta_j)
-$$
+```
 Questa espressione rappresenta una rete neurale con un singolo strato nascosto e $N$ neuroni.
 [06:46] In questa formula:
 - $w_j \in \mathbb{R}^n$ è il vettore dei pesi sinaptici del neurone $j$.
@@ -106,18 +106,18 @@ Questa espressione rappresenta una rete neurale con un singolo strato nascosto e
 [08:06] **Ipotesi per assurdo**: si assume che $U$ *non* sia denso in $C(I_n)$.
 [08:11] Se $U$ non è denso, allora, per il risultato combinato di Hahn-Banach e Riesz derivato in precedenza, deve esistere una misura $\mu$ non nulla tale che l'integrale di ogni funzione $h \in U$ rispetto a questa misura sia zero.
 [08:16] Formalmente:
-$$
+```math
 \exists \mu \neq 0 \text{ tale che } \int_{I_n} h(x) \, d\mu(x) = 0, \quad \forall h \in U
-$$
+```
 [08:26] Si sa che le funzioni $h \in U$ hanno la forma specifica di $g(x)$. Si sostituisce quindi l'espressione di $g(x)$ nell'integrale:
-$$
+```math
 \int_{I_n} \left( \sum_{j=1}^{N} \alpha_j \sigma(w_j^T x + \theta_j) \right) d\mu(x) = 0
-$$
+```
 [08:37] Questa uguaglianza deve valere per qualsiasi scelta dei parametri $\alpha_j$, $\theta_j$, $w_j$ e per qualsiasi numero di neuroni $N$.
 [08:42] Si sceglie un caso molto semplice: una rete con un solo neurone ($N=1$) e un peso di output unitario ($\alpha_1=1$). L'espressione si semplifica notevolmente:
-$$
+```math
 \int_{I_n} \sigma(w^T x + \theta) \, d\mu(x) = 0
-$$
+```
 [08:50] A questo punto, la dimostrazione è quasi conclusa.
 [08:53] L'ipotesi fondamentale del teorema è che la funzione di attivazione $\sigma$ sia *discriminatoria*. Per definizione, una funzione discriminatoria è tale che l'integrale $\int \sigma(\dots) \, d\mu$ si annulla se e solo se la misura $\mu$ è la misura nulla.
 [09:01] Tuttavia, partendo dall'assunzione che $U$ non fosse denso, si è giunti alla conclusione che l'integrale $\int \sigma(w^T x + \theta) \, d\mu(x)$ è uguale a zero per una misura $\mu$ che era stata stabilita essere *non nulla*.
@@ -142,54 +142,54 @@ $$
 [00:37] L'obiettivo è dimostrare che una funzione sigmoidale è *discriminatoria*.
 - **Funzione Discriminatoria**: Una funzione $\sigma$ è detta discriminatoria se l'annullarsi dell'integrale $\int \sigma(w^T x + \theta) d\mu(x)$ per ogni $w$ e $\theta$ implica necessariamente che la misura $\mu$ sia la misura nulla.
 [00:43] Si assume che, per una data misura $\mu$, l'integrale della funzione sigmoidale $\sigma$ esteso al dominio di interesse sia nullo:
-$$
+```math
 \int \sigma(w^T x + \theta) d\mu(x) = 0
-$$
+```
 Si vuole dimostrare che questa condizione implica $\mu = 0$. Poiché $\sigma$ è discriminatoria, se l'integrale è zero, non esistono altre possibilità se non che la misura $\mu$ sia nulla.
 [00:56] Per procedere, si costruisce una funzione scalata, indicata come $\sigma_\lambda$. Invece di considerare semplicemente l'argomento $w^T x + \theta$, lo si moltiplica per un fattore $\lambda$ e si aggiunge un valore $t$:
-$$
+```math
 \sigma_\lambda(x) = \sigma(\lambda(w^T x + \theta) + t)
-$$
+```
 Si analizza quindi il comportamento di questa funzione $\sigma_\lambda$ al tendere di $\lambda$ all'infinito.
 [01:08] Quando $\lambda \to \infty$, l'elemento cruciale da considerare è il segno dell'espressione $w^T x + \theta$.
 [01:13] Se il punto $x$ appartiene al semispazio positivo $H^+$, per definizione si ha $w^T x + \theta > 0$. Di conseguenza, quando $\lambda$ tende a infinito, l'argomento della funzione $\sigma$ tende a $+\infty$. Poiché il limite di una funzione sigmoidale per l'argomento che tende a $+\infty$ è 1, si ottiene:
-$$
+```math
 \lim_{\lambda \to \infty} \sigma_\lambda(x) = 1 \quad \text{per } x \in H^+
-$$
+```
 [01:26] Analogamente, se il punto $x$ appartiene al semispazio negativo $H^-$, si ha $w^T x + \theta < 0$. In questo caso, l'argomento della funzione tende a $-\infty$, e il limite della funzione sigmoidale è 0:
-$$
+```math
 \lim_{\lambda \to \infty} \sigma_\lambda(x) = 0 \quad \text{per } x \in H^-
-$$
+```
 Questa funzione limite, che chiamiamo $\gamma(x)$, assume quindi valori distinti nei due semispazi.
 [01:34] Infine, se il punto $x$ si trova esattamente sull'iperpiano $P$, la prima parte dell'argomento, $\lambda(w^T x + \theta)$, è zero. L'argomento si riduce quindi a $t$, che qui viene indicato con $\phi$. La funzione limite sull'iperpiano è:
-$$
+```math
 \lim_{\lambda \to \infty} \sigma_\lambda(x) = \sigma(\phi) \quad \text{per } x \in P
-$$
+```
 In sintesi, la funzione limite $\gamma(x)$ è una funzione a gradino che vale 1 nel semispazio positivo, 0 in quello negativo e $\sigma(\phi)$ sull'iperpiano.
 ## Applicazione del Teorema della Convergenza Dominata
 [01:43] A questo punto si applica il **Teorema della Convergenza Dominata di Lebesgue**. Questo teorema, una delle motivazioni principali per l'introduzione dell'integrale di Lebesgue, stabilisce le condizioni sotto cui è possibile scambiare l'operatore di limite con l'operatore di integrale.
 [02:01] Grazie a questo teorema, è possibile portare il limite per $\lambda \to \infty$ all'interno dell'integrale:
-$$
+```math
 \lim_{\lambda \to \infty} \int \sigma_\lambda(x) d\mu(x) = \int \left( \lim_{\lambda \to \infty} \sigma_\lambda(x) \right) d\mu(x) = \int \gamma(x) d\mu(x)
-$$
+```
 [02:09] L'integrale di $\gamma(x)$ può essere scomposto in base alle regioni dello spazio:
 - Per $x \in H^+$, $\gamma(x) = 1$. Il contributo all'integrale è $\int_{H^+} 1 \cdot d\mu(x)$, che per definizione è la misura del semispazio positivo, $\mu(H^+)$.
 - Per $x \in H^-$, $\gamma(x) = 0$. Il contributo è nullo.
 - Per $x \in P$, $\gamma(x) = \sigma(\phi)$, che è una costante. Il contributo è $\sigma(\phi) \int_P d\mu(x)$, ovvero $\sigma(\phi) \cdot \mu(P)$.
 [02:21] Sommando i contributi, si ottiene l'espressione finale. Poiché l'integrale di partenza era nullo per ipotesi, anche il suo limite lo è. Si arriva quindi alla relazione:
-$$
+```math
 \mu(H^+) + \sigma(\phi) \cdot \mu(P) = 0
-$$
+```
 Questa equazione è valida per qualsiasi valore di $\phi$.
 [02:32] Ora si può analizzare cosa accade al variare di $\phi$. Si considerano i limiti per $\phi \to +\infty$ e $\phi \to -\infty$.
 [02:37] Se $\phi \to +\infty$, la funzione sigmoidale $\sigma(\phi)$ tende a 1. Sostituendo questo valore nella relazione precedente, si ottiene:
-$$
+```math
 \mu(H^+) + \mu(P) = 0
-$$
+```
 [02:45] Se $\phi \to -\infty$, la funzione sigmoidale $\sigma(\phi)$ tende a 0. La relazione diventa:
-$$
+```math
 \mu(H^+) = 0
-$$
+```
 [02:51] Poiché le misure sono quantità non negative, dall'equazione $\mu(H^+) + \mu(P) = 0$ e sapendo che $\mu(H^+) = 0$, si deduce immediatamente che anche la misura dell'iperpiano $\mu(P)$ deve essere zero.
 [02:57] Ripetendo lo stesso ragionamento per simmetria (ad esempio, considerando $-\sigma$ invece di $\sigma$), si può dimostrare che anche la misura del semispazio negativo, $\mu(H^-)$, è nulla.
 [03:02] Si è quindi dimostrato che la misura $\mu$ si annulla sia sull'iperpiano $P$ che sui due semispazi $H^+$ e $H^-$.
@@ -207,9 +207,9 @@ $$
 ### Caso Unidimensionale (1D)
 [04:03] È possibile dimostrare facilmente che la ReLU è discriminatoria nel caso unidimensionale (1D). Successivamente, verrà fornito un accenno su come estendere la dimostrazione al caso n-dimensionale.
 [04:11] Nel caso 1D, le variabili $y$ (corrispondente a $w$) e $\theta$ sono scalari reali. Si parte, come prima, dall'ipotesi che l'integrale della funzione ReLU sia nullo per una certa misura $\mu$:
-$$
+```math
 \int \text{ReLU}(yx + \theta) d\mu(x) = 0
-$$
+```
 L'obiettivo è dimostrare che questa condizione implica $\mu = 0$.
 [04:21] L'idea di base è la stessa utilizzata in precedenza: partire dall'integrale nullo e provare che la misura deve essere nulla. Il trucco consiste nel costruire una funzione sigmoidale combinando due funzioni ReLU, un approccio già visto graficamente.
 [04:34] In una lezione precedente, si era mostrato come, partendo dalla funzione ReLU, fosse possibile costruire una funzione simile a una "gobba" (o "bump function"), che è un tipo di funzione sigmoidale.
@@ -218,13 +218,13 @@ L'obiettivo è dimostrare che questa condizione implica $\mu = 0$.
 [05:05] Come visto in precedenza, è possibile ottenere una funzione $g(x)$ di questo tipo come differenza di due funzioni ReLU con valori opportuni di $\theta_1$ e $\theta_2$. Il parametro chiave che si può manipolare è il rapporto tra il bias e il peso, $b/w$ (qui $\theta/y$).
 [05:20] Scegliendo opportunamente $\theta_1$ e $\theta_2$, si può costruire una funzione $f(x)$ che è effettivamente una funzione sigmoidale. Si deve prestare attenzione al caso in cui $y=0$, che è un caso banale.
 [05:31] Si considera quindi l'integrale della funzione $f(x)$ rispetto alla misura $\mu$. Poiché $f(x)$ è costruita come differenza di due ReLU, si ha:
-$$
+```math
 \int f(x) d\mu(x) = \int (\text{ReLU}_1 - \text{ReLU}_2) d\mu(x)
-$$
+```
 [05:38] L'integrale della differenza può essere scomposto nella differenza degli integrali. Per l'ipotesi iniziale, ciascuno di questi integrali è nullo.
-$$
+```math
 \int f(x) d\mu(x) = \int \text{ReLU}_1 d\mu(x) - \int \text{ReLU}_2 d\mu(x) = 0 - 0 = 0
-$$
+```
 [05:44] Quindi, l'integrale della funzione $f(x)$ è zero. Ma $f(x)$ è una funzione sigmoidale. Poiché le funzioni sigmoidali sono discriminatorie, l'unica possibilità è che la misura $\mu$ sia nulla.
 [05:55] Si è così dimostrato che, nel caso 1D, anche la funzione ReLU è discriminatoria. Il trucco è stato ricondurre il problema a quello già risolto, costruendo una funzione sigmoidale a partire da due ReLU.
 ### Estensione al Caso Multidimensionale
@@ -243,17 +243,17 @@ $$
 [07:20] Si introduce il concetto di **maledizione della dimensionalità** (*curse of dimensionality*) nel contesto delle reti neurali. Questo fenomeno descrive come, all'aumentare della dimensione del vettore di input (il numero di feature), il numero di neuroni richiesto per ottenere una certa precisione in una rete shallow possa diventare proibitivo.
 [07:35] Una rete shallow tipica ha $N$ neuroni nello strato nascosto. È stato dimostrato che, se si utilizza una funzione di attivazione infinitamente differenziabile ma non polinomiale (come una sigmoide o una tangente iperbolica), l'errore di approssimazione si comporta in un modo specifico.
 [07:47] Se si vuole approssimare una funzione $f$ con una certa regolarità (cioè differenziabile fino all'ordine $r$), l'errore di approssimazione $\epsilon$ è legato al numero di neuroni $N$ dalla seguente relazione:
-$$
+```math
 \epsilon \propto N^{-r/d}
-$$
+```
 dove:
 - $N$ è il numero di neuroni nello strato nascosto.
 - $r$ è l'ordine di regolarità (differenziabilità) della funzione da approssimare.
 - $d$ è la dimensione del vettore di input (il numero di feature).
 [08:03] Invertendo questa relazione per esprimere $N$ in funzione dell'errore desiderato $\epsilon$, si ottiene:
-$$
+```math
 N \propto \epsilon^{-d/r}
-$$
+```
 [08:12] Da questa formula è evidente che se la dimensione $d$ del vettore di feature è grande, il numero di neuroni $N$ richiesto cresce esponenzialmente al diminuire della tolleranza $\epsilon$.
 [08:20] Questo significa che le reti shallow sono soggette alla maledizione della dimensionalità. All'aumentare della dimensione dell'input, il numero di neuroni necessario per mantenere una data precisione diventa esponenzialmente grande, rendendo l'approccio impraticabile.
 ## Vantaggi delle Reti Deep: l'Ipotesi Composizionale
@@ -265,9 +265,9 @@ $$
 [09:05] Si assume quindi che la funzione target possa essere rappresentata in questa forma gerarchica.
 [09:11] Se si vuole approssimare una funzione con questa struttura, utilizzando una rete deep e una funzione di attivazione infinitamente differenziabile e non polinomiale, il numero di neuroni richiesto cambia drasticamente.
 [09:18] Per una rete deep, il numero di neuroni $N$ necessario per raggiungere una tolleranza $\epsilon$ è dato da:
-$$
+```math
 N \propto (d-1) \cdot \epsilon^{-\tilde{d}/r}
-$$
+```
 dove:
 - $d$ è la dimensione totale dell'input.
 - $r$ è la regolarità della funzione.
@@ -283,17 +283,17 @@ dove:
 [00:32] È possibile selezionare un intervallo arbitrariamente piccolo attorno all'origine e, all'interno di questo intervallo, creare una connessione liscia (o "regolarizzata") tra i due rami della funzione. Applicando questa tecnica di regolarizzazione locale, si può dimostrare che anche per la funzione ReLU valgono risultati analoghi a quelli visti per le funzioni lisce.
 ## Complessità delle Reti Shallow e Deep con Funzioni Lipschitziane
 [00:43] In particolare, per il caso di una rete *shallow* (a un solo strato nascosto) che approssima funzioni L-Lipschitziane, il numero di neuroni richiesti è dell'ordine di:
-$$
+```math
 \left(\frac{\epsilon}{L}\right)^{-D}
-$$
+```
 dove:
 - $\epsilon$ è l'errore di approssimazione desiderato.
 - $L$ è la costante di Lipschitz della funzione.
 - $D$ è la dimensione del vettore di input.
 Per il caso di una rete *deep* (profonda), la complessità è invece:
-$$
+```math
 (D-1) \left(\frac{\epsilon}{L}\right)^{-2}
-$$
+```
 [00:52] L'esponente $-2$ in questa formula deriva dal fatto che stiamo considerando il caso specifico di una rappresentazione binaria. In un contesto più generale, in cui si utilizza una rappresentazione gerarchica dove ogni funzione componente dipende da $\tilde{D}$ argomenti, il numero 2 deve essere sostituito con il valore specifico di $\tilde{D}$.
 [01:03] L'aspetto cruciale da osservare, valido sia per il caso di funzioni di attivazione continue e lisce sia per quelle non lisce come la ReLU, è come la dimensione dell'input $D$ influisce sulla complessità.
 - Nelle reti **shallow**, la dimensione $D$ appare come **esponente**.
@@ -311,9 +311,9 @@ $$
 ## Composizione di Funzioni e Complessità Esponenziale
 [01:40] Tornando al concetto di composizione, si è visto in precedenza come, partendo dalla funzione ReLU, sia possibile costruire una funzione "a cappello" (*hat function*).
 [01:46] Nello specifico, una funzione a cappello definita sull'intervallo $[0, 1]$ può essere descritta dall'espressione:
-$$
+```math
 g(x) = \max(0, \min(2x, 2(1-x)))
-$$
+```
 Questa funzione è composta da un ramo $2x$ e un ramo $2(1-x)$, formando un singolo picco.
 [01:54] La rappresentazione gerarchica delle reti profonde è essenzialmente una composizione di funzioni. Si analizza cosa accade componendo la funzione $g(x)$ con se stessa, ovvero calcolando $g(g(x))$.
 - La funzione originale $g(x)$ presenta un singolo picco.

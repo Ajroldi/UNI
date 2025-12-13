@@ -9,9 +9,9 @@
 [02:15] Viene introdotta un’alternativa: la funzione di costo di tipo cross-entropy, rappresentata graficamente da curve rosse. Si rimanda il confronto dettagliato dopo aver derivato le proprietà analitiche, mostrando come la cross-entropy influenzi favorevolmente i gradienti.
 ## Cross-entropy: definizione e proprietà di base
 [02:35] Per la classificazione binaria si definisce la funzione di costo di tipo cross-entropy:
-$$
+```math
 J \;=\; -\frac{1}{n}\sum_{i=1}^n \Big[\, y_i \log(a_i) + (1-y_i)\log(1-a_i) \,\Big]
-$$
+```
 dove:
 - $n$ è il numero di campioni,
 - $y_i \in \{0,1\}$ è l’etichetta vera del campione $i$,
@@ -23,37 +23,37 @@ dove:
 - $z = w^\top x + b$, input dell’attivazione,
 - $a = \sigma(z)$, attivazione dell’ultimo strato.
 [04:00] Per la derivata si scrive:
-$$
+```math
 \frac{\partial J}{\partial w} \;=\; \frac{\partial J}{\partial a}\,\frac{\partial a}{\partial z}\,\frac{\partial z}{\partial w}
-$$
+```
 che decompone il gradiente nei fattori elementari secondo la catena.
 [04:15] Il termine più semplice è:
-$$
+```math
 \frac{\partial z}{\partial w} \;=\; x
-$$
+```
 poiché $z = w^\top x + b$ è lineare in $w$; la derivata rispetto a $w$ coincide con l’input $x$.
 [04:25] La derivata di $J$ rispetto ad $a$ è:
-$$
+```math
 \frac{\partial J}{\partial a} \;=\; -\frac{1}{n}\Big(\frac{y}{a} - \frac{1-y}{1-a}\Big)
-$$
+```
 trascurando il fattore $1/n$ per un ragionamento locale su un singolo campione. Riorganizzando algebricamente:
-$$
+```math
 \frac{\partial J}{\partial a} \;=\; \frac{a - y}{a(1-a)}
-$$
+```
 che unifica i termini razionali in una forma compatta.
 [04:55] La derivata di $a$ rispetto a $z$ per la sigmoide $\sigma(z)=\frac{1}{1+e^{-z}}$ è:
-$$
+```math
 \sigma'(z) \;=\; \sigma(z)\,(1 - \sigma(z)) \;=\; a(1-a)
-$$
+```
 cioè la derivata della sigmoide è il prodotto tra l’attivazione e uno meno l’attivazione.
 [05:20] Componendo i tre fattori:
-$$
+```math
 \frac{\partial J}{\partial w} \;=\; \Big(\frac{a - y}{a(1-a)}\Big)\,\big(a(1-a)\big)\,x \;=\; (a-y)\,x
-$$
+```
 si osserva la semplificazione di $a(1-a)$. La derivata rispetto al bias $b$ è:
-$$
+```math
 \frac{\partial J}{\partial b} \;=\; (a - y)
-$$
+```
 poiché $\frac{\partial z}{\partial b}=1$ e gli altri fattori restano invariati.
 [05:45] Conseguenza cruciale: $\sigma'(z)$ scompare dall’espressione finale del gradiente per l’ultimo strato. Adottando la cross-entropy con sigmoide, la sensibilità dell’ultimo strato è proporzionale all’errore $(a-y)$, senza il fattore attenuante $\sigma'(z)$ che causa vanishing gradient in regime di saturazione della sigmoide.
 ## Implicazioni pratiche: evitare il vanishing gradient
@@ -77,9 +77,9 @@ poiché $\frac{\partial z}{\partial b}=1$ e gli altri fattori restano invariati.
 [09:10] La regolarizzazione aggiunge un termine di penalità alla funzione di costo per scoraggiare soluzioni con parametri eccessivamente grandi o complessi, riducendo la tendenza all’overfitting. Si considerano due approcci classici: L2 e L1, che agiscono in modo diverso sulla geometria delle soluzioni.
 ## Regolarizzazione L2 (weight decay): formulazione e effetto
 [09:30] La regolarizzazione L2 aggiunge una penalità proporzionale al quadrato della norma dei pesi:
-$$
+```math
 C \;=\; J + \frac{\lambda}{2n}\,\|w\|_2^2
-$$
+```
 dove:
 - $J$ è la funzione di costo originale,
 - $\lambda>0$ è il parametro di regolarizzazione,
@@ -87,30 +87,30 @@ dove:
 - $\|w\|_2^2 = \sum_j w_j^2$ è la somma dei quadrati dei pesi.
 [09:55] In genere i bias non vengono regolarizzati, poiché incidono meno sulla complessità del modello in ottica di overfitting. La penalità agisce sui pesi rendendo sfavorevoli soluzioni con norma elevata, orientando la ricerca verso parametri più contenuti.
 [10:10] Considerando l’aggiornamento per discesa del gradiente:
-$$
+```math
 w^{(k+1)} \;=\; w^{(k)} - \eta\,\nabla C\big(w^{(k)}\big)
-$$
+```
 con $\eta>0$ learning rate, il gradiente della penalità L2 è:
-$$
+```math
 \nabla_w \Big(\frac{\lambda}{2n}\|w\|_2^2\Big) \;=\; \frac{\lambda}{n}\,w
-$$
+```
 che aggiunge un contributo proporzionale ai pesi correnti.
 [10:30] Raccolti i termini, l’aggiornamento diventa:
-$$
+```math
 w^{(k+1)} \;=\; \big(1 - \eta\,\tfrac{\lambda}{n}\big)\,w^{(k)} - \eta\,\nabla J\big(w^{(k)}\big)
-$$
+```
 dove $\eta\,\tfrac{\lambda}{n}$ è positivo e tipicamente piccolo. Il fattore $(1 - \eta\,\tfrac{\lambda}{n})$ è minore di 1 e produce uno “shrinking” dei pesi a ogni iterazione.
 [10:55] Questo effetto giustifica il nome weight decay: i pesi si riducono progressivamente in magnitudine, evitando soluzioni con valori ampi. L’interpretazione è coerente con la ricerca di un vettore dei pesi a norma minima compatibile con i dati.
 ## Regolarizzazione L1: formulazione e effetto di sparsità
 [11:15] La regolarizzazione L1 aggiunge una penalità proporzionale alla norma L1:
-$$
+```math
 C \;=\; J + \frac{\lambda}{n}\,\|w\|_1
-$$
+```
 dove $\|w\|_1 = \sum_j |w_j|$ è la somma dei valori assoluti dei pesi.
 [11:30] L’aggiornamento per discesa del gradiente incorpora la penalità L1 con un termine che spinge i pesi verso zero in modo non uniforme, favorendo la sparsità:
-$$
+```math
 w^{(k+1)} \;\approx\; w^{(k)} - \eta\,\nabla J\big(w^{(k)}\big) - \eta\,\frac{\lambda}{n}\,\mathrm{sgn}\big(w^{(k)}\big)
-$$
+```
 dove $\mathrm{sgn}(w_j)$ è il segno di $w_j$; in $w_j=0$ si adotta un subgradiente. Questo meccanismo induce molti pesi a diventare esattamente nulli.
 [11:55] Rispetto all’L2, l’L1 tende a selezionare un sottoinsieme di parametri rilevanti e ad annullare gli altri, portando a soluzioni più parsimoniose e con vettori dei pesi più sparsi.
 ## Interpretazione geometrica: palle unitarie L2 vs L1
@@ -137,16 +137,16 @@ dove $\mathrm{sgn}(w_j)$ è il segno di $w_j$; in $w_j=0$ si adotta un subgradie
 ## Inizializzazione dei pesi – Distribuzione, varianza e gradiente vaniscente
 [03:10] L’inizializzazione dei parametri è cruciale, soprattutto per i pesi. Si consideri un’inizializzazione gaussiana con media zero e deviazione standard pari a uno per pesi e bias, assumendo input normalizzati e un neurone con $n$ ingressi e relativo bias.
 [03:35] La variabile $z$ è la somma pesata degli input più il bias. Se i pesi sono inizializzati in modo indipendente e gaussiano, $z$ risulta approssimativamente gaussiana come somma di variabili indipendenti. La deviazione standard di $z$ è proporzionale alla radice del numero di ingressi del neurone, scalata dalla deviazione standard dei pesi:
-$$
+```math
 \sigma_z \;\approx\; \sqrt{n}\,\sigma_w
-$$
+```
 dove $n$ è il numero di ingressi e $\sigma_w$ la deviazione standard dei pesi iniziali.
 [04:05] Se $n$ è grande (ad esempio dell’ordine di mille), $\sigma_z$ risulta elevata (circa 30 con $\sigma_w=1$) e $z$ può assumere valori molto grandi, positivi o negativi. Questo porta la sigmoide nella regione di saturazione, dove la derivata dell’attivazione è quasi nulla e l’aggiornamento dei pesi diventa molto lento: si verifica il gradiente vaniscente.
 [04:35] Se la distribuzione iniziale dei pesi induce una $z$ con varianza troppo alta, l’apprendimento parte con velocità molto bassa. Per mitigare il problema si modifica la deviazione standard dei pesi iniziali rendendola inversamente proporzionale al numero di ingressi del neurone, ridimensionando la varianza di $z$.
 [04:55] Si sceglie una distribuzione gaussiana a media zero per i pesi, con deviazione standard scalata in funzione del numero di input. Ripetendo il calcolo, si ottiene che la deviazione standard di $z$ può essere mantenuta circa unitaria:
-$$
+```math
 \sigma_z \;\approx\; 1
-$$
+```
 così $z$ tende a rimanere in una regione della funzione di attivazione non satura, attenuando il rischio di gradiente vaniscente.
 [05:20] Le librerie standard (TensorFlow, PyTorch, scikit-learn) offrono metodi di inizializzazione dei pesi che fissano la varianza iniziale in modo coerente con il numero di input, riducendo la probabilità di saturazione precoce.
 ## Iperparametri – Definizione e tuning operativo
@@ -173,59 +173,59 @@ così $z$ tende a rimanere in una regione della funzione di attivazione non satu
 [08:35] Il compito centrale è minimizzare la funzione di costo per determinare il miglior insieme di pesi e bias. La discesa del gradiente è un metodo iterativo che costituisce la base della discesa del gradiente stocastica, ampiamente impiegata nelle reti neurali.
 [08:55] Definizioni utili:
 - Convessità: una funzione $f$ è convessa se per qualunque $\lambda \in [0,1]$ vale
-$$
+```math
 f(\lambda x + (1-\lambda) y) \;\le\; \lambda f(x) + (1-\lambda) f(y).
-$$
+```
 La funzione sta sotto la corda tra due punti del suo grafico.
 [09:20] Caratterizzazione del primo ordine (funzione differenziabile): la funzione giace sopra la propria tangente in ogni punto. Espressa tramite il gradiente:
-$$
+```math
 f(y) \;\ge\; f(x) + \nabla f(x)^\top (y - x).
-$$
+```
 Il piano tangente in $x$ fornisce un sottostimatore locale della funzione.
 [09:40] Proprietà B-Lipschitz: $f$ è B-Lipschitz se
-$$
+```math
 |f(x) - f(y)| \;\le\; B \,\|x - y\|.
-$$
+```
 Se $f$ è differenziabile, ciò implica un vincolo sulla grandezza del gradiente; la funzione non varia più rapidamente di un limite proporzionale alla distanza.
 [10:00] L-smoothness (gradiente Lipschitz): la variazione del gradiente è limitata da $L$:
-$$
+```math
 \|\nabla f(x) - \nabla f(y)\| \;\le\; L \,\|x - y\|.
-$$
+```
 Questa condizione limita la curvatura: il gradiente non cambia più velocemente di una quantità proporzionale alla distanza.
 [10:20] Equivalenza a maggiorazione quadratica: l’L-smoothness è equivalente al fatto che $f$ ammette un limite superiore quadratico intorno a ogni punto:
-$$
+```math
 f(y) \;\le\; f(x) + \nabla f(x)^\top (y - x) + \frac{L}{2}\,\|y - x\|^2.
-$$
+```
 La funzione è al di sotto di una parabola che approssima localmente $f$ usando il gradiente in $x$ e un termine quadratico con coefficiente $L/2$.
 [10:45] Forte convessità con parametro $\mu$: fornisce un limite inferiore quadratico:
-$$
+```math
 f(y) \;\ge\; f(x) + \nabla f(x)^\top (y - x) + \frac{\mu}{2}\,\|y - x\|^2.
-$$
+```
 La funzione cresce almeno quanto una parabola con curvatura $\mu/2$, garantendo unicità del minimo e proprietà di convergenza più forti.
 [11:10] Sintesi grafica: con L-smoothness si ottiene una parabola superiore che maggiora la funzione; con forte convessità si ottiene una parabola inferiore che la minora. La funzione reale resta confinata nella regione compresa tra queste due approssimazioni quadratiche.
 ## Problema di ottimizzazione – Definizione e metodo di aggiornamento
 [11:30] Si considera la minimizzazione di $f(x)$ su $\mathbb{R}^d$ senza vincoli, con $x$ che rappresenta il vettore dei parametri. La discesa del gradiente genera una sequenza $x_0, x_1, x_2, \dots$ tramite una regola di aggiornamento.
 [11:50] Partendo da una stima iniziale $x_0$, si definisce l’iterazione:
-$$
+```math
 x_{t+1} \;=\; x_t + d_t
-$$
+```
 dove $d_t$ è il vettore di spostamento che indica direzione e ampiezza della modifica alla soluzione corrente.
 [12:10] L’obiettivo è ottenere $f(x_{t+1}) < f(x_t)$. Usando uno sviluppo di Taylor al primo ordine:
-$$
+```math
 f(x_t + d_t) \;\approx\; f(x_t) + \nabla f(x_t)^\top d_t,
-$$
+```
 per avere una riduzione è necessario che
-$$
+```math
 \nabla f(x_t)^\top d_t \;<\; 0.
-$$
+```
 [12:30] La direzione che massimizza la diminuzione al primo ordine è opposta al gradiente:
-$$
+```math
 d_t \;=\; - \gamma \,\nabla f(x_t),
-$$
+```
 con $\gamma > 0$ step size o learning rate. L’aggiornamento diventa:
-$$
+```math
 x_{t+1} \;=\; x_t - \gamma \,\nabla f(x_t).
-$$
+```
 [12:55] La regola garantisce, per $\gamma$ sufficientemente piccolo e sotto ipotesi di regolarità, che $f(x_{t+1}) < f(x_t)$. La scelta di $\gamma$ determina velocità e stabilità: valori troppo grandi possono causare divergenza, valori troppo piccoli rendono la convergenza lenta.
 [13:15] La scelta della direzione del gradiente e della lunghezza del passo richiama metodi classici di ottimizzazione; si cerca un $\gamma$ che riduca $f$ lungo la direzione selezionata in modo efficace, bilanciando rapidità e monotonia della convergenza.
 [13:35] Rappresentazione qualitativa: si può immaginare la funzione in blu e gli spostamenti successivi come segmenti rossi che descrivono una sequenza di riduzioni della funzione di costo, indicando visivamente l’efficacia della discesa lungo il gradiente.
@@ -243,90 +243,90 @@ $$
 [03:00] Si considera la regola di aggiornamento di base dell’algoritmo per analizzarne le prestazioni in termini di convergenza. L’analisi di complessità mira a trovare un limite superiore per una quantità d’interesse, dove $x_t$ è la soluzione all’iterazione $t$ e $x^\star$ è la soluzione ottima.
 [03:20] Si vuole limitare la differenza tra il valore della funzione nel minimo reale e il valore della funzione nel punto calcolato. Si utilizza la caratterizzazione di primo ordine della convessità per scrivere una relazione utile che leghi subottimalità e gradiente al punto corrente.
 [03:35] La caratterizzazione di primo ordine della convessità afferma:
-$$
+```math
 f(y) \;\ge\; f(x) + \nabla f(x)^\top (y - x).
-$$
+```
 Sostituendo $x = x_t$ e $y = x^\star$, si ottiene:
-$$
+```math
 f(x^\star) \;\ge\; f(x_t) + \nabla f(x_t)^\top (x^\star - x_t),
-$$
+```
 equivalente a:
-$$
+```math
 f(x_t) - f(x^\star) \;\le\; \nabla f(x_t)^\top (x_t - x^\star).
-$$
+```
 Si indica $g_t = \nabla f(x_t)$.
 ## Quantità da limitare e uso della regola di aggiornamento
 [04:20] La quantità da limitare è $f(x_t) - f(x^\star)$, che è minore o uguale a $g_t^\top (x_t - x^\star)$. Si lavora su $g_t^\top (x_t - x^\star)$ sfruttando la regola di aggiornamento:
-$$
+```math
 x_{t+1} \;=\; x_t - \gamma \nabla f(x_t).
-$$
+```
 [04:40] Dalla regola di aggiornamento si ricava il gradiente:
-$$
+```math
 \nabla f(x_t) \;=\; \frac{x_t - x_{t+1}}{\gamma}.
-$$
+```
 Sostituendo in $g_t^\top (x_t - x^\star)$:
-$$
+```math
 g_t^\top (x_t - x^\star) \;=\; \frac{1}{\gamma} (x_t - x_{t+1})^\top (x_t - x^\star).
-$$
+```
 ## Identità algebrica sui prodotti scalari e sulle norme
 [05:10] Si utilizza l’identità, per due vettori $b$ e $w$:
-$$
+```math
 2\, b^\top w \;=\; \|b\|^2 + \|w\|^2 - \|b - w\|^2,
-$$
+```
 che deriva da $\|b - w\|^2 = \|b\|^2 + \|w\|^2 - 2 b^\top w$.
 [05:25] Si pone $b = x_t - x^\star$ e $w = x_t - x_{t+1}$. Allora:
-$$
+```math
 2 (x_t - x^\star)^\top (x_t - x_{t+1}) \;=\; \|x_t - x^\star\|^2 + \|x_t - x_{t+1}\|^2 - \|(x_t - x^\star) - (x_t - x_{t+1})\|^2.
-$$
+```
 [05:45] La differenza $(x_t - x^\star) - (x_t - x_{t+1})$ semplifica in $x_{t+1} - x^\star$:
-$$
+```math
 (x_t - x^\star) - (x_t - x_{t+1}) \;=\; x_{t+1} - x^\star.
-$$
+```
 Quindi:
-$$
+```math
 2 (x_t - x^\star)^\top (x_t - x_{t+1}) \;=\; \|x_t - x^\star\|^2 + \|x_t - x_{t+1}\|^2 - \|x_{t+1} - x^\star\|^2.
-$$
+```
 [06:10] Dividendo per $2\gamma$:
-$$
+```math
 \frac{1}{\gamma} (x_t - x_{t+1})^\top (x_t - x^\star) \;=\; \frac{1}{2\gamma}\Big( \|x_t - x^\star\|^2 - \|x_{t+1} - x^\star\|^2 + \|x_t - x_{t+1}\|^2 \Big).
-$$
+```
 Si ottiene così un’espressione del termine $g_t^\top (x_t - x^\star)$ in funzione di differenze di norme tra iterati consecutivi.
 ## Somma telescopica sugli iterati
 [06:40] Sommando sui passi da $t = 0$ fino a $T$:
-$$
+```math
 \sum_{t=0}^{T} g_t^\top (x_t - x^\star) \;=\; \sum_{t=0}^{T} \frac{1}{2\gamma}\Big( \|x_t - x^\star\|^2 - \|x_{t+1} - x^\star\|^2 + \|x_t - x_{t+1}\|^2 \Big).
-$$
+```
 [06:55] La somma delle differenze $\|x_t - x^\star\|^2 - \|x_{t+1} - x^\star\|^2$ è telescopica: si cancellano tutti i termini intermedi e rimangono solo il primo e l’ultimo:
-$$
+```math
 \sum_{t=0}^{T} \Big( \|x_t - x^\star\|^2 - \|x_{t+1} - x^\star\|^2 \Big)
 \;=\; \|x_0 - x^\star\|^2 - \|x_{T+1} - x^\star\|^2.
-$$
+```
 [07:15] Poiché le norme sono non negative, si introduce una disuguaglianza verso l’alto eliminando il termine $-\|x_{T+1} - x^\star\|^2$:
-$$
+```math
 \sum_{t=0}^{T} \Big( \|x_t - x^\star\|^2 - \|x_{t+1} - x^\star\|^2 \Big)
 \;\le\; \|x_0 - x^\star\|^2.
-$$
+```
 [07:30] Pertanto:
-$$
+```math
 \sum_{t=0}^{T} g_t^\top (x_t - x^\star)
 \;\le\; \frac{1}{2\gamma}\|x_0 - x^\star\|^2 + \frac{1}{2\gamma}\sum_{t=0}^{T} \|x_t - x_{t+1}\|^2.
-$$
+```
 Questo limite superiore dipende dalla distanza iniziale dal minimo vero e dai movimenti tra iterazioni.
 ## Dalla convessità al limite sulla subottimalità
 [08:00] Dalla convessità:
-$$
+```math
 f(x_t) - f(x^\star) \;\le\; g_t^\top (x_t - x^\star).
-$$
+```
 Sommando per $t = 0, \dots, T$:
-$$
+```math
 \sum_{t=0}^{T} \big(f(x_t) - f(x^\star)\big)
 \;\le\; \sum_{t=0}^{T} g_t^\top (x_t - x^\star).
-$$
+```
 [08:20] Combinando con il risultato precedente:
-$$
+```math
 \sum_{t=0}^{T} \big(f(x_t) - f(x^\star)\big)
 \;\le\; \frac{1}{2\gamma}\|x_0 - x^\star\|^2 + \frac{1}{2\gamma}\sum_{t=0}^{T} \|x_t - x_{t+1}\|^2.
-$$
+```
 Il limite esprime la somma delle subottimalità in funzione del passo $\gamma$, della distanza iniziale dal minimo reale e delle differenze tra iterati.
 [08:40] Il primo termine dipende dalla scelta del punto iniziale e del passo; il secondo raccoglie i contributi dei gradienti durante le iterazioni, poiché $\|x_t - x_{t+1}\| = \gamma \|\nabla f(x_t)\|$.
 ## Ipotesi utilizzate e prospettive di affinamento

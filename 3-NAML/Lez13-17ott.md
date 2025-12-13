@@ -41,9 +41,9 @@
 [11:40] Per la versione full, si esegue la SVD come: $U, s, V^\top = \text{svd}(A, \text{full\_matrices}=\text{True})$, dove $s$ contiene i valori singolari e $U$, $V^\top$ sono matrici ortogonali. La SVD decompone $A$ in rotazioni ($U$, $V$) e scalature ($\Sigma$).
 [12:00] Per invertire $\Sigma$, si considerano solo i valori singolari maggiori di zero: gli zero non sono invertibili. Essendo $\Sigma$ diagonale, l’inversione consiste nel prendere i reciproci degli elementi diagonali. Si costruisce $\Sigma^\dagger$ con $1/s_i$ per $s_i>0$ e 0 altrimenti.
 [12:20] La pseudo-inversa di Moore–Penrose è:
-$$
+```math
 A^\dagger = V \,\Sigma^\dagger\, U^\top.
-$$
+```
 Questa espressione deriva da $A = U \Sigma V^\top$ e dalla proprietà che $U$ e $V$ sono ortogonali, mentre $\Sigma$ è diagonale con valori singolari non negativi.
 [12:40] La differenza con la versione thin riguarda $\text{full\_matrices}=\text{False}$. L’inversione della diagonale segue lo stesso principio. Con matrici non quadrate, si possono ottimizzare i prodotti evitando di costruire esplicitamente la matrice diagonale e sfruttando il broadcasting.
 [13:00] La verifica mostra che la pseudo-inversa calcolata coincide con quella della funzione standard, con errore numerico dell’ordine di $10^{-16}$, compatibile con l’epsilon di macchina.
@@ -53,38 +53,38 @@ Questa espressione deriva da $A = U \Sigma V^\top$ e dalla proprietà che $U$ e 
 [14:00] Si affronta la regressione ai minimi quadrati con dati sintetici. Si parte da un modello lineare con pendenza $m=2$ e intercetta $q=3$. La regressione ai minimi quadrati stima i parametri che minimizzano l’errore quadratico tra predizioni e osservazioni.
 [14:20] Si generano $N=100$ punti per la variabile indipendente $x$ da una distribuzione gaussiana. Si aggiunge un rumore gaussiano $\varepsilon$ di intensità controllata alla variabile dipendente $y$.
 [14:40] La relazione osservata è:
-$$
+```math
 y = m x + q + \varepsilon,
-$$
+```
 dove $\varepsilon$ è rumore gaussiano. Maggiore $\varepsilon$ provoca dispersione dei punti rispetto alla retta generatrice.
 [15:00] Si calcola $y$ dai parametri noti e dal rumore, quindi si applica la regressione ai minimi quadrati per stimare $m$ e $q$, confrontando le stime con i valori reali.
 [15:20] Si definisce la matrice di progetto $\Phi \in \mathbb{R}^{N \times 2}$:
-$$
+```math
 \Phi = \begin{bmatrix}
 x_1 & 1 \\
 x_2 & 1 \\
 \vdots & \vdots \\
 x_N & 1
 \end{bmatrix},
-$$
+```
 dove la prima colonna è $x$ e la seconda è di 1. I parametri sono $w = [m, q]^\top$.
 [15:40] Il problema ai minimi quadrati è:
-$$
+```math
 \Phi w \approx y.
-$$
+```
 Il sistema è sovradeterminato, quindi non ha soluzione esatta per tutti i punti. La pseudo-inversa di Moore–Penrose dà la soluzione nel senso dei minimi quadrati.
 [16:00] La soluzione è:
-$$
+```math
 w = \Phi^\dagger y,
-$$
+```
 con $\Phi^\dagger$ calcolata via SVD come descritto. Il vettore $w$ contiene le stime di $m$ e $q$.
 [16:20] Si verifica la vicinanza delle stime ai valori reali $m=2$ e $q=3$. Ad esempio, si può ottenere $m \approx 2{,}2$ e $q \approx 3{,}1$, coerente con il rumore.
 [16:40] Per visualizzazione si traccia lo scatter $(x,y)$, la retta generatrice in rosso (con $m$ e $q$ reali) e la retta stimata in nero (con $w$). Il confronto mostra l’efficacia del fitting.
 [17:00] Un rumore più basso (ampiezza 0.1) riduce la discrepanza; un rumore più alto aumenta la dispersione e rende la stima più impegnativa.
 [17:20] Si prepara una valutazione su dati di test: si definisce $x_{\text{test}}$ come griglia uniforme (ad esempio in $[-3,3]$ con 1000 punti), si costruisce $\Phi_{\text{test}}$ e si calcola:
-$$
+```math
 y_{\text{pred}} = \Phi_{\text{test}}\, w.
-$$
+```
 La retta stimata è valutata su punti diversi da quelli di addestramento.
 [17:40] Si verifica la coerenza delle dimensioni tra vettori e matrici, adattando le forme per consentire i prodotti matriciali corretti.
 [18:00] Il risultato finale mostra la nuvola dei dati di training, la retta generatrice e la retta stimata; sui dati di test, la retta stimata viene valutata e rappresentata graficamente.
@@ -95,9 +95,9 @@ La retta stimata è valutata su punti diversi da quelli di addestramento.
 [01:10] Si torna al livello di rumore precedente, fissato a $2$.
 ## Equazioni normali e risoluzione del sistema
 [01:20] In alternativa alla pseudo-inversa, si possono risolvere le equazioni normali:
-$$
+```math
 (\Phi^\top \Phi)\, w = \Phi^\top y,
-$$
+```
 dove $\Phi$ è la matrice delle caratteristiche, $w$ è il vettore dei parametri e $y$ è il vettore dei valori osservati. Le equazioni normali derivano dalla minimizzazione dell’errore quadratico medio.
 [01:40] Il sistema è quadrato e risolvibile con un risolutore lineare, passando come primo argomento $\Phi^\top \Phi$ e come secondo $\Phi^\top y$, ottenendo $w$.
 [02:00] Non si calcola la pseudo-inversa completa: si utilizzano decomposizioni per matrici quadrate (ad esempio LU). Il risultato per $w$ è praticamente identico a quello con la pseudo-inversa, con differenze dell’ordine dell’epsilon di macchina.
@@ -112,45 +112,45 @@ dove $\Phi$ è la matrice delle caratteristiche, $w$ è il vettore dei parametri
 [04:05] Il procedimento con Woodbury prevede di calcolare prima un vettore $\alpha$, poi ricavare i pesi $w$ e produrre il grafico risultante. Si mantiene la stessa struttura, cambiando i dati e usando l’identità per riformulare l’equazione.
 ## Generazione dei dati e modello reale sigmoide
 [04:30] Si generano $x_i$ gaussiani standard, con 100 punti. Il valore reale $y$ è:
-$$
+```math
 y = \tanh(2x - 1).
-$$
+```
 Questa funzione ha forma a “S” appiattita (sigmoide). Lo scatter $x$ contro $y$ mostra la curva a “S”.
 [04:55] Si definisce $y$ rumorosa:
-$$
+```math
 y_{\text{rumorosa}} = y_{\text{reale}} + \varepsilon,
-$$
+```
 dove $\varepsilon$ è rumore gaussiano con deviazione standard $0{,}1$. La visualizzazione mostra la forma a “S” con dispersione.
 [05:15] Per la curva reale continua, si definisce $x_{\text{test}}$ uniforme in $[-3,3]$ con 1000 punti e si calcola:
-$$
+```math
 y_{\text{test}} = \tanh(2x_{\text{test}} - 1).
-$$
+```
 La linea continua rappresenta il comportamento reale su un intervallo ampio.
 ## Minimi quadrati con base lineare
 [05:40] Si costruisce la matrice delle caratteristiche lineare:
-$$
+```math
 \Phi = \begin{bmatrix}
 x & \mathbf{1}
 \end{bmatrix},
-$$
+```
 dove la seconda colonna è di 1 per l’intercetta. La stima con pseudo-inversa è:
-$$
+```math
 w = \Phi^{+} y,
-$$
+```
 con $w = (m, q)^\top$.
 [06:00] Si definisce anche $\Phi_{\text{test}}$ per $x_{\text{test}}$:
-$$
+```math
 \Phi_{\text{test}} = \begin{bmatrix}
 x_{\text{test}} & \mathbf{1}
 \end{bmatrix}.
-$$
+```
 La predizione sul test è $y_{\text{pred}} = \Phi_{\text{test}} w$.
 [06:20] Il modello lineare non è adatto a una forma a “S”: il fit minimizza la distanza dai punti con maggior densità, rimanendo vicino alle aree più popolate, senza catturare la non linearità complessiva.
 ## Ridge regression: formulazione con equazioni normali
 [06:40] Si riscrive il problema introducendo la penalizzazione sui pesi. Le equazioni normali in versione ridge sono:
-$$
+```math
 (\Phi^\top \Phi + \lambda I)\, w = \Phi^\top y,
-$$
+```
 dove $I$ è l’identità di dimensione pari al numero di parametri. Il termine $\lambda I$ penalizza pesi elevati.
 [07:00] Risolvendo il sistema si ottiene $w$ e si calcola $y_{\text{pred}} = \Phi_{\text{test}} w$. L’impatto di $\lambda$: all’aumentare di $\lambda$, $m$ e $q$ vengono penalizzati di più.
 [07:20] Se $\lambda$ è molto grande, il modello preferisce pendenza e intercetta piccole. Per $\lambda = 10000$, $m$ e $q$ sono quasi nulli; per $\lambda = 1000$ sono più grandi ma ancora piccoli; per $\lambda = 1$ il modello è simile a quello senza regolarizzazione.
@@ -158,13 +158,13 @@ dove $I$ è l’identità di dimensione pari al numero di parametri. Il termine 
 ## Ridge regression: identità di Woodbury
 [08:00] Si riscrive la soluzione usando l’identità di Woodbury, sostituendo il sistema basato su $\Phi^\top \Phi$ con uno basato su $\Phi \Phi^\top$.
 [08:20] Si definisce $\alpha$ tale che:
-$$
+```math
 (\Phi \Phi^\top + \lambda I_n)\, \alpha = y,
-$$
+```
 dove $I_n$ è l’identità $n \times n$ e $n$ è il numero di campioni. Trovata $\alpha$, si ricava:
-$$
+```math
 w = \Phi^\top \alpha.
-$$
+```
 Questa soluzione è algebricamente equivalente alla ridge precedente.
 [08:40] La differenza tra le due soluzioni per $w$ è dell’ordine dell’epsilon di macchina ($\approx 10^{-15}$). Se $\lambda=0$, la versione standard con equazioni normali funziona, mentre la variante con $\Phi \Phi^\top$ non è equivalente: l’identità di Woodbury richiede $\lambda I$ non nullo per mantenere l’equivalenza.
 [09:00] Le due formule coincidono per ogni $\lambda > 0$ e divergono se $\lambda = 0$.
@@ -172,9 +172,9 @@ Questa soluzione è algebricamente equivalente alla ridge precedente.
 [09:20] Il termine $\Phi \Phi^\top$ può essere sostituito con una matrice kernel $K$ costruita applicando una funzione kernel ai punti. Se il kernel coincide con il prodotto scalare standard, si recupera $\Phi \Phi^\top$.
 [09:40] Cambiando $K$ e introducendo non linearità nel kernel (ad esempio polinomiale o gaussiano), si mantiene il costo di una regressione lineare risolvendo un problema lineare, ma si ottiene la capacità di approssimare fenomeni non lineari.
 [10:00] Operativamente, si risolve:
-$$
+```math
 (\Phi \Phi^\top + \lambda I_n)\, \alpha = y
-$$
+```
 sostituendo $\Phi \Phi^\top$ con $K$. Il flusso rimane analogo: si calcola $\alpha$ e poi la predizione.
 [10:20] Procedura consigliata: inizializzare $K$ di dimensione $n \times n$ e calcolare ogni $K_{ij}$ con un doppio ciclo applicando la funzione kernel prescelta. Successivamente, sostituire il doppio ciclo con una versione vettorializzata.
 ## Impostazione della regolarizzazione e parametri iniziali
@@ -183,57 +183,57 @@ sostituendo $\Phi \Phi^\top$ con $K$. Il flusso rimane analogo: si calcola $\alp
 ## Definizione dei kernel
 [00:40] Si definiscono funzioni kernel che prendono in input due scalari $x_i$ e $x_j$ e restituiscono un valore.
 [00:55] Kernel prodotto (lineare):
-$$
+```math
 k_{\text{lin}}(x_i, x_j) = x_i x_j + 1.
-$$
+```
 Il termine $+1$ introduce una componente costante, equivalente a un bias.
 [01:15] Kernel polinomiale di ordine $q$:
-$$
+```math
 k_{\text{poly}}(x_i, x_j) = (x_i x_j + 1)^q.
-$$
+```
 L’elevazione alla potenza consente di modellare relazioni non lineari fino al grado $q$.
 [01:35] Kernel gaussiano (RBF):
-$$
+```math
 k_{\text{RBF}}(x_i, x_j) = \exp\!\left(-\frac{(x_i - x_j)^2}{2\sigma^2}\right).
-$$
+```
 La distanza $|x_i-x_j|$ è normalizzata da $\sigma$ e controlla il raggio d’influenza del contributo gaussiano.
 ## Regressione con kernel: struttura generale
 [01:55] Si definisce una funzione di regressione con kernel che accetta la funzione kernel come argomento. Il dataset di training ha dimensione $n = X.\text{shape}[0]$. Si inizializza la matrice del kernel $K \in \mathbb{R}^{n \times n}$.
 [02:30] Si riempie $K$ con un doppio ciclo su $i$ e $j$:
-$$
+```math
 K_{ij} = k(x_i, x_j).
-$$
+```
 Si costruisce così la Gram matrix del kernel.
 ## Calcolo dei coefficienti alfa
 [02:55] Calcolata $K$, si determinano i coefficienti $\alpha$ risolvendo il sistema regolarizzato:
-$$
+```math
 \alpha = (K + \lambda I)^{-1} y,
-$$
+```
 dove $I$ è l’identità $n \times n$ e $y$ è il vettore dei valori di training.
 [03:20] In questa forma non si calcola $w$ nello spazio implicito del kernel; si usa direttamente $K$ e $\alpha$ per la predizione.
 ## Valutazione sul test: costruzione del kernel di test
 [03:45] Per valutare il modello su dati di test si costruisce $K_{\text{test}}$ tra punti di test e training:
-$$
+```math
 (K_{\text{test}})_{ij} = k(x^{\text{test}}_i, x^{\text{train}}_j).
-$$
+```
 La prima input è il punto di test, la seconda il punto di training.
 [04:05] $K_{\text{test}}$ ha forma (numero di test) $\times$ (numero di training). Si riempie con un doppio ciclo su indici $i$ (test) e $j$ (training).
 [04:25] La previsione sui dati di test è:
-$$
+```math
 \hat{y}_{\text{test}} = K_{\text{test}} \,\alpha.
-$$
+```
 Si usa lo stesso kernel e gli stessi parametri del training per costruire $K_{\text{test}}$.
 ## Visualizzazione: confronto con regressione lineare
 [04:50] Si traccia lo scatter di $x$ e $y$ e la linea di riferimento $x_{\text{test}}$ contro $y_{\text{test}}$ (funzione vera). La predizione con kernel lineare ($k_{\text{lin}}$) coincide con la regressione lineare classica con bias:
-$$
+```math
 k_{\text{lin}}(x_i, x_j) = x_i x_j + 1 \quad \Rightarrow \quad \text{ipotesi lineare con bias}.
-$$
+```
 Questo conferma la coerenza tra le due formulazioni.
 ## Variazione del kernel: polinomiale di grado 4
 [05:25] Si adotta un kernel polinomiale di grado $q=4$:
-$$
+```math
 k_{\text{poly}}(x_i, x_j) = (x_i x_j + 1)^4.
-$$
+```
 La predizione risulta più aderente ai dati quando questi presentano non linearità significative.
 [05:40] Il modello assomiglia a un polinomio di grado quattro, fornendo un adattamento più flessibile rispetto alla forma lineare.
 ## Scelta del grado polinomiale e sovradattamento
@@ -241,9 +241,9 @@ La predizione risulta più aderente ai dati quando questi presentano non lineari
 [06:10] Il sovradattamento si manifesta nella perdita della forma complessiva della funzione pur adattando punti specifici molto bene. Una scelta moderata come $q=4$ o $q=5$ bilancia flessibilità e stabilità.
 ## Kernel gaussiano: interpretazione e effetto di sigma
 [06:50] Il kernel gaussiano modella contributi locali attorno ai punti:
-$$
+```math
 k_{\text{RBF}}(x_i, x_j) = \exp\!\left(-\frac{(x_i - x_j)^2}{2\sigma^2}\right).
-$$
+```
 $\sigma$ controlla il raggio d’influenza: più grande è $\sigma$, più ampia è la regione di “condivisione” di informazione.
 [07:05] Effetto di $\sigma$:
 - $\sigma$ grande: informazione condivisa su raggio ampio; gaussiane larghe; superficie liscia.
@@ -264,14 +264,14 @@ $\sigma$ controlla il raggio d’influenza: più grande è $\sigma$, più ampia 
 ## Vettorializzazione della costruzione del kernel
 [10:20] La costruzione del kernel con doppio ciclo è lenta. Si può scrivere il calcolo di $K$ in modo vettoriale con NumPy, evitando cicli espliciti.
 [10:35] Per il kernel lineare, osservando che $K_{ij} = x_i x_j + 1$, se $X \in \mathbb{R}^{n \times 1}$ è il vettore colonna dei dati di training:
-$$
+```math
 K = X X^\top + \mathbf{1},
-$$
+```
 dove $\mathbf{1}$ è una matrice di tutti 1 di dimensione $n \times n$. Si genera $K$ con prodotti matrice-matrice evitando iterazioni.
 [10:55] Precisamente, se $X$ ha forma $\mathbb{R}^{n \times 1}$, allora $X X^\top \in \mathbb{R}^{n \times n}$ e
-$$
+```math
 K_{ij} = X_i X_j + 1
-$$
+```
 riproduce il kernel lineare con bias.
 [11:10] Per il kernel gaussiano si adottano strategie simili, sfruttando identità sulla distanza quadratica e broadcast in NumPy, evitando cicli espliciti.
 [11:25] In generale, si preferiscono operazioni NumPy vettorializzate per effettuare implicitamente i calcoli su tutte le coppie tramite moltiplicazioni e broadcasting.
@@ -299,21 +299,21 @@ riproduce il kernel lineare con bias.
 [02:47] Si itera su ciascun arco del grafo. Ogni arco collega due pagine. Le stringhe dei nodi di partenza e arrivo si convertono in indici $i$ e $j$ usando il dizionario.
 [03:00] L’elemento $M_{j i}$ rappresenta la probabilità di saltare dalla pagina $i$ alla pagina $j$. A ciascun arco uscente dalla pagina $i$ si assegna probabilità $1/d_i$, dove $d_i$ è il grado uscente di $i$.
 [03:18] Formalmente:
-$$
+```math
 M_{j i} = \begin{cases}
 \frac{1}{d_i} & \text{se esiste un arco da } i \text{ a } j, \\
 0 & \text{altrimenti.}
 \end{cases}
-$$
+```
 $M$ è colonna-stocastica: la somma degli elementi di ogni colonna $i$ è 1, descrivendo la distribuzione di probabilità di transizione in uscita da $i$.
 [03:40] Interpretazione probabilistica: un utente sulla pagina $i$ con $d_i$ link uscenti sceglie ciascun link con probabilità $1/d_i$. $M$ codifica la probabilità uniforme di transizione tra pagine connesse.
 ## Damping factor e matrice G (versione regolarizzata di M)
 [03:57] Nella pratica si usa una versione regolarizzata della matrice di transizione che permette salti casuali verso qualunque pagina: il damping factor $d$, tipicamente 85%, modella questo comportamento.
 [04:10] $d$ è la probabilità di seguire i link presenti sulla pagina; $1-d$ è la probabilità di saltare casualmente verso qualsiasi pagina.
 [04:21] Si definisce la matrice $G$:
-$$
+```math
 G = d \, M + (1 - d) \, \frac{\mathbf{1}}{N},
-$$
+```
 dove $\mathbf{1}$ è la matrice di tutti 1 $N \times N$. $\mathbf{1}/N$ assegna probabilità uguali a tutte le transizioni possibili, modellando salti casuali uniformi.
 [04:40] In questo modo, l’utente segue i link reali per l’85% e può saltare su qualunque pagina per il restante 15%. $G$ è ancora colonna-stocastica, garantendo che le probabilità si sommino a 1 per ogni stato di partenza.
 ## Calcolo del PageRank: funzione di NetworkX e confronto metodologico
@@ -322,29 +322,29 @@ dove $\mathbf{1}$ è la matrice di tutti 1 $N \times N$. $\mathbf{1}/N$ assegna 
 [05:22] Il secondo metodo implementa l’iterazione delle potenze (power iteration) per calcolare il vettore stazionario della catena di Markov definita da $G$. Entrambi i metodi conducono a risultati coerenti.
 ## Implementazione dell’iterazione delle potenze
 [05:39] Si definisce $G$ come:
-$$
+```math
 G = d \, M + (1 - d) \, \frac{\mathbf{1}}{N}.
-$$
+```
 Questa è la matrice di transizione regolarizzata.
 [05:48] Si inizializza il vettore $p$ delle probabilità su ciascuna pagina, ponendolo uniforme:
-$$
+```math
 p^{(0)} = \frac{1}{N} \, \mathbf{e},
-$$
+```
 dove $\mathbf{e}$ è il vettore di tutti 1 di dimensione $N$.
 [06:05] Si fissa una tolleranza numerica, ad esempio $10^{-8}$, e un massimo di iterazioni, ad esempio $1000$.
 [06:14] Si esegue l’iterazione:
-$$
+```math
 p^{(k+1)} = G \, p^{(k)}.
-$$
+```
 Dopo ogni moltiplicazione, si normalizza il vettore per una norma (ad esempio $L^1$) per evitare problemi di scala:
-$$
+```math
 p^{(k+1)} \leftarrow \frac{p^{(k+1)}}{\lVert p^{(k+1)} \rVert}.
-$$
+```
 [06:31] Si controlla la differenza tra iterazioni successive. Se $\lVert p^{(k+1)} - p^{(k)} \rVert < \text{tolleranza}$, si considera raggiunta la convergenza e si interrompe il ciclo, altrimenti si aggiorna $p$ e si continua.
 [06:43] Al termine, si normalizza $p$ affinché la somma degli elementi sia $1$:
-$$
+```math
 p \leftarrow \frac{p}{\sum_{i=1}^{N} p_i}.
-$$
+```
 Il vettore $p$ risultante è il PageRank: ogni componente $p_i$ è la probabilità stazionaria di essere sulla pagina $i$.
 ## Confronto tra PageRank di NetworkX e Power Iteration
 [07:00] Si confrontano i vettori di PageRank ottenuti con NetworkX e con l’iterazione delle potenze. La correlazione tra i due è molto alta, prossima a uno; la differenza media è dell’ordine di $10^{-2}$.

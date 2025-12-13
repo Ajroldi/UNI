@@ -71,9 +71,9 @@ Di seguito è riportata la traduzione e la rielaborazione strutturata della tras
 [09:48] La baseline si basa su un'idea semplice: la prossima valutazione di un utente sarà probabilmente simile alla media delle sue valutazioni passate.
 [09:56] Se un utente ha sempre dato 5 come voto, è probabile che darà 5 anche al prossimo film. Se ha sempre dato 1, è probabile che darà 1. Sebbene semplice, questo approccio costituisce un punto di riferimento utile.
 [10:13] Matematicamente, la predizione per la coppia (utente $i$, film $j$) è definita come la media delle valutazioni fornite dall'utente $i$ su tutti i film $k$ che ha già visto:
-$$
+```math
 \text{predizione}_{i,j} = \frac{\sum_{k \in \text{film visti da } i} \text{valutazione}_{i,k}}{\text{numero di film visti da } i}
-$$
+```
 [10:20] In pratica, per ogni utente (ogni riga della matrice), si sommano tutti gli elementi non nulli e si divide per il loro numero. Gli zeri non vengono considerati nel calcolo della media perché rappresentano valutazioni mancanti.
 ## Metriche di Valutazione
 [10:40] Per valutare le prestazioni del modello, sono necessarie metriche quantitative. Si propongono due indici:
@@ -156,12 +156,16 @@ $$
 [01:10] Successivamente, si applica la Decomposizione a Valori Singolari (SVD) alla matrice `A`, utilizzando la funzione `np.linalg.svd` con il parametro `full_matrices=False`.
 [01:15] A questo punto, si applica il *thresholding*: i valori singolari inferiori alla soglia predefinita vengono impostati a zero.
 [01:19] La matrice `A` viene quindi ricostruita. La ricostruzione avviene moltiplicando la matrice `U` per i valori singolari modificati (`S_l`).
-$$ A = U \cdot S_l $$
+```math
+A = U \cdot S_l
+```
 [01:22] Sebbene non sia il metodo più efficiente dal punto di vista computazionale, questa rappresentazione è la più chiara per comprendere il processo.
 [01:25] Annullando i valori singolari inferiori alla soglia, si eliminano i contributi delle componenti principali associate a quelle direzioni, conservando solo le informazioni ritenute più significative.
 [01:33] Un passaggio cruciale consiste nell'assicurarsi che, nelle posizioni in cui i dati sono noti (cioè nel set di addestramento), la matrice ricostruita corrisponda ai valori originali. Pertanto, per ogni componente $(i, j)$ nota, il valore corrispondente in `A` viene forzato ad essere uguale al valore corretto (`vals_trained`).
 [01:44] Si calcola poi l'incremento tra l'iterazione corrente e la precedente utilizzando la norma di Frobenius della differenza tra la matrice `A` e la sua copia `A_old`.
-$$ \text{incremento} = \| A - A_{\text{old}} \|_F $$
+```math
+\text{incremento} = \| A - A_{\text{old}} \|_F
+```
 *   **Norma di Frobenius**: È una norma matriciale definita come la radice quadrata della somma dei quadrati dei suoi elementi. Misura la "grandezza" complessiva della matrice.
 [01:50] Successivamente, si calcolano le predizioni del modello. I valori predetti sono estratti dalla matrice `A` ricostruita, in corrispondenza delle righe e delle colonne del set di test.
 [01:57] La matrice `A` risulterà ora "piena" (dense), poiché il processo di SVD e ricostruzione, eliminando alcuni valori singolari, modifica la struttura originale, trasformando gli zeri in valori non nulli.
@@ -300,9 +304,9 @@ $$ \text{incremento} = \| A - A_{\text{old}} \|_F $$
 [08:39] Questa funzione ottimizza il codice Python. La prima volta che una funzione "jittata" viene eseguita, JAX analizza le operazioni che compie e la compila in una versione ottimizzata e molto più veloce per le esecuzioni successive.
 [08:53] Si definisce una funzione di visualizzazione e una funzione `selu` (Scaled Exponential Linear Unit), una funzione di attivazione comune nelle reti neurali, la cui definizione è moderatamente complessa.
 [09:05] Per ottimizzare una funzione con JIT, si passa la funzione stessa a `jax.jit`.
-$$
+```math
 \text{funzione\_ottimizzata} = \text{jax.jit}(\text{funzione\_originale})
-$$
+```
 [09:10] `jax.jit` è una funzione di ordine superiore: accetta una funzione come input e restituisce una nuova funzione (la versione ottimizzata) come output.
 [09:25] La funzione restituita può essere utilizzata esattamente come l'originale. Si può quindi misurare il tempo di esecuzione della funzione normale e di quella compilata.
 [09:35] La funzione `selu` ha un andamento quasi orizzontale per valori negativi e lineare per valori positivi, un comportamento tipico delle funzioni di attivazione.
@@ -312,19 +316,19 @@ $$
 ### Calcolo del gradiente con `jax.grad`
 [10:31] JAX è, prima di tutto, una libreria di differenziazione automatica. La funzione principale per questo scopo è `jax.grad`.
 [10:39] Similmente a `jax.jit`, `jax.grad` è una funzione di ordine superiore: riceve una funzione come input e restituisce una nuova funzione che calcola il gradiente della funzione di input rispetto ai suoi argomenti.
-$$
+```math
 \text{funzione\_gradiente} = \text{jax.grad}(f)
-$$
+```
 [10:51] È possibile specificare rispetto a quale argomento calcolare il gradiente utilizzando il parametro opzionale `argnums`.
 [10:57] Si consideri come esempio una funzione parabolica $f(x) = x^2$. Si può usare `jax.grad` per ottenere la sua derivata prima.
 [11:06] Una delle grandi potenzialità di JAX è la possibilità di comporre `grad` ricorsivamente per calcolare derivate di ordine superiore (seconda, terza, ecc.) in modo efficiente e robusto.
-$$
+```math
 \begin{align*}
 \text{grad\_f} &= \text{jax.grad}(f) \\
 \text{grad\_grad\_f} &= \text{jax.grad}(\text{grad\_f}) \quad \text{(derivata seconda)} \\
 \text{grad\_grad\_grad\_f} &= \text{jax.grad}(\text{grad\_grad\_f}) \quad \text{(derivata terza)}
 \end{align*}
-$$
+```
 [11:13] Questa capacità di comporre l'operatore di gradiente ripetutamente è una delle caratteristiche che rendono JAX più potente di altre librerie.
 [11:23] Se la funzione ha un solo argomento, `grad` calcola automaticamente la derivata rispetto a quell'unico input.
 ### Jacobiano e Hessiano per funzioni vettoriali

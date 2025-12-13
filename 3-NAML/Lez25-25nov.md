@@ -18,24 +18,24 @@
 [02:14] Spesso, davanti a questo termine si inserisce un fattore $\frac{1}{2}$ per semplificare i calcoli durante il processo di derivazione, ma la sua presenza non ha un'importanza concettuale particolare. L'obiettivo finale è trovare il vettore di pesi $w$ che minimizza questa funzione di costo, indicata con $f(w)$.
 ## Confronto tra Discesa del Gradiente e Metodo di Newton
 [02:22] Una possibile strategia per minimizzare la funzione di costo è utilizzare la discesa del gradiente. In questo caso, l'aggiornamento avviene muovendosi nella direzione di massima discesa, ovvero lungo la direzione opposta al gradiente. La formula di aggiornamento per il vettore dei pesi è quella usuale:
-$$
+```math
 w_{k+1} = w_k - \gamma \nabla f(w_k)
-$$
+```
 dove $\gamma$ è il tasso di apprendimento (*learning rate*).
 [02:29] Come già osservato, questo metodo è piuttosto stabile e converge, ma risulta essere molto lento, poiché utilizza esclusivamente informazioni del primo ordine. D'altra parte, è stato analizzato il metodo di Newton, che implica l'uso della matrice Hessiana, con tutti gli svantaggi e i problemi già discussi.
 [02:39] Tra questi, i principali sono il calcolo della matrice Hessiana e della sua inversa. In sintesi, lo svantaggio principale di questo metodo è la sua elevata richiesta computazionale.
 ## Obiettivo dell'Algoritmo di Levenberg-Marquardt
 [02:44] L'obiettivo dell'algoritmo di Levenberg-Marquardt è quello di sviluppare un metodo che combini la velocità di convergenza del metodo di Newton con la stabilità della discesa del gradiente, evitando l'uso diretto della matrice Hessiana.
 [02:51] Questi sono i due scopi che si intendono raggiungere. Rivediamo alcuni calcoli già visti in precedenza. Le componenti del gradiente della funzione di costo $J$ (qui indicata come $f$) sono date da:
-$$
+```math
 \nabla f = 2 J^T R
-$$
+```
 dove $J$ è la matrice Jacobiana dei residui e $R$ è il vettore dei residui.
 [02:57] A questo punto, si può notare il motivo per cui spesso si introduce il fattore $\frac{1}{2}$ nella funzione di costo: in tal caso, il fattore 2 in questa espressione scompare. Questa è l'espressione del gradiente della funzione di costo in forma vettoriale.
 [03:06] Successivamente, è necessario calcolare la matrice Hessiana. Derivando la relazione precedente, si ottiene che l'Hessiana $H$ è data da:
-$$
+```math
 H = 2 J^T J + 2 \sum_i R_i \nabla^2 R_i
-$$
+```
 [03:13] L'Hessiana può quindi essere scritta come la somma di due componenti. Il primo termine, $2 J^T J$, può essere considerato un termine del primo ordine. Il secondo termine, $2 \sum_i R_i \nabla^2 R_i$, è un termine del secondo ordine, poiché coinvolge le derivate seconde dei residui $R_i$.
 ## Il Metodo di Gauss-Newton
 [03:22] A questo punto, viene introdotta l'idea del cosiddetto metodo di Gauss-Newton, che rappresenta il primo passo verso lo sviluppo dell'algoritmo di Levenberg-Marquardt.
@@ -43,15 +43,15 @@ $$
 [03:35] Questa approssimazione, che consiste nel trascurare il termine del secondo ordine, è particolarmente significativa in due situazioni principali. La prima si verifica quando i residui $R_i$ sono piccoli. In pratica, se i residui sono piccoli, è ragionevole supporre di essere vicini al minimo della funzione di costo, ovvero alla soluzione del problema.
 [03:46] La seconda situazione si ha quando il modello è quasi lineare. Se i dati forniti sono vicini a un modello lineare, è ragionevole che le derivate seconde dei residui siano prossime a zero. In questi contesti, l'approssimazione dell'Hessiana ottenuta trascurando il termine del secondo ordine risulta sensata.
 [03:57] L'idea del metodo di Gauss-Newton è partire dal classico passo di aggiornamento del metodo di Newton. L'incremento $\Delta$ che si vuole calcolare si ottiene risolvendo il seguente sistema lineare:
-$$
+```math
 H \Delta = - \nabla f
-$$
+```
 Si ricorda che nell'aggiornamento di Newton compare il termine $H^{-1} \nabla f$. Come più volte sottolineato, non si calcola mai esplicitamente l'inversa di una matrice.
 [04:08] Si preferisce, invece, risolvere un sistema lineare. Questo è il sistema lineare che deve essere risolto. Poiché il gradiente è già stato calcolato come $\nabla f = 2 J^T R$, è possibile sostituire l'espressione del gradiente e l'approssimazione dell'Hessiana ($H \approx 2 J^T J$) nel passo di Newton.
 [04:17] Semplificando il fattore 2, si ottiene la seguente relazione, che può essere vista come la controparte delle equazioni normali (viste nel contesto dei minimi quadrati) per il metodo di Gauss-Newton:
-$$
+```math
 (J^T J) \Delta = - J^T R
-$$
+```
 [04:25] Una volta calcolato $\Delta$ da questa equazione, si può procedere con l'aggiornamento del vettore dei pesi. È possibile introdurre un tasso di apprendimento per modulare questo passo, ma per ora l'attenzione è focalizzata sulla direzione di aggiornamento.
 ## Vantaggi e Svantaggi del Metodo di Gauss-Newton
 [04:30] I vantaggi di questo metodo sono i seguenti: se il metodo converge, la convergenza è quadratica quando si è vicini alla soluzione. Questo avviene perché, in tale situazione, l'approssimazione dell'Hessiana che è stata fatta è ragionevole. È quindi lecito aspettarsi che la convergenza di questa approssimazione del metodo di Newton si comporti come il metodo originale.
@@ -67,34 +67,34 @@ $$
 [05:46] Questo termine aggiuntivo può essere interpretato anche in un altro modo. Se si trascura il termine $J^T J$, si ottiene $\lambda I \Delta = -J^T R$. Questa espressione corrisponde esattamente a un passo di discesa del gradiente. Se, invece, si pone $\lambda = 0$, si ottiene il metodo di Gauss-Newton. Di conseguenza, $\lambda$ può essere visto come un parametro che determina il "peso" di ciascuno dei due metodi.
 [06:00] Si tratta di una sorta di interpolazione tra i due metodi. Il punto chiave è che questa interpolazione non è statica: il parametro $\lambda$ non viene scelto una volta per tutte, ma viene modificato dinamicamente durante l'esecuzione dell'algoritmo. La strategia di implementazione verrà discussa a breve.
 [06:10] L'aggiornamento si basa sulla seguente equazione, dove $\lambda$ è il parametro di smorzamento e $I$ è la matrice identità:
-$$
+```math
 (J^T J + \lambda I) \Delta = - J^T R
-$$
+```
 Una nota importante riguarda uno degli svantaggi del metodo di Gauss-Newton: la possibilità che la matrice $J^T J$ fosse singolare o mal condizionata.
 [06:19] Introducendo il termine aggiuntivo $\lambda I$, si garantisce che la matrice $(J^T J + \lambda I)$ sia sempre invertibile (per $\lambda > 0$). Questo rappresenta un primo punto a favore di questa idea di interpolazione. In altri termini, l'incremento $\Delta$ è dato dalla seguente espressione:
-$$
+```math
 \Delta = -(J^T J + \lambda I)^{-1} J^T R
-$$
+```
 dove, invece di avere solo l'inversa di $J^T J$, compare anche il termine di regolarizzazione $\lambda I$.
 ## Casi Limite e Interpretazione di $\lambda$
 [06:30] Vengono ora analizzati i due casi limite. Il primo si ha quando il parametro $\lambda$ tende a zero. Come già osservato, se $\lambda \to 0$, l'incremento $\Delta$ è dato da:
-$$
+```math
 \Delta \approx -(J^T J)^{-1} J^T R
-$$
+```
 Questa espressione corrisponde esattamente all'aggiornamento del metodo di Gauss-Newton. Tale aggiornamento è veloce ma potenzialmente instabile.
 [06:39] Si desidera utilizzare questo tipo di aggiornamento quando si è sicuri di essere vicini a una buona soluzione. Il secondo caso limite si ha quando $\lambda$ tende a infinito. In questa situazione, come osservato, l'incremento $\Delta$ è dato da:
-$$
+```math
 \Delta \approx -\frac{1}{\lambda} J^T R
-$$
+```
 Questa espressione corrisponde a un passo di discesa del gradiente.
 [06:47] È noto che la discesa del gradiente è stabile ma lenta. Grazie alla sua stabilità, può essere preferibile all'inizio del processo iterativo, quando la stima iniziale può essere arbitraria. L'uso di questo approccio può migliorare il comportamento globale dell'algoritmo.
 ## Struttura dell'Algoritmo di Levenberg-Marquardt
 [06:56] Viene ora presentata la struttura dell'algoritmo che può essere implementato sfruttando le idee appena discusse. Si inizia con una stima iniziale per i pesi, $w_0$, e per il parametro di smorzamento, $\lambda_0$. Come detto, $\lambda$ non è un parametro costante, ma viene modificato durante la procedura.
 [07:06] A ogni iterazione $k$, si calcolano il vettore dei residui $R_k$ e la matrice Jacobiana $J_k$. Successivamente, si valuta la funzione di costo sulla soluzione corrente, $f(w_k)$. Si risolve poi il sistema lineare per calcolare il vettore di incremento $\Delta_k$ utilizzando l'aggiornamento di Levenberg-Marquardt.
 [07:16] Si utilizza il vettore di aggiornamento $\Delta_k$ appena calcolato per determinare un nuovo vettore di pesi candidato, che viene chiamato $w_{new}$:
-$$
+```math
 w_{new} = w_k + \Delta_k
-$$
+```
 Questo non è ancora il vettore finale $w_{k+1}$, poiché è necessario eseguire alcuni controlli aggiuntivi. In particolare, una volta calcolato $w_{new}$, si può valutare la funzione di costo su questo nuovo vettore.
 [07:26] A questo punto, si deve definire la strategia di aggiornamento per il parametro $\lambda$. Questa strategia determinerà se l'algoritmo si sta muovendo nella direzione della discesa del gradiente o del metodo di Gauss-Newton. Se il nuovo vettore di pesi è tale che la funzione di costo valutata su di esso è inferiore a quella dell'iterazione precedente, ovvero $f(w_{new}) < f(w_k)$, allora si è trovata una direzione di aggiornamento che ha prodotto una riduzione della funzione di costo.
 [07:33] Questo è un passo che può essere accettato. Di conseguenza, si può affermare che il nuovo vettore di pesi all'iterazione $k+1$ è $w_{new}$.
@@ -142,9 +142,9 @@ Questo non è ancora il vettore finale $w_{k+1}$, poiché è necessario eseguire
 [04:24] Se invece post-moltiplica $A$, si spostano le colonne. La matrice $P$ specifica che stiamo considerando sposta la prima riga della matrice identità all'ultima posizione, causando uno spostamento ciclico di tutte le righe. Calcolando le potenze successive di $P$, come $P^2$, si ottiene uno spostamento ulteriore.
 [04:38] In particolare, $P^2$ sposta ogni colonna di una posizione a destra, con rientro da sinistra. $P^3$ produce un altro spostamento ciclico. Per una matrice $4 \times 4$, la potenza $P^4$ sarà uguale alla matrice identità, poiché dopo quattro spostamenti ciclici si ritorna alla configurazione iniziale.
 [04:54] Dato un vettore $c = [c_0, c_1, \dots, c_{n-1}]$ che definisce la prima riga di una matrice circolante $C$, questa può essere espressa come una combinazione lineare delle potenze della matrice di spostamento $P$:
-$$
+```math
 C = c_0 I + c_1 P + c_2 P^2 + \dots + c_{n-1} P^{n-1}
-$$
+```
 dove $I$ è la matrice identità.
 [05:07] Questa espressione è essenzialmente un polinomio valutato nella matrice $P$.
 [05:14] Si può quindi affermare che ogni matrice circolante $C$ è il risultato della valutazione di un polinomio, i cui coefficienti sono gli elementi della prima riga di $C$, nella matrice di spostamento ciclico elementare $P$ di dimensione appropriata.
@@ -161,17 +161,17 @@ dove $I$ è la matrice identità.
 ## Autovettori e Autovalori delle Matrici Circolanti
 [07:10] Esiste una proprietà fondamentale delle matrici circolanti: tutte le matrici circolanti di una data dimensione $n \times n$ condividono gli stessi autovettori.
 [07:20] In particolare, questi autovettori sono le colonne della cosiddetta matrice di Fourier. La matrice di Fourier, $F$, è definita dalla seguente espressione:
-$$
+```math
 F_{jk} = \omega^{jk}
-$$
+```
 dove $\omega = e^{2\pi i / n}$ è la radice $n$-esima primitiva dell'unità.
 [07:34] Ad esempio, per una matrice $3 \times 3$, le radici terze dell'unità si trovano sul cerchio unitario nel piano complesso. Per una matrice $4 \times 4$, le radici sono $1, i, -1, -i$.
 [07:43] In generale, per una matrice di ordine $n$, si calcolano le $n$ radici dell'unità. Queste definiscono gli autovettori.
 [07:50] L'autovalore corrispondente a ciascun autovettore è legato alla trasformata di Fourier discreta (DFT) del vettore $c$ che definisce la prima riga della matrice.
 [07:58] Ricordando che una matrice circolante è identificata dal vettore $c$ della sua prima riga, la trasformata di Fourier discreta di $c$ è data da:
-$$
+```math
 \hat{c}_k = \sum_{j=0}^{n-1} c_j \omega^{-kj}
-$$
+```
 dove $k$ varia da $0$ a $n-1$. I valori $\hat{c}_k$ sono gli autovalori della matrice circolante.
 [08:12] In sintesi, per una matrice circolante di ordine $n$, gli autovettori sono sempre le colonne della matrice di Fourier di ordine $n$, mentre gli autovalori si ottengono calcolando la DFT del vettore che definisce la prima riga della matrice.
 [08:24] Vediamo un esempio per $n=4$. La radice dell'unità è $\omega = e^{2\pi i / 4} = i$.
@@ -179,15 +179,15 @@ dove $k$ varia da $0$ a $n-1$. I valori $\hat{c}_k$ sono gli autovalori della ma
 ## La Regola della Convoluzione
 [08:46] Un'altra proprietà fondamentale è la cosiddetta regola della convoluzione, ampiamente utilizzata nelle implementazioni pratiche per ridurre il costo computazionale della moltiplicazione.
 [08:56] Poiché gli autovettori di una matrice circolante $C$ sono le colonne della matrice di Fourier $F$ e i suoi autovalori sono la DFT del vettore $c$, la matrice $C$ può essere diagonalizzata come segue:
-$$
+```math
 C = F^{-1} \Lambda_c F
-$$
+```
 dove $\Lambda_c$ è la matrice diagonale contenente gli autovalori di $C$.
 [09:09] La convoluzione di due vettori, $c$ e $d$, che nel caso discreto corrisponde al prodotto ciclico dei polinomi associati, può essere scritta come il prodotto della matrice circolante $C$ per il vettore $d$.
 [09:20] Sostituendo la forma diagonalizzata di $C$, si ottiene:
-$$
+```math
 c * d = C d = (F^{-1} \Lambda_c F) d
-$$
+```
 Questo significa che per calcolare la convoluzione tra $c$ e $d$, si possono seguire questi passaggi:
 1.  Calcolare la DFT di $d$: $\hat{d} = Fd$.
 2.  Calcolare la DFT di $c$ per ottenere gli autovalori: $\hat{c}$.
@@ -256,9 +256,9 @@ Questo significa che per calcolare la convoluzione tra $c$ e $d$, si possono seg
 [02:28] In primo luogo, il teorema è un risultato di esistenza: afferma che è sempre possibile trovare una rete neurale di un certo tipo che approssimi una data funzione. Tuttavia, il teorema non fornisce alcuna indicazione su come costruire concretamente tale rete.
 [02:43] Si tratta quindi solo di una prova di esistenza, senza suggerimenti algoritmici o costruttivi su come procedere. Il secondo punto, che verrà ripreso in seguito, riguarda l'accuratezza desiderata. Quando si vuole approssimare una funzione $f$ con un'altra funzione, è necessario specificare anche il grado di precisione richiesto.
 [03:00] Se si chiama $\tilde{f}$ la funzione approssimata, è necessario misurare la differenza tra la funzione originale e quella approssimata, ad esempio tramite una norma, e assicurarsi che sia inferiore a una data tolleranza $\epsilon$:
-$$
+```math
 \| f - \tilde{f} \| < \epsilon
-$$
+```
 La capacità di costruire una rete dipende quindi da quanto fine deve essere l'accuratezza desiderata.
 [03:16] Il secondo punto implica che, a seconda della precisione che si vuole raggiungere, la costruzione della rete potrebbe essere fattibile o, al contrario, computazionalmente irrealizzabile. Questo aspetto è strettamente legato alla cosiddetta **complessità** di una rete neurale.
 [03:28] In altri termini, l'idea è: data una funzione $f$ e una tolleranza $\epsilon$, si vuole avere un'idea di quanti parametri (pesi e bias) sono necessari per progettare una rete neurale in grado di rappresentare $f$ con tale accuratezza. In alcune situazioni, il numero di parametri richiesto può essere enorme.
@@ -272,9 +272,9 @@ La capacità di costruire una rete dipende quindi da quanto fine deve essere l'a
 [04:55] Aumentando il valore di $w$, si può notare che la funzione sigmoide si avvicina sempre di più a una funzione a gradino. La pendenza della curva diventa sempre più ripida.
 [05:08] Utilizzando un valore elevato, ad esempio $w=50$, e modificando il valore di $b$, ad esempio impostando $b=25$, si osserva che la posizione del "salto" si è spostata.
 [05:25] Per vederlo più chiaramente, si usa $w=100$. Con $b=200$ (implicito dal grafico mostrato), il salto si verifica in $x=-2$. La posizione del salto, che chiamiamo $x_{salto}$, è data dalla formula:
-$$
+```math
 x_{salto} = -\frac{b}{w}
-$$
+```
 [05:37] Giocando con i parametri $w$ e $b$, si è passati da una funzione sigmoide a una buona approssimazione di una funzione a gradino.
 [05:46] Successivamente, mantenendo $w$ sufficientemente grande e variando $b$, è possibile spostare a piacimento la posizione del salto, secondo la relazione $x_{salto} = -b/w$.
 [05:55] L'input della funzione è $x$, che proviene dal livello precedente della rete, mentre $w$ e $b$ sono i pesi e il bias. Ciò che si sta dimostrando è che, manipolando $w$ e $b$, è possibile modificare la forma della funzione di attivazione.
@@ -317,18 +317,18 @@ $$
 [13:05] È una funzione lineare a tratti (*piecewise linear*) e, in particolare, ha un supporto compatto, ovvero è diversa da zero solo in un intervallo limitato (in questo caso, $[-1, 1]$).
 [13:17] Attraverso una combinazione lineare di funzioni di questo tipo, è possibile rappresentare un'altra funzione. Se si chiama questa funzione $\phi(x)$, e si suddivide un dominio (es. $[0, 1]$) in nodi, è possibile definire una funzione a cappello centrata su ciascun nodo.
 [13:34] Assegnando un indice a ciascuna di queste funzioni base ($\phi_0, \phi_1, \dots, \phi_6$), e sapendo che il loro valore massimo è 1, qualsiasi funzione $f(x)$ può essere approssimata come una somma pesata:
-$$
+```math
 \tilde{f}(x) = \sum_{i=0}^{6} c_i \phi_i(x)
-$$
+```
 [13:44] dove $\phi_i(x)$ è una delle funzioni a cappello e $c_i$ è un coefficiente. Ad esempio, per approssimare una data funzione, il coefficiente $c_i$ può essere scelto come il valore della funzione nel nodo $i$. In questo modo, quando si valuta la combinazione lineare in un nodo specifico, si ottiene il valore esatto della funzione in quel punto, poiché tutte le altre funzioni base sono nulle.
 [14:04] Questa è un'approssimazione $\tilde{f}(x)$ della funzione $f(x)$. Aumentando il numero di nodi, si aumenta l'accuratezza dell'approssimazione. L'idea, quindi, è sfruttare questa analogia con gli elementi finiti e vedere se è possibile ottenere la funzione a cappello partendo dalla funzione ReLU.
 ### Dalla ReLU alla Funzione a Cappello
 [14:21] Esattamente come fatto in precedenza, si analizza l'effetto dei parametri $w$ e $b$ sulla funzione ReLU. Mantenendo $w=1$ e variando $b$, si osserva che si sposta la posizione del punto di "svolta" (*king point*).
 [14:32] In particolare, se $b$ è positivo, il punto di svolta si trova nella regione negativa dell'asse $x$, e viceversa. Ora, fissando $b$ (ad esempio a 6) e aumentando $w$, si modifica la pendenza della rampa e si sposta anche la posizione del punto di svolta.
 [14:48] Come si può vedere, la posizione del punto di svolta è data, anche in questo caso, dalla formula:
-$$
+```math
 x_{svolta} = -\frac{b}{w}
-$$
+```
 [14:56] Vediamo ora come si possono combinare le funzioni ReLU per ottenere la funzione a cappello. Una volta dimostrato che è possibile costruire questa funzione base utilizzando un numero adeguato di ReLU, si può concludere, per analogia con gli elementi finiti, che una combinazione di ReLU può approssimare qualsiasi funzione 1D.
 [15:11] In questo caso, si combineranno tre funzioni ReLU.
 [15:18] Partendo con una certa configurazione, si può ottenere una funzione simile a una sigmoide. Qui, ad esempio, ne sono state combinate solo due, poiché il peso della terza ($W_{03}$) è zero.

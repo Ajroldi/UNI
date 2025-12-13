@@ -40,14 +40,14 @@
 [04:25] Il primo approccio per migliorare la discesa del gradiente è il **metodo del momento** (*Momentum*).
 [04:31] L'idea centrale è modificare il modo in cui viene calcolata la direzione di aggiornamento dei parametri. Invece di basarsi unicamente sul gradiente calcolato al passo precedente, come nella regola di aggiornamento classica, si introduce un concetto di "memoria".
 [04:40] La regola di aggiornamento per i parametri $w$ al passo $t+1$ è:
-$$
+```math
 w_{t+1} = w_t - v_{t+1}
-$$
+```
 dove $v_{t+1}$ è il vettore di aggiornamento.
 [04:44] Questo vettore $v_{t+1}$ non è semplicemente proporzionale al gradiente, ma include anche una componente che tiene conto del vettore di aggiornamento precedente, $v_t$. La formula è:
-$$
+```math
 v_{t+1} = \mu v_t + \gamma \nabla J(w_t)
-$$
+```
 dove:
 - $\mu$ è il **termine di momento** (*momentum term*), un iperparametro che controlla l'inerzia del movimento.
 - $\gamma$ è il **tasso di apprendimento** (*learning rate*).
@@ -75,16 +75,16 @@ dove:
 [06:53] Nel metodo del momento classico, il gradiente è calcolato nella posizione corrente dei parametri, $w_t$.
 [07:00] L'idea di Nesterov è di non usare la posizione corrente, ma di effettuare una sorta di "estrapolazione" o "previsione" della posizione futura.
 [07:04] In pratica, si calcola una posizione approssimata futura, $w_{approx}$, utilizzando il passo di momento precedente:
-$$
+```math
 w_{approx} = w_t - \mu v_t
-$$
+```
 Il gradiente viene quindi calcolato in questo punto "guardando avanti" ($w_{approx}$) invece che nel punto corrente ($w_t$). La regola di aggiornamento diventa:
-$$
+```math
 v_{t+1} = \mu v_t + \gamma \nabla J(w_t - \mu v_t)
-$$
-$$
+```
+```math
 w_{t+1} = w_t - v_{t+1}
-$$
+```
 [07:16] Tutti i termini in questa formula sono noti: $\mu$ è il termine di momento, $w_t$ è la posizione al passo precedente e $v_t$ è il vettore di aggiornamento precedente. Si esegue un'estrapolazione e si utilizza il valore estrapolato per calcolare il gradiente.
 [07:25] L'idea è di avere un'informazione sul gradiente che non sia legata solo al passato, ma che sia più "informata" su ciò che sta per accadere. È una sorta di *look-ahead*, un tentativo di guardare nel futuro.
 [07:36] In pratica, il NAG è più robusto del metodo del momento classico. È importante notare che non introduce nuovi iperparametri, quindi la sua complessità è identica a quella del momento, ma le sue prestazioni sono significativamente migliori.
@@ -103,9 +103,9 @@ $$
 [08:36] Il primo metodo proposto per affrontare questo problema è **Adagrad** (*Adaptive Gradient*).
 [08:42] L'idea di base è relativamente semplice. Invece di definire una regola di aggiornamento vettoriale, la si analizza parametro per parametro per una migliore comprensione.
 [08:51] Per ogni singolo parametro $w_i$, la regola di aggiornamento al passo $t+1$ è:
-$$
+```math
 w_{i, t+1} = w_{i, t} - \frac{\gamma}{\sqrt{G_{ii, t} + \epsilon}} g_{i, t}
-$$
+```
 dove:
 - $w_{i, t}$ è il valore del parametro $i$ all'iterazione $t$.
 - $g_{i, t}$ è il gradiente della funzione di costo rispetto al parametro $i$ all'iterazione $t$.
@@ -113,15 +113,15 @@ dove:
 - $\epsilon$ è un piccolo termine di smussamento (*smoothing term*), solitamente dell'ordine di $10^{-8}$, aggiunto per evitare divisioni per zero.
 - $G_{ii, t}$ è l'elemento sulla diagonale di una matrice diagonale $G_t$.
 [09:08] Questo termine $G_{ii, t}$ accumula la somma dei quadrati dei gradienti passati per il parametro $i$:
-$$
+```math
 G_{ii, t} = \sum_{k=1}^{t} g_{i, k}^2
-$$
+```
 [09:20] L'idea è la seguente: se un parametro è associato a una *feature* che appare frequentemente, la somma dei quadrati dei suoi gradienti ($G_{ii, t}$) sarà grande. Di conseguenza, il tasso di apprendimento effettivo per quel parametro ($\frac{\gamma}{\sqrt{G_{ii, t} + \epsilon}}$) diventerà progressivamente più piccolo.
 [09:34] Al contrario, per parametri associati a *features* rare, la somma $G_{ii, t}$ crescerà lentamente. Il denominatore rimarrà piccolo, e il tasso di apprendimento effettivo per quel parametro sarà più elevato.
 [09:47] In forma vettoriale, la regola di aggiornamento si scrive come:
-$$
+```math
 w_{t+1} = w_t - \frac{\gamma}{\sqrt{G_t + \epsilon I}} \odot g_t
-$$
+```
 dove $G_t$ è la matrice diagonale contenente le somme dei quadrati dei gradienti, $I$ è la matrice identità e $\odot$ rappresenta il prodotto di Hadamard (prodotto elemento per elemento).
 ### Vantaggi e Svantaggi di Adagrad
 [10:00] I vantaggi di Adagrad sono:
@@ -231,21 +231,21 @@ dove $G_t$ è la matrice diagonale contenente le somme dei quadrati dei gradient
 [00:54] Questo punto di intersezione diventa la nuova iterazione del metodo. Da qui, si proietta il punto sulla funzione, si calcola una nuova tangente e si ripete il processo. In sostanza, per trovare lo zero, il metodo si basa su un'approssimazione lineare locale della funzione.
 ### Formulazione Matematica del Metodo di Newton per il Root Finding
 [01:02] L'equazione della retta tangente al punto $x_k$ può essere espressa come l'espansione di Taylor del primo ordine della funzione $f$ attorno a $x_k$:
-$$
+```math
 y(x) \approx f(x_k) + f'(x_k)(x - x_k)
-$$
+```
 dove:
 - $y(x)$ è l'approssimazione lineare della funzione.
 - $f(x_k)$ è il valore della funzione nel punto $x_k$.
 - $f'(x_k)$ è la derivata prima della funzione calcolata in $x_k$.
 [01:12] Una volta ottenuta questa espressione, l'obiettivo è trovare l'intersezione della retta tangente con l'asse delle ascisse, il che si ottiene ponendo l'equazione uguale a zero:
-$$
+```math
 f(x_k) + f'(x_k)(x - x_k) = 0
-$$
+```
 [01:17] Valutando questa espressione per $x = x_{k+1}$, si ottiene la regola di aggiornamento per il metodo di Newton per la ricerca degli zeri:
-$$
+```math
 x_{k+1} = x_k - \frac{f(x_k)}{f'(x_k)}
-$$
+```
 Questa è la formula classica per trovare lo zero di una funzione.
 ### Interpretazione Geometrica
 [01:26] L'interpretazione geometrica del processo è la seguente:
@@ -260,26 +260,26 @@ Questa è la formula classica per trovare lo zero di una funzione.
 ### Derivazione della Formula di Aggiornamento per la Minimizzazione
 [02:02] Mantenendo la struttura della formula di Newton per il root finding, si sostituisce la funzione $f$ con la sua derivata prima $f'$.
 [02:10] Di conseguenza, la derivata prima $f'$ nella formula originale viene sostituita dalla derivata seconda $f''$. Se si considera il gradiente, si ottiene il metodo di Newton per il gradiente. Sostituendo $g = f'$ e $g' = f''$ nella formula di aggiornamento, si ottiene la regola per la minimizzazione:
-$$
+```math
 x_{k+1} = x_k - \frac{f'(x_k)}{f''(x_k)}
-$$
+```
 ## Prospettiva Geometrica della Minimizzazione: Approssimazione Quadratica
 [02:20] Questa formula può essere derivata anche da una prospettiva geometrica differente, utilizzando l'espansione di Taylor.
 [02:23] Nel caso del root finding, si utilizzava un'espansione di Taylor del primo ordine, approssimando localmente la funzione con una retta.
 [02:31] Per la minimizzazione, si considera invece l'espansione di Taylor del secondo ordine della funzione $f$ attorno al punto $x_k$:
-$$
+```math
 q(x) = f(x_k) + f'(x_k)(x - x_k) + \frac{1}{2}f''(x_k)(x - x_k)^2
-$$
+```
 [02:40] Utilizzare un'espansione di Taylor del secondo ordine significa adottare un'approssimazione quadratica locale della funzione. In altre parole, si approssima la funzione $f$ con una parabola nelle vicinanze di $x_k$.
 [02:50] Questa espressione, $q(x)$, è un'approssimazione locale della funzione $f$. Poiché siamo interessati al minimo, dobbiamo trovare il punto in cui la derivata di questa approssimazione si annulla.
 [02:56] Si calcola quindi la derivata di $q(x)$ rispetto a $x$ e la si pone uguale a zero:
-$$
+```math
 q'(x) = f'(x_k) + f''(x_k)(x - x_k) = 0
-$$
+```
 [03:05] Esattamente come nel caso precedente, valutando questa espressione per $x = x_{k+1}$, si ottiene la regola di aggiornamento:
-$$
+```math
 f'(x_k) + f''(x_k)(x_{k+1} - x_k) = 0
-$$
+```
 Risolvendo per $x_{k+1}$, si ritrova la stessa formula ottenuta applicando il metodo di Newton al gradiente.
 ### Interpretazione Grafica dell'Approssimazione Quadratica
 [03:13] La rappresentazione grafica di questo approccio è la seguente:
@@ -299,35 +299,35 @@ Risolvendo per $x_{k+1}$, si ritrova la stessa formula ottenuta applicando il me
 ### Notazione e Condizione di Ottimalità
 [04:06] Si introduce la notazione per la matrice Hessiana, indicata con $H_f(x)$ o semplicemente $H$. Questa è una matrice quadrata $n \times n$ contenente tutte le derivate parziali seconde della funzione, dove $n$ è il numero di variabili.
 [04:12] La condizione necessaria per un punto di minimo è che il gradiente della funzione sia nullo:
-$$
+```math
 \nabla f(x) = 0
-$$
+```
 [04:17] Trovare il minimo di $f$ è quindi equivalente a trovare gli zeri del suo gradiente, $\nabla f$.
 [04:21] Di conseguenza, è possibile applicare il metodo di Newton per la ricerca di zeri alla funzione vettoriale $g(x) = \nabla f(x)$, in modo del tutto analogo a quanto fatto nel caso 1D.
 ### Derivazione della Formula nel Caso Multidimensionale
 [04:30] Si parte dalla formula del metodo di Newton per il caso 1D:
-$$
+```math
 x_{k+1} = x_k - [g'(x_k)]^{-1} g(x_k)
-$$
+```
 [04:33] Si analizzano ora le controparti N-dimensionali di ciascun termine:
 -   $g(x_k)$ diventa il **gradiente** della funzione $f$ calcolato in $x_k$, ovvero $\nabla f(x_k)$.
 -   $g'(x_k)$ diventa la **matrice Jacobiana** della funzione vettoriale $g(x) = \nabla f(x)$. La Jacobiana del gradiente è, per definizione, la **matrice Hessiana** $H_f(x_k)$.
 [04:44] Nella formula 1D, il termine $[g'(x_k)]^{-1}$ rappresenta l'inverso della derivata. Nel caso multidimensionale, questo termine corrisponde all'**inversa della matrice Hessiana**, $H_f(x_k)^{-1}$.
 [04:53] Sostituendo questi termini, la regola di aggiornamento per il metodo di Newton nel contesto dell'ottimizzazione multidimensionale diventa:
-$$
+```math
 x_{k+1} = x_k - H_f(x_k)^{-1} \nabla f(x_k)
-$$
+```
 [05:04] Questa espressione definisce l'aggiornamento ad ogni iterazione. Il vettore di aggiornamento, $\Delta x_k$, è dato da:
-$$
+```math
 \Delta x_k = - H_f(x_k)^{-1} \nabla f(x_k)
-$$
+```
 e la regola di aggiornamento è $x_{k+1} = x_k + \Delta x_k$.
 ### Risoluzione Pratica: il Sistema Lineare
 [05:14] Una regola fondamentale dell'analisi numerica è che non si calcola mai esplicitamente l'inversa di una matrice, a meno che non sia strettamente necessario.
 [05:20] Chiamando il vettore di aggiornamento $\Delta x$, invece di calcolare l'inversa dell'Hessiana, si risolve il seguente sistema di equazioni lineari:
-$$
+```math
 H_f(x_k) \Delta x = - \nabla f(x_k)
-$$
+```
 [05:29] In questo sistema lineare:
 -   La matrice dei coefficienti è la matrice Hessiana $H_f(x_k)$.
 -   Il vettore dei termini noti è il gradiente $-\nabla f(x_k)$.
@@ -335,13 +335,13 @@ $$
 ## Approccio Geometrico Multidimensionale
 [05:43] Anche nel caso multidimensionale, è possibile derivare la stessa formula partendo da un ragionamento geometrico, come fatto per il caso 1D.
 [05:50] Si utilizza l'espansione di Taylor del secondo ordine per una funzione di più variabili, che fornisce un'approssimazione quadratica locale $q(x)$ della funzione $f(x)$ attorno a $x_k$:
-$$
+```math
 q(x) = f(x_k) + \nabla f(x_k)^T (x - x_k) + \frac{1}{2} (x - x_k)^T H_f(x_k) (x - x_k)
-$$
+```
 [06:00] Per trovare il minimo di questa approssimazione quadratica, se ne calcola il gradiente e lo si pone uguale a zero:
-$$
+```math
 \nabla q(x) = \nabla f(x_k) + H_f(x_k) (x - x_k) = 0
-$$
+```
 [06:07] Valutando questa espressione in $x = x_{k+1}$, si ottiene nuovamente la relazione che porta alla formula di aggiornamento del metodo di Newton.
 ## Sfide Computazionali del Metodo di Newton Multidimensionale
 [06:15] Sebbene l'estensione dal caso 1D al caso N-D sia concettualmente diretta, emergono differenze significative dal punto di vista computazionale.

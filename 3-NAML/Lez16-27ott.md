@@ -14,13 +14,13 @@
 [01:31] Dal punto di vista pratico, la somma ponderata viene espressa come il prodotto scalare tra un vettore di pesi $w$ e il vettore di input $x$.
 [01:38] Si introduce il bias, indicato con $b$, che è definito come l'opposto della soglia originale.
 [01:43] Di conseguenza, la formula precedente può essere riscritta nel seguente modo:
-$$
+```math
 \text{output} =
 \begin{cases}
 0 & \text{se } w \cdot x + b \le 0 \\
 1 & \text{se } w \cdot x + b > 0
 \end{cases}
-$$
+```
 Questa è la formulazione comunemente utilizzata nella pratica.
 [01:53] Il significato del bias è complementare a quello dei pesi. Mentre i pesi determinano l'importanza relativa di ciascun input, il bias indica quanto sia facile per il percettrone produrre un output pari a 1.
 [02:01] L'espressione "attivarsi" (in inglese, *to fire*) viene utilizzata in questo contesto perché, storicamente, il percettrone e l'intera architettura delle reti neurali sono stati sviluppati cercando di mimare il comportamento dei neuroni biologici.
@@ -59,8 +59,12 @@ Questa è la formulazione comunemente utilizzata nella pratica.
 [06:32] La prima possibilità per superare il salto del percettrone è utilizzare la cosiddetta **funzione sigmoide**.
 [06:37] La funzione sigmoide è un'istanza specifica di una classe più ampia di funzioni, chiamate **funzioni sigmoidali**.
 - **Definizione di Funzione Sigmoidale**: Una funzione $\sigma(x)$ è detta sigmoidale se soddisfa le seguenti proprietà:
-$$ \lim_{x \to -\infty} \sigma(x) = 0 $$
-$$ \lim_{x \to +\infty} \sigma(x) = 1 $$
+```math
+\lim_{x \to -\infty} \sigma(x) = 0
+```
+```math
+\lim_{x \to +\infty} \sigma(x) = 1
+```
 [06:58] Una funzione con un andamento a "S" è un esempio di funzione sigmoidale. Esistono molte funzioni con questo comportamento, e questa definizione sarà ripresa nella parte finale del corso, quando si tratterà il teorema di approssimazione universale per le reti neurali.
 [07:12] Per ora, ci concentriamo sulla funzione sigmoide. È un'istanza particolare di questa classe di funzioni, e l'idea è di avere una funzione che si comporti in modo simile al percettrone.
 [07:21] Si mantiene la stessa struttura di base: un certo numero di input $x_1, \dots, x_n$, i pesi corrispondenti e il bias.
@@ -69,7 +73,9 @@ $$ \lim_{x \to +\infty} \sigma(x) = 1 $$
 1.  Gli input e l'output non sono più vincolati a essere binari, ma possono assumere qualsiasi valore reale. Ad esempio, i valori dei pixel di un'immagine in scala di grigi possono essere un input valido.
 2.  L'output è calcolato tramite la funzione sigmoide.
 [07:52] L'espressione analitica della funzione sigmoide è:
-$$ \sigma(z) = \frac{1}{1 + e^{-z}} $$
+```math
+\sigma(z) = \frac{1}{1 + e^{-z}}
+```
 dove $z$ è la variabile definita in precedenza.
 [07:59] Come si può osservare dal suo grafico, questa funzione ha esattamente il comportamento sigmoidale desiderato. In particolare, per $z=0$, la funzione assume il valore 0.5.
 [08:06] La funzione sigmoide è il primo esempio di **funzione di attivazione**. È stata la prima funzione introdotta per risolvere i problemi legati al percettrone.
@@ -104,7 +110,9 @@ dove $z$ è la variabile definita in precedenza.
 [11:25] - **Bias $b_j^{(L)}$**: Rappresenta il bias del neurone $j$ nello strato $L$. A differenza dei pesi, i bias sono associati a ciascun singolo neurone.
 [11:35] - **Attivazione $a_j^{(L)}$**: È una variabile associata a ciascun neurone, che rappresenta il suo output.
 [11:46] La sua definizione è la seguente:
-$$ a_j^{(L)} = \sigma \left( \sum_k W_{jk}^{(L)} a_k^{(L-1)} + b_j^{(L)} \right) $$
+```math
+a_j^{(L)} = \sigma \left( \sum_k W_{jk}^{(L)} a_k^{(L-1)} + b_j^{(L)} \right)
+```
 In pratica, l'attivazione è il risultato dell'applicazione della funzione di attivazione $\sigma$ (per ora, la sigmoide) alla somma ponderata degli input provenienti dallo strato precedente, più il bias.
 [12:01] La variabile $\sigma$ è la **funzione di attivazione**.
 ### Rappresentazione Vettoriale
@@ -113,17 +121,23 @@ In pratica, l'attivazione è il risultato dell'applicazione della funzione di at
 - **Vettore dei Bias $b^{(L)}$**: È il vettore contenente i bias di tutti i neuroni dello strato $L$.
 - **Vettore delle Attivazioni $a^{(L)}$**: È il vettore contenente le attivazioni di tutti i neuroni dello strato $L$.
 [12:22] L'argomento della funzione di attivazione è solitamente denotato con $z^{(L)}$, un vettore definito come:
-$$ z^{(L)} = W^{(L)} a^{(L-1)} + b^{(L)} $$
+```math
+z^{(L)} = W^{(L)} a^{(L-1)} + b^{(L)}
+```
 Questa espressione rappresenta la somma ponderata più il bias in forma matriciale. È il prodotto matrice-vettore tra la matrice dei pesi $W^{(L)}$ e il vettore delle attivazioni dello strato precedente $a^{(L-1)}$, a cui si somma il vettore dei bias $b^{(L)}$.
 [12:38] Di conseguenza, il vettore delle attivazioni $a^{(L)}$ può essere scritto come:
-$$ a^{(L)} = \sigma(z^{(L)}) $$
+```math
+a^{(L)} = \sigma(z^{(L)})
+```
 dove la funzione di attivazione $\sigma$ si intende applicata a ciascun elemento del vettore $z^{(L)}$ (operazione *element-wise*).
 [12:47] Riassumendo visivamente: la rete è composta da strati di neuroni. A ogni neurone sono associati un'attivazione e un bias. A ogni connessione tra neuroni è associato un peso. Tra due strati adiacenti, ad esempio il primo e il secondo, è definita una matrice dei pesi, come $W^{(2)}$.
 ### Calcolo delle Sensitività: Backpropagation
 [13:01] Una volta definito il framework, l'obiettivo è calcolare le sensitività della funzione di costo rispetto a tutti i parametri della rete.
 [13:10] Prima di entrare nei dettagli, è necessario formulare due ipotesi importanti sulla funzione di costo, che indicheremo con $J$.
 [13:17] **Prima Ipotesi**: La funzione di costo può essere scritta come una media dei costi calcolati su singoli campioni:
-$$ J = \frac{1}{n} \sum_{x} J_x $$
+```math
+J = \frac{1}{n} \sum_{x} J_x
+```
 dove $J_x$ è il costo associato a un singolo campione di addestramento $x$.
 [13:22] Per comprendere meglio, si consideri un esempio: l'addestramento di una rete neurale per la classificazione di immagini. Le immagini vengono pre-elaborate (ridimensionate, trasformate in vettori, ecc.) e ogni caratteristica viene normalizzata, ad esempio, in un valore tra 0 e 1.
 [13:38] Il *training set* è composto da migliaia di immagini, ciascuna con la sua etichetta (*label*) corretta.
@@ -134,33 +148,39 @@ dove $J_x$ è il costo associato a un singolo campione di addestramento $x$.
 [14:23] **Seconda Ipotesi**: La funzione di costo può essere scritta come una funzione che dipende unicamente dalle attivazioni dello strato di output, $a^{(L)}$.
 [14:31] Ovviamente, ciò che accade nell'ultimo strato è fortemente influenzato da tutti gli strati precedenti. Tuttavia, l'idea è che per calcolare il valore della funzione di costo sia sufficiente conoscere l'output finale della rete.
 [14:39] Ad esempio, si supponga che $y$ sia il vettore degli output veri (le etichette) e $a^{(L)}$ sia il vettore degli output calcolati dalla rete. Una possibile funzione di costo potrebbe essere la distanza tra questi due vettori:
-$$ J = \| y - a^{(L)} \|^2 $$
+```math
+J = \| y - a^{(L)} \|^2
+```
 [14:52] Queste due ipotesi sono abbastanza naturali e non troppo restrittive, valide nel 99% delle applicazioni comuni.
 [15:00] Sarà necessaria un'ulteriore notazione: il **prodotto di Hadamard** (o prodotto *element-wise*), indicato con $\odot$.
 - **Definizione di Prodotto di Hadamard**: Dati due vettori della stessa dimensione, il loro prodotto di Hadamard è un nuovo vettore i cui elementi sono il prodotto degli elementi corrispondenti dei vettori originali.
 [15:09] In MATLAB, questa operazione corrisponde a `.*` (*dot star*).
 [15:14] In Python, con la libreria NumPy, l'operatore `*` applicato a due vettori NumPy esegue il prodotto di Hadamard. Per calcolare il prodotto scalare, invece, si deve usare la funzione `np.dot()`.
 [15:25] In pratica, dati due vettori $u = [u_1, u_2, \dots, u_n]$ e $v = [v_1, v_2, \dots, v_n]$, il loro prodotto di Hadamard è:
-$$ u \odot v = [u_1 v_1, u_2 v_2, \dots, u_n v_n] $$
+```math
+u \odot v = [u_1 v_1, u_2 v_2, \dots, u_n v_n]
+```
 [15:33] Si procederà ora a derivare quello che in letteratura è noto come l'insieme delle **quattro equazioni fondamentali** per il calcolo delle sensitività (algoritmo di *backpropagation*).
 [15:41] Il punto più importante è l'introduzione di una quantità, chiamata in alcune referenze "errore" e in altre "sensitività". Questa quantità, che indicheremo con $\delta_j^{(L)}$, è associata a un dato neurone $j$ nello strato $L$.
 [15:52] Essa fornisce la sensitività della funzione di costo $J$ rispetto alla variabile $z_j^{(L)}$ associata a quel particolare neurone. Si ricorda che $z$ è la somma ponderata degli input più il bias.
-$$ \delta_j^{(L)} = \frac{\partial J}{\partial z_j^{(L)}} $$
+```math
+\delta_j^{(L)} = \frac{\partial J}{\partial z_j^{(L)}}
+```
 [16:03] L'obiettivo finale è ottenere formule che permettano di calcolare le derivate della funzione di costo rispetto a tutti i pesi ($W$) e a tutti i bias ($b$) della rete.
 [16:11] Queste quantità sono esattamente quelle utilizzate in un algoritmo di ottimizzazione come la discesa del gradiente. In una procedura di discesa del gradiente, è necessario calcolare il gradiente della funzione di costo rispetto alle incognite, che in questo caso sono appunto i pesi e i bias.
 [16:24] Si inizierà la derivazione partendo dallo strato di output.
 ## Capitolo 5: Le Equazioni Fondamentali della Backpropagation
 ### L'Errore nello Strato di Output
 [00:00] L'errore, o sensibilità, indicato dal vettore $\delta^L$ (con $L$ maiuscolo per denotare lo strato di output), è definito dalla seguente relazione: è dato dal gradiente della funzione di costo rispetto all'attivazione, moltiplicato per la derivata prima della funzione di attivazione, $\sigma'$, calcolata in $z^L$.
-$$
+```math
 \delta^L = \nabla_a J \odot \sigma'(z^L)
-$$
+```
 È importante ricordare che $z^L$ rappresenta la somma pesata degli input più il bias, mentre $\sigma$ è la funzione di attivazione. Di conseguenza, $\sigma'$ è la derivata di $\sigma$ rispetto al suo argomento, ovvero $z^L$.
 [00:15] Analizzando i termini di questo prodotto, si osserva che il primo termine, il gradiente di $J$ rispetto ad $a$ ($\nabla_a J$), misura la rapidità con cui la funzione di costo varia al variare dell'attivazione $a$. Il secondo termine, $\sigma'$, misura invece la rapidità con cui la funzione di attivazione $\sigma$ varia in risposta a variazioni del suo input $z$.
 [00:32] Esprimendo questa relazione in forma di componenti, si ottiene che la componente $j$-esima del vettore di errore $\delta$ nello strato di output $L$ è data da:
-$$
+```math
 \delta_j^L = \frac{\partial J}{\partial a_j^L} \cdot \sigma'(z_j^L)
-$$
+```
 dove:
 - $\delta_j^L$ è la sensibilità del neurone $j$ nello strato di output $L$.
 - $\frac{\partial J}{\partial a_j^L}$ è la derivata parziale della funzione di costo $J$ rispetto all'attivazione $a_j$ del neurone $j$ nello strato $L$.
@@ -177,9 +197,9 @@ dove:
 [02:08] Dopo aver calcolato la sensibilità $\delta$ per lo strato di output, il passo successivo è propagare questo errore all'indietro, procedendo dallo strato finale ($L$) verso gli strati precedenti ($L-1$, $L-2$, e così via, fino al primo strato).
 [02:22] L'obiettivo è calcolare il vettore di sensibilità $\delta$ per un generico strato $l$, dato il vettore di sensibilità $\delta$ dello strato successivo $l+1$.
 [02:32] La formula per ottenere il vettore di sensibilità $\delta$ per lo strato $l$ è la seguente:
-$$
+```math
 \delta^l = ((W^{l+1})^T \delta^{l+1}) \odot \sigma'(z^l)
-$$
+```
 dove:
 - $\delta^l$ è il vettore di sensibilità dello strato $l$.
 - $(W^{l+1})^T$ è la trasposta della matrice dei pesi dello strato $l+1$.
@@ -195,109 +215,109 @@ dove:
 [03:37] Tuttavia, il calcolo non è ancora completo. L'obiettivo finale è determinare i gradienti della funzione di costo rispetto a tutti i parametri della rete, ovvero $\frac{\partial J}{\partial w}$ e $\frac{\partial J}{\partial b}$, che sono gli ingredienti necessari per l'algoritmo di minimizzazione (come la discesa del gradiente).
 [03:49] È quindi necessario collegare le quantità $\delta$ appena calcolate con i gradienti che si desidera ottenere.
 [04:00] Si inizia considerando il gradiente rispetto ai bias. È possibile dimostrare che la derivata della funzione di costo $J$ rispetto a un generico bias della rete è esattamente uguale alla componente corrispondente del vettore di errore (o sensibilità).
-$$
+```math
 \frac{\partial J}{\partial b_j^l} = \delta_j^l
-$$
+```
 [04:07] Questo significa che, una volta calcolato $\delta_j^l$, si è ottenuto direttamente il valore della derivata parziale di $J$ rispetto al bias $b_j^l$ di quel particolare neurone.
 [04:16] Per quanto riguarda i pesi, la relazione è leggermente diversa. La derivata parziale della funzione di costo $J$ rispetto al peso $w_{jk}^l$, che connette il neurone $k$ dello strato $l-1$ con il neurone $j$ dello strato $l$, è data da:
-$$
+```math
 \frac{\partial J}{\partial w_{jk}^l} = a_k^{l-1} \cdot \delta_j^l
-$$
+```
 [04:28] Questa derivata è il prodotto di due quantità: l'attivazione $a_k^{l-1}$ del neurone $k$ nello strato precedente ($l-1$) e la sensibilità $\delta_j^l$ del neurone $j$ nello strato corrente ($l$).
 [04:37] In sintesi, sono state presentate quattro equazioni fondamentali che, sfruttando il calcolo delle sensibilità $\delta$, permettono di ottenere i gradienti necessari per l'algoritmo di minimizzazione.
 ## Capitolo 6: Dimostrazioni delle Equazioni di Backpropagation
 ### Dimostrazione 1: Errore nello Strato di Output
 [04:47] Si procede ora con la dimostrazione delle relazioni introdotte, partendo dalla prima: l'equazione per l'errore $\delta_j^L$ nello strato di output.
 [04:53] Si parte dalla definizione di sensibilità, che è la derivata parziale della funzione di costo $J$ rispetto alla somma pesata $z$ di un particolare neurone:
-$$
+```math
 \delta_j^L = \frac{\partial J}{\partial z_j^L}
-$$
+```
 [05:01] Per calcolare questa derivata, si applica la regola della catena (chain rule), un principio già utilizzato in contesti come la differenziazione automatica. Un neurone è connesso a tutti i neuroni dello strato precedente, ma in questo caso si analizza la relazione tra $J$ e $z_j^L$ attraverso l'attivazione $a_k^L$.
 [05:10] La derivata può essere espressa come una somma estesa a tutti i neuroni $k$ dello strato di output $L$:
-$$
+```math
 \frac{\partial J}{\partial z_j^L} = \sum_k \frac{\partial J}{\partial a_k^L} \frac{\partial a_k^L}{\partial z_j^L}
-$$
+```
 [05:27] Si ricorda che l'attivazione $a_k^L$ è ottenuta applicando la funzione di attivazione $\sigma$ alla somma pesata $z_k^L$. La derivata $\frac{\partial a_k^L}{\partial z_j^L}$ è quindi diversa da zero solo quando gli indici $k$ e $j$ coincidono.
 [05:36] In dettaglio:
 - Se $k \neq j$, la derivata $\frac{\partial a_k^L}{\partial z_j^L}$ è zero, poiché l'attivazione del neurone $k$ non dipende direttamente dalla somma pesata del neurone $j$.
 - Se $k = j$, la derivata $\frac{\partial a_j^L}{\partial z_j^L}$ è $\sigma'(z_j^L)$.
 [05:53] Di conseguenza, nella sommatoria sopravvive unicamente il termine per cui $k = j$.
 [06:02] Sostituendo questo risultato nella sommatoria, si ottiene:
-$$
+```math
 \delta_j^L = \frac{\partial J}{\partial z_j^L} = \frac{\partial J}{\partial a_j^L} \cdot \frac{\partial a_j^L}{\partial z_j^L} = \frac{\partial J}{\partial a_j^L} \cdot \sigma'(z_j^L)
-$$
+```
 [06:09] Questo completa la dimostrazione della prima equazione. In formato vettoriale, questa relazione può essere espressa utilizzando il prodotto di Hadamard, come già menzionato.
 ### Dimostrazione 2: Propagazione dell'Errore
 [06:20] Si passa alla seconda equazione, quella che descrive la propagazione dell'errore all'indietro. L'obiettivo è trovare un'espressione per la sensibilità $\delta_j^l$ di un generico neurone $j$ in un generico strato $l$.
 [06:30] Si parte nuovamente dalla definizione di sensibilità:
-$$
+```math
 \delta_j^l = \frac{\partial J}{\partial z_j^l}
-$$
+```
 [06:35] Applicando la regola della catena, si può esprimere questa derivata attraverso le somme pesate dello strato successivo, $l+1$:
-$$
+```math
 \delta_j^l = \frac{\partial J}{\partial z_j^l} = \sum_k \frac{\partial J}{\partial z_k^{l+1}} \frac{\partial z_k^{l+1}}{\partial z_j^l}
-$$
+```
 [06:42] In questa espressione, si riconosce che il termine $\frac{\partial J}{\partial z_k^{l+1}}$ è per definizione la sensibilità $\delta_k^{l+1}$ del neurone $k$ nello strato $l+1$. Poiché l'algoritmo procede all'indietro, questo valore è già stato calcolato.
 [06:54] Ora è necessario calcolare il secondo termine della produttoria: $\frac{\partial z_k^{l+1}}{\partial z_j^l}$. Si scrive l'espressione per $z_k^{l+1}$:
-$$
+```math
 z_k^{l+1} = \sum_i w_{ki}^{l+1} a_i^l + b_k^{l+1}
-$$
+```
 [07:06] Poiché l'attivazione $a_i^l$ è $\sigma(z_i^l)$, si può sostituire questa espressione:
-$$
+```math
 z_k^{l+1} = \sum_i w_{ki}^{l+1} \sigma(z_i^l) + b_k^{l+1}
-$$
+```
 [07:14] Calcolando la derivata di $z_k^{l+1}$ rispetto a $z_j^l$, si osserva che:
 - Il bias $b_k^{l+1}$ non dipende da $z_j^l$, quindi la sua derivata è zero.
 - Nella sommatoria, l'unico termine che dipende da $z_j^l$ è quello per cui $i = j$.
 [07:23] Pertanto, la derivata risulta essere:
-$$
+```math
 \frac{\partial z_k^{l+1}}{\partial z_j^l} = w_{kj}^{l+1} \cdot \sigma'(z_j^l)
-$$
+```
 [07:40] Sostituendo questo risultato nell'espressione iniziale per $\delta_j^l$, si ottiene:
-$$
+```math
 \delta_j^l = \sum_k \delta_k^{l+1} \cdot w_{kj}^{l+1} \cdot \sigma'(z_j^l)
-$$
+```
 [07:50] Il termine $\sigma'(z_j^l)$ non dipende dall'indice di sommatoria $k$, quindi può essere portato fuori dalla somma:
-$$
+```math
 \delta_j^l = \left( \sum_k w_{kj}^{l+1} \delta_k^{l+1} \right) \cdot \sigma'(z_j^l)
-$$
+```
 [07:58] La sommatoria tra parentesi corrisponde alla componente $j$-esima del prodotto matrice-vettore $(W^{l+1})^T \delta^{l+1}$. Questo conferma la seconda equazione, che permette di propagare le sensibilità all'indietro.
 ### Dimostrazione 3: Gradiente rispetto ai Bias
 [08:12] La terza dimostrazione riguarda il gradiente della funzione di costo rispetto ai bias. Si vuole calcolare $\frac{\partial J}{\partial b_j^l}$.
 [08:18] Utilizzando la regola della catena, si scrive:
-$$
+```math
 \frac{\partial J}{\partial b_j^l} = \frac{\partial J}{\partial z_j^l} \frac{\partial z_j^l}{\partial b_j^l}
-$$
+```
 [08:23] Per definizione, il primo termine $\frac{\partial J}{\partial z_j^l}$ è la sensibilità $\delta_j^l$.
 [08:27] Per il secondo termine, si ricorda che $z_j^l$ è la somma pesata più il bias:
-$$
+```math
 z_j^l = \sum_k w_{jk}^l a_k^{l-1} + b_j^l
-$$
+```
 [08:33] La derivata di $z_j^l$ rispetto a $b_j^l$ è semplicemente 1.
 [08:37] Sostituendo, si ottiene la relazione cercata:
-$$
+```math
 \frac{\partial J}{\partial b_j^l} = \delta_j^l \cdot 1 = \delta_j^l
-$$
+```
 ### Dimostrazione 4: Gradiente rispetto ai Pesi
 [08:46] Infine, si dimostra la relazione per il gradiente rispetto ai pesi, $\frac{\partial J}{\partial w_{jk}^l}$.
 [08:50] Anche in questo caso, si applica la regola della catena:
-$$
+```math
 \frac{\partial J}{\partial w_{jk}^l} = \frac{\partial J}{\partial z_j^l} \frac{\partial z_j^l}{\partial w_{jk}^l}
-$$
+```
 [08:54] Il primo termine è, ancora una volta, la sensibilità $\delta_j^l$.
 [08:58] Per il secondo termine, si considera l'espressione di $z_j^l$:
-$$
+```math
 z_j^l = \sum_i w_{ji}^l a_i^{l-1} + b_j^l
-$$
+```
 [09:04] Quando si calcola la derivata rispetto a un peso specifico $w_{jk}^l$, l'unico termine della sommatoria che contribuisce è quello per cui l'indice $i$ è uguale a $k$.
 [09:08] La derivata è quindi:
-$$
+```math
 \frac{\partial z_j^l}{\partial w_{jk}^l} = a_k^{l-1}
-$$
+```
 [09:12] Sostituendo questo risultato nell'equazione del gradiente, si ottiene:
-$$
+```math
 \frac{\partial J}{\partial w_{jk}^l} = \delta_j^l \cdot a_k^{l-1}
-$$
+```
 [09:22] Questa è l'ultima delle quattro relazioni fondamentali, che conclude le dimostrazioni.
 ### Riepilogo dell'Algoritmo di Backpropagation
 [09:25] L'algoritmo di backpropagation può essere riassunto nei seguenti passaggi:
@@ -341,9 +361,9 @@ $$
 ### La Famiglia delle Funzioni ReLU
 [02:11] Una delle funzioni di attivazione più note e utilizzate è la ReLU (Rectified Linear Unit).
 [02:15] La sua forma è definita come:
-$$
+```math
 f(x) = \max(0, x)
-$$
+```
 Questa funzione è composta da due regioni: per input negativi, l'output è zero; per input positivi, l'output è uguale all'input stesso.
 [02:18] In ciascuna regione la funzione è lineare, ma il suo comportamento complessivo è non lineare.
 [02:23] A differenza della funzione lineare semplice, la composizione di più funzioni ReLU consente alla rete di apprendere comportamenti non lineari, rendendola molto più flessibile.
@@ -353,16 +373,16 @@ Questa funzione è composta da due regioni: per input negativi, l'output è zero
 [02:51] La Leaky ReLU è stata introdotta per mitigare il problema della "dying ReLU".
 [02:55] La sua caratteristica è che, nella porzione negativa del dominio, invece di avere un output esattamente pari a zero, presenta una pendenza molto piccola ma non nulla. Un valore comune per questa pendenza è 0.01.
 [03:00] La sua espressione è:
-$$
+```math
 f(x) = \begin{cases} x & \text{se } x > 0 \\ 0.01x & \text{se } x \le 0 \end{cases}
-$$
+```
 [03:02] L'idea è che la presenza di una pendenza, seppur minima, anche nella regione negativa, consente alla rete di continuare ad apprendere (anche se molto lentamente) qualora i neuroni si trovino ad operare in questa regione.
 [03:10] Non esiste una regola precisa che indichi quando usare la ReLU o la Leaky ReLU. La scelta della funzione migliore è spesso il risultato di un processo empirico di tipo "trial and error" (tentativi ed errori).
 [03:20] È possibile estendere ulteriormente il concetto della Leaky ReLU. Invece di scegliere a priori il valore della pendenza per gli input negativi, si può trattare questo valore come un parametro da apprendere.
 [03:25] Si ottiene così la Parametric ReLU (PReLU), la cui forma è:
-$$
+```math
 f(x) = \begin{cases} x & \text{se } x > 0 \\ \alpha x & \text{se } x \le 0 \end{cases}
-$$
+```
 [03:28] In questo caso, il coefficiente $\alpha$ diventa un parametro libero che viene ottimizzato durante il processo di minimizzazione, insieme ai pesi della rete.
 [03:34] In altre parole, si aggiungono ulteriori parametri al modello con la speranza di migliorarne le prestazioni.
 [03:39] Un potenziale svantaggio è che l'aumento del numero di parametri incrementa la complessità complessiva del modello.
@@ -372,33 +392,33 @@ $$
 [03:50] Esiste una classe di funzioni di attivazione esponenziali. La prima è la ELU (Exponential Linear Unit).
 [03:54] Per valori di input positivi, si comporta esattamente come la ReLU ($f(x) = x$). Per valori negativi, assume un andamento esponenziale.
 [03:58] La sua forma è:
-$$
+```math
 f(x) = \begin{cases} x & \text{se } x > 0 \\ \alpha (e^x - 1) & \text{se } x \le 0 \end{cases}
-$$
+```
 dove $\alpha$ è un parametro che controlla la pendenza per gli input negativi.
 [04:01] Anche in questo caso, $\alpha$ è un iperparametro che può essere sintonizzato prima dell'addestramento o ottimizzato durante il processo stesso.
 [04:06] Aggiungendo un ulteriore parametro, $\lambda$, si ottiene la SELU (Scaled Exponential Linear Unit).
 [04:10] La sua forma è:
-$$
+```math
 f(x) = \lambda \begin{cases} x & \text{se } x > 0 \\ \alpha (e^x - 1) & \text{se } x \le 0 \end{cases}
-$$
+```
 In questo caso, i valori di $\lambda$ e $\alpha$ sono scelti a priori.
 [04:14] Questa funzione si dimostra particolarmente efficace se abbinata a una specifica inizializzazione della distribuzione dei pesi della rete.
 [04:21] Nella pratica, tuttavia, la SELU non è molto utilizzata.
 ### Funzioni di Attivazione per Scopi Specifici
 [04:24] La funzione Softmax è una funzione di attivazione utilizzata esclusivamente nello strato di output (output layer).
 [04:28] La sua definizione è la seguente: dato un vettore di input $x$ con componenti $x_i$, la componente $i$-esima del vettore di output $y$ è calcolata come:
-$$
+```math
 y_i = \frac{e^{x_i}}{\sum_{j} e^{x_j}}
-$$
+```
 [04:30] L'idea è trasformare un vettore di valori reali (ad esempio, le attivazioni dell'ultimo strato) in un vettore di probabilità.
 [04:34] Come si può notare dalla formula, al denominatore c'è la somma degli esponenziali di tutte le componenti del vettore di input, mentre al numeratore c'è l'esponenziale di una singola componente.
 [04:40] Ad esempio, un vettore di input $[2, 1, 0.1]$ viene trasformato in un vettore di output come $[0.7, 0.2, 0.1]$, i cui elementi sommano a 1 e possono essere interpretati come probabilità.
 [04:48] Se si affronta un problema di classificazione con 10 classi, si può utilizzare la funzione Softmax nello strato di output per convertire i valori finali della rete in probabilità di appartenenza a ciascuna classe.
 [05:00] La funzione Swish è definita come il prodotto tra la funzione lineare ($x$) e la funzione sigmoide ($\sigma(x)$):
-$$
+```math
 f(x) = x \cdot \sigma(x) = \frac{x}{1 + e^{-x}}
-$$
+```
 [05:03] I vantaggi di questa funzione sono stati dimostrati a livello pratico: le sue prestazioni sono spesso superiori a quelle della ReLU, in particolare nel caso di reti molto profonde (very deep network).
 [05:10] Questa funzione di attivazione è stata sviluppata da Google ed è utilizzata nell'architettura chiamata "EfficientNet".
 [05:18] Lo svantaggio principale è che, coinvolgendo la funzione sigmoide, può essere computazionalmente più costosa rispetto ad altre funzioni.

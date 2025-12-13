@@ -13,19 +13,19 @@
 [04:30] Esistono quattro modalità: calcolo manuale, differenziazione numerica (differenze finite), differenziazione simbolica (Maple, MATLAB, Mathematica, pacchetti simbolici in Python), e differenziazione automatica. Tra queste, la differenziazione automatica è il metodo utilizzato nella pratica. La “differenziazione automatica” (AD) calcola valori di derivate numeriche esatte basandosi sulla composizione di operazioni elementari e sulle regole della catena.
 [05:00] Il calcolo manuale consente, se la formula viene semplificata, espressioni eleganti; è utile per dimostrazioni di sensibilità e convergenza grazie a derivate esplicitate. Tuttavia, per espressioni complesse è soggetto a errori ed è dispendioso in tempo.
 [05:30] La differenziazione numerica tramite differenze finite è semplice, funziona come scatola nera su qualunque funzione, richiede solo poche valutazioni della funzione e una divisione. La formula di differenza in avanti per la derivata prima di $f$ in $x_0$ è:
-$$
+```math
 f'(x_0) \approx \frac{f(x_0 + h) - f(x_0)}{h}.
-$$
+```
 Qui $h$ è l’incremento scelto. È un’approssimazione e presenta rischi numerici dovuti alla sottrazione tra quantità vicine.
 [06:00] Per stimare $f'(x_0)$ con $h$ piccolo, si sommano quantità di ordini di grandezza diversi (ad esempio $x_0 \approx 1$ e $h \approx 10^{-4}$), causando problemi di rappresentazione in virgola mobile. Inoltre, la sottrazione tra valori molto vicini introduce cancellazioni numeriche. In generale, le formule numeriche presentano due errori: errore di troncamento (dovuto all’approssimazione) ed errore di arrotondamento (dovuto alla rappresentazione in virgola mobile).
 [06:30] L’errore di arrotondamento tipicamente si comporta come $1/h$, indipendentemente dal metodo, mentre l’errore di troncamento dipende dalla formula adottata e dalla potenza di $h$. La formula in avanti ha errore di troncamento di primo ordine:
-$$
+```math
 f'(x_0) = \frac{f(x_0 + h) - f(x_0)}{h} + \mathcal{O}(h).
-$$
+```
 La formula centrata ha ordine secondo:
-$$
+```math
 f'(x_0) \approx \frac{f(x_0 + h) - f(x_0 - h)}{2h} + \mathcal{O}(h^2).
-$$
+```
 La “$\mathcal{O}(\cdot)$” indica il termine d’errore asintotico.
 [07:00] La somma dei due errori produce un andamento con un valore ottimo di $h$ che minimizza l’errore totale. Non è vero, in generale, che riducendo indefinitamente $h$ si migliora la stima: l’errore di troncamento diminuisce con $h$, ma l’errore di arrotondamento cresce come $1/h$.
 [07:30] Applicando le differenze finite a funzioni specifiche come il seno, si osservano tratti in cui la pendenza dell’errore indica l’ordine (più ripida per l’ordine 2 della centrata, meno per l’ordine 1 della avanzata). Per $h$ molto piccoli, gli effetti di arrotondamento e cancellazioni dominano, causando comportamento oscillante e stime inaffidabili.
@@ -60,14 +60,14 @@ L’output finale è $y = v_3$. Gli input sono $v_{-1}$ e $v_0$, le variabili in
 - Derivata di $v_2$ rispetto a $v_0$: $\partial v_2 / \partial v_0 = v_{-1}$.
 - Derivata di $v_3$ rispetto a $v_2$: con $v_3 = v_1 + v_2$, si ha $\partial v_3 / \partial v_2 = 1$, e analogamente $\partial v_3 / \partial v_1 = 1$.
 [05:05] Queste derivate sui lati sono cruciali: per calcolare la derivata dell’output rispetto a un input, ad esempio $dy/dv_0$ con $y = v_3$, basta moltiplicare lungo il percorso rilevante le derivate:
-$$
+```math
 \frac{dv_3}{dv_0} = \frac{dv_3}{dv_2}\cdot \frac{dv_2}{dv_0}.
-$$
+```
 Questa è un’applicazione della regola della catena: la derivata di una composizione si ottiene moltiplicando le derivate parziali lungo il percorso.
 [05:40] Se si vuole $\frac{dv_3}{dv_{-1}}$, esistono due percorsi dal nodo $v_{-1}$ a $v_3$, passando tramite $v_1$ e tramite $v_2$. In tal caso, si sommano i contributi dei percorsi:
-$$
+```math
 \frac{dv_3}{dv_{-1}} = \frac{dv_3}{dv_1}\cdot \frac{dv_1}{dv_{-1}} + \frac{dv_3}{dv_2}\cdot \frac{dv_2}{dv_{-1}}.
-$$
+```
 La somma riflette la presenza di rami multipli nel grafo.
 ## Valutazione avanti e introduzione del modo tangente (forward mode)
 [06:20] Nella pratica si procede con una valutazione avanti (forward) partendo dai valori degli input. Assegnando $x_1 = 2$ e $x_2 = 5$, si calcolano intermedie e output $y = v_3$:
@@ -83,19 +83,19 @@ La “valutazione avanti” è la computazione dei valori delle variabili lungo 
 Le “variabili tangenti” accompagnano ogni nodo e codificano la sensibilità rispetto a un input specifico.
 [07:30] In generale, se $f: \mathbb{R}^n \to \mathbb{R}$, si possono ottenere tutte le derivate parziali $\frac{\partial f}{\partial x_1}, \dots, \frac{\partial f}{\partial x_n}$. Nel modo tangente, l’inizializzazione si fa sul vettore degli input: si impostano tutti i $v^{\cdot}$ a zero tranne quello corrispondente all’input rispetto al quale si sta derivando, che si pone a uno. In tal modo, $v_i^{\cdot} = \frac{\partial v_i}{\partial x_j}$, con $j$ fissato.
 [08:05] Applicando la regola della catena a ciascun passo elementare, si calcolano le variabili tangenti intermedie. Per $v_1 = \ln(v_{-1})$, la derivata rispetto a $x_1$ è:
-$$
+```math
 v_1^{\cdot} = \frac{\partial \ln(v_{-1})}{\partial v_{-1}} \cdot v_{-1}^{\cdot} = \frac{1}{v_{-1}} \cdot v_{-1}^{\cdot}.
-$$
+```
 Si usa la derivata del logaritmo $d(\ln u)/du = 1/u$ e la regola della catena.
 [08:40] Per $v_2 = v_{-1} \cdot v_0$ (prodotto), la derivata rispetto a $x_1$ è:
-$$
+```math
 v_2^{\cdot} = v_{-1}^{\cdot}\cdot v_0 + v_{-1} \cdot v_0^{\cdot}.
-$$
+```
 Qui $v_0^{\cdot} = 0$, quindi il secondo termine è nullo e si ha $v_2^{\cdot} = v_{-1}^{\cdot} \cdot v_0$.
 [09:10] Per $v_3 = v_1 + v_2$ (somma), la derivata è:
-$$
+```math
 v_3^{\cdot} = v_1^{\cdot} + v_2^{\cdot}.
-$$
+```
 Sostituendo i valori numerici ($v_{-1} = 2$, $v_0 = 5$, $v_{-1}^{\cdot} = 1$, $v_0^{\cdot} = 0$), si ottiene:
 - $v_1^{\cdot} = \frac{1}{2} \cdot 1 = \frac{1}{2}$,
 - $v_2^{\cdot} = 1 \cdot 5 = 5$,
@@ -106,9 +106,9 @@ La somma finale è la derivata della funzione rispetto all’input considerato.
 ## Modo inverso (reverse mode) e backpropagazione
 [10:50] Per ridurre il costo quando si hanno molti input e pochi output, si introduce il modo inverso dell’autodifferenziazione, alla base dell’algoritmo di backpropagation nelle reti neurali. La “backpropagation” è la reverse mode applicata a un problema specifico di apprendimento di pesi tramite propagazione delle derivate dall’uscita agli ingressi.
 [11:20] Il problema del modo tangente: per ottenere le derivate rispetto a ciascun input, bisogna cambiare l’inizializzazione e ripetere la procedura. L’idea del modo inverso è opposta: si parte dall’output e si risale verso gli input. Si definiscono variabili $v_i^{\bar{}}$ come
-$$
+```math
 v_i^{\bar{}} = \frac{dy}{dv_i},
-$$
+```
 con $y$ l’output, e si imposta $y^{\bar{}} = \frac{dy}{dy} = 1$. Con una sola passata dall’output verso gli input, si ottengono tutte le derivate dell’output rispetto agli input.
 [11:55] In generale, si può avere una funzione con $n$ input e $m$ output. Nelle reti neurali tipicamente $n \gg m$. In tali casi, la reverse mode è fondamentale: consente di ottenere le sensibilità degli output rispetto a tutti gli input con un costo molto inferiore rispetto al ripetere $n$ volte un calcolo in avanti. Se invece $m \gg n$, il modo tangente può risultare più conveniente.
 [12:30] In sintesi: il modo tangente è preferibile quando $n \ll m$, ma nei casi comuni in machine learning, con funzioni di perdita scalari ($m=1$) e molti input, il modo inverso è più adatto.
@@ -124,38 +124,38 @@ con $y$ l’output, e si imposta $y^{\bar{}} = \frac{dy}{dy} = 1$. Con una sola 
 - $v_3 = v_1 + v_2 = y$.
 Questa fase prepara i valori necessari per la propagazione all’indietro.
 [14:40] Si inizializza il backward con $v_3^{\bar{}} = y^{\bar{}} = 1$. Dato $v_3 = v_1 + v_2$, si propagano le derivate a $v_1$ e $v_2$:
-$$
+```math
 v_1^{\bar{}} = v_3^{\bar{}} \cdot \frac{\partial v_3}{\partial v_1} = 1 \cdot 1 = 1,\qquad
 v_2^{\bar{}} = v_3^{\bar{}} \cdot \frac{\partial v_3}{\partial v_2} = 1 \cdot 1 = 1.
-$$
+```
 Si assegnano a ciascun arco le derivate corrispondenti e si accumulano i contributi.
 [15:15] Si propaga poi verso $v_{-1}$ e $v_0$ attraverso $v_2$. Poiché $v_2 = v_{-1} \cdot v_0$, le derivate parziali sono:
-$$
+```math
 \frac{\partial v_2}{\partial v_{-1}} = v_0,\quad \frac{\partial v_2}{\partial v_0} = v_{-1}.
-$$
+```
 Ne consegue:
-$$
+```math
 v_{-1}^{\bar{}} \text{ (contributo da } v_2) = v_2^{\bar{}} \cdot \frac{\partial v_2}{\partial v_{-1}} = 1 \cdot v_0,\qquad
 v_0^{\bar{}} = v_2^{\bar{}} \cdot \frac{\partial v_2}{\partial v_0} = 1 \cdot v_{-1}.
-$$
+```
 [15:50] Si aggiunge il contributo da $v_1$ verso $v_{-1}$. Poiché $v_1 = \ln(v_{-1})$, si ha:
-$$
+```math
 \frac{\partial v_1}{\partial v_{-1}} = \frac{1}{v_{-1}},
-$$
+```
 quindi:
-$$
+```math
 v_{-1}^{\bar{}} \text{ (contributo da } v_1) = v_1^{\bar{}} \cdot \frac{\partial v_1}{\partial v_{-1}} = 1 \cdot \frac{1}{v_{-1}}.
-$$
+```
 I contributi si sommano su $v_{-1}^{\bar{}}$ perché ci sono due percorsi (tramite $v_1$ e $v_2$) che incidono su $v_{-1}$.
 [16:25] Usando i valori $x_1 = 2$ e $x_2 = 5$:
 - $v_0 = 5$, contributo da $v_2$ a $v_{-1}^{\bar{}}$ è $5$,
 - $v_{-1} = 2$, contributo da $v_1$ a $v_{-1}^{\bar{}}$ è $1/2$,
 - $v_0^{\bar{}} = v_{-1} = 2$.
 [16:55] Pertanto:
-$$
+```math
 \frac{\partial f}{\partial x_1} = v_{-1}^{\bar{}} = 5 + \frac{1}{2} = 5{,}5,\qquad
 \frac{\partial f}{\partial x_2} = v_0^{\bar{}} = 2.
-$$
+```
 Con un solo passaggio all’indietro si ottengono entrambe le derivate rispetto agli input.
 [17:25] La stessa procedura si visualizza sul grafo computazionale impostando $\frac{dv_3}{dv_3} = 1$ e propagando all’indietro lungo gli archi: da $v_3$ a $v_2$ e $v_1$, poi da $v_2$ a $v_{-1}$ e $v_0$, e da $v_1$ a $v_{-1}$, accumulando i contributi.
 ## Gradiente, Jacobiana e prodotti con vettori: approccio matrix-free
@@ -165,16 +165,16 @@ Con un solo passaggio all’indietro si ottengono entrambe le derivate rispetto 
 [00:00] Nella modalità forward, si imposta $\dot{x}$. Nel contesto considerato, $\dot{x}$ è un vettore come $(1, 0)$ o $(0, 1)$. Il vettore $(1, 0)$ è la ricetta per calcolare la derivata di $f$ rispetto a $x_1$, mentre $(0, 1)$ è la ricetta per la derivata rispetto a $x_2$. La “derivata direzionale” lungo una direzione è la variazione di $f$ lungo il vettore impostato.
 [00:30] Se si vuole il prodotto scalare tra il gradiente di $f$ e un vettore $r = (1, 2)$, si inizializza $\dot{x}$ con $(1, 2)$. Avviando la procedura con $(1, 2)$, l’output finale fornisce esattamente $\nabla f \cdot r$, dove $r$ è il vettore di inizializzazione. In questo modo si ottiene il valore desiderato senza calcolare esplicitamente il gradiente.
 [01:00] Lo stesso principio vale se il sistema ha più uscite. Se si imposta il vettore iniziale $\dot{x}$ uguale a $b$, l’output $y$ coincide con il prodotto della Jacobiana di $f$ per $b$:
-$$
+```math
 y = J b.
-$$
+```
 Qui $J$ è la matrice delle derivate parziali della funzione vettoriale rispetto agli ingressi; il prodotto $Jb$ è la derivata direzionale della funzione lungo la direzione $b$.
 ## Modalità reverse: prodotti Jacobiana-vettore impostando l’uscita
 [01:30] In modalità reverse, l’inizializzazione avviene sullo spazio delle uscite. Se l’uscita è caratterizzata da $m$ variabili, si imposta un vettore nel dominio delle uscite. La reverse mode calcola simultaneamente tutte le derivate rispetto agli input in un singolo backward.
 [01:45] Supponendo $M = 5$ e considerando il vettore $(1, 2, 3, 4, 5)$: inizializzando l’uscita con questo vettore e svolgendo i passi della reverse mode, si ottiene un vettore pari al prodotto della Jacobiana trasposta per il vettore $B$:
-$$
+```math
 J^\top B.
-$$
+```
 Se $f: \mathbb{R}^n \to \mathbb{R}^m$ e si inizializza con $B \in \mathbb{R}^m$, il risultato finale è un vettore in $\mathbb{R}^n$, coerente con il fatto che la reverse mode propaga dalle uscite agli ingressi.
 [02:15] Queste quantità (prodotti Jacobiana-vettore o gradiente-vettore) si calcolano senza costruire esplicitamente la matrice $J$ né il vettore gradiente di $f$, sfruttando la struttura del grafo computazionale.
 ## Metodi di ordine superiore: Newton e azione dell’Hessiano
@@ -184,14 +184,14 @@ Se $f: \mathbb{R}^n \to \mathbb{R}^m$ e si inizializza con $B \in \mathbb{R}^m$,
 [03:30] Successivamente, per ciascuna componente del gradiente, si dovrebbe calcolare una colonna dell’“azione” (ossia dell’Hessiano). Ciò richiede di ripetere $n$ passate reverse per ciascuna componente, portando a $n^2$ passate complessive. Se $n$ è grande, questo approccio non è praticabile.
 ## Approccio reverse+forward: funzione ausiliaria g(x)
 [03:45] L’idea alternativa è l’approccio combinato reverse e forward. Si introduce una funzione $g(x)$ definita come gradiente di $f$ applicato a un vettore $b$, cioè la derivata direzionale di $f$ lungo $b$:
-$$
+```math
 g(x) = \nabla f(x) \cdot b = J(x)\, b,
-$$
+```
 dove $J(x)$ è la Jacobiana di $f$ nel punto $x$. La derivata direzionale lungo $b$ misura la variazione di $f$ nella direzione $b$.
 [04:15] Se si calcola il gradiente di $g$, si ottiene l’azione dell’Hessiano di $f$ sul vettore $b$:
-$$
+```math
 \nabla g(x) = H(x)\, b,
-$$
+```
 dove $H(x)$ è l’Hessiano di $f$. Il gradiente di $g$ fornisce dunque il prodotto Hessiano-vettore, senza costruire esplicitamente l’Hessiano.
 [04:30] In modalità reverse, il primo passo è una passata forward per calcolare i valori intermedi. Poiché si considera la nuova funzione $g$, si esegue la passata forward su $g$ per ottenere tutte le variabili intermedie, inclusa la combinazione $J(x)\, b$.
 [04:45] Poi si calcola il gradiente di $g$ con una singola passata reverse. Il risultato è $H(x)\, b$, ossia l’azione dell’Hessiano su $b$. Il procedimento complessivo è: calcolare $g$ con una passata forward, quindi calcolare $\nabla g$ con una passata reverse, ottenendo $H(x)\, b$. Questo è coerente con l’inizializzazione in forward con $\dot{x} = b$ quando si considera la direzione $b$.
@@ -200,91 +200,91 @@ dove $H(x)$ è l’Hessiano di $f$. Il gradiente di $g$ fornisce dunque il prodo
 [05:30] Uno strumento importante, componente fondamentale di molte librerie di differenziazione automatica, è quello dei numeri duali. I “numeri duali” permettono di ottenere simultaneamente il valore della funzione e della sua derivata prima tramite valutazioni strutturate.
 ## Numeri duali: definizione e proprietà di base
 [05:45] I numeri duali sono simili ai numeri complessi. I complessi hanno parte reale e parte immaginaria, con unità immaginaria $i$ tale che $i^2 = -1$. Un numero complesso generico è $a + i b$. Nei numeri duali, un elemento ha la forma $a + \varepsilon\, d$, dove $\varepsilon$ è un’unità duale con proprietà diversa: $\varepsilon$ è nilpotente, cioè $\varepsilon \neq 0$ ma:
-$$
+```math
 \varepsilon^2 = 0.
-$$
+```
 Questa proprietà consente di troncare naturalmente le espansioni al primo ordine.
 [06:00] Un numero duale ha la forma $a + \varepsilon\, d$. La nilpotenza di $\varepsilon$ significa che prodotti di secondo ordine si annullano, semplificando le espansioni di Taylor. Questa struttura è utile per estrarre derivate prime come coefficienti della parte duale.
 [06:15] Una rappresentazione matriciale utile è:
-$$
+```math
 a + \varepsilon b \;\;\leftrightarrow\;\;
 \begin{pmatrix}
 a & 0 \\
 b & a
 \end{pmatrix}
 = a I + b E,
-$$
+```
 dove $I$ è l’identità ed $E = \begin{pmatrix} 0 & 0 \\ 1 & 0 \end{pmatrix}$. Questa matrice $E$ è diversa da zero ma soddisfa:
-$$
+```math
 E^2 = 0,
-$$
+```
 poiché è nulla al quadrato, a riflesso della nilpotenza di $\varepsilon$.
 [06:45] Formalmente, un numero duale si scrive $a + \varepsilon b$. Analogamente ai complessi, $a$ è la parte reale e $b$ è la parte duale. La parte duale codifica l’informazione sulla derivata, quando la funzione viene valutata su un input perturbato dualmente.
 ## Numeri duali e derivate tramite espansione di Taylor
 [07:00] Considerando una funzione $f$ e valutandola su un numero duale con parte duale unitaria, $x + \varepsilon$, si usa l’espansione di Taylor:
-$$
+```math
 f(x + \varepsilon) = f(x) + f'(x)\, \varepsilon + \frac{f''(x)}{2!}\, \varepsilon^2 + \cdots.
-$$
+```
 Poiché $\varepsilon^2 = 0$, tutti i termini di ordine superiore svaniscono, lasciando:
-$$
+```math
 f(x + \varepsilon) = f(x) + f'(x)\, \varepsilon.
-$$
+```
 La parte reale è $f(x)$, la parte duale è $f'(x)$: si ottiene il valore della funzione e la sua derivata prima in un’unica valutazione.
 [07:30] Con una sola valutazione si ottiene simultaneamente il valore della funzione e il valore della derivata prima. Questa proprietà rende i numeri duali uno strumento semplice per calcolare derivate direzionali nel modo tangente.
 ## Esempio: funzione razionale con coseno
 [07:45] Si consideri $f(x) = \dfrac{x^2}{\cos x}$ e si ponga $x = \pi + \varepsilon$. Il numeratore è:
-$$
+```math
 (\pi + \varepsilon)^2 = \pi^2 + 2\pi\, \varepsilon.
-$$
+```
 Il denominatore è:
-$$
+```math
 \cos(\pi + \varepsilon).
-$$
+```
 La valutazione della funzione si riduce a semplificazioni al primo ordine.
 [08:00] Usando la formula di addizione per il coseno, $\cos(\pi + \varepsilon) = -\cos(\varepsilon)$. Siccome $\varepsilon$ è nilpotente, $\cos(\varepsilon) = 1$ al primo ordine. Il denominatore diventa quindi $-1$, poiché le componenti di ordine superiore si annullano.
 [08:15] La divisione produce:
-$$
+```math
 \frac{\pi^2 + 2\pi\, \varepsilon}{-1} = -\pi^2 - 2\pi\, \varepsilon.
-$$
+```
 La parte reale $-\pi^2$ è $f(\pi)$, e la parte duale $-2\pi$ è $f'(\pi)$, in accordo con il calcolo esplicito della derivata.
 ## Operazioni con numeri duali: somma, prodotto, composizione
 [08:30] Proprietà utili:
 - Somma:
-$$
+```math
 (a + \varepsilon b) + (c + \varepsilon d) = (a + c) + \varepsilon(b + d).
-$$
+```
 Si sommano separatamente le parti reali e duali.
 - Prodotto:
-$$
+```math
 (a + \varepsilon b)(c + \varepsilon d) = ac + \varepsilon(ad + bc),
-$$
+```
 poiché $\varepsilon^2 = 0$. La parte duale riflette la regola del prodotto.
 [08:45] La regola del prodotto corrisponde alla derivata di $(fg)$:
-$$
+```math
 (fg)'(x) = f'(x)\, g(x) + f(x)\, g'(x),
-$$
+```
 che nella notazione duale si riflette nella parte duale $ad + bc$, con $a=f(x)$, $b=f'(x)$, $c=g(x)$, $d=g'(x)$.
 [09:00] Per una funzione composta $h(x) = g(f(x))$, valutando su $x + \varepsilon$:
-$$
+```math
 f(x + \varepsilon) = f(x) + f'(x)\, \varepsilon,
-$$
+```
 e poi:
-$$
+```math
 g\big(f(x) + f'(x)\, \varepsilon\big) = g\big(f(x)\big) + g'\big(f(x)\big)\, f'(x)\, \varepsilon.
-$$
+```
 La parte duale è $g'(f(x)) f'(x)$, cioè la regola della catena:
-$$
+```math
 h'(x) = g'(f(x))\, f'(x).
-$$
+```
 ## Estensione ai numeri duali di ordine superiore
 [09:15] Per calcolare derivate di ordine superiore, si modifica la definizione chiedendo:
-$$
+```math
 \varepsilon \neq 0,\quad \varepsilon^2 \neq 0,\quad \varepsilon^3 = 0.
-$$
+```
 In tal caso, l’espansione di Taylor al secondo ordine diventa:
-$$
+```math
 f(x + \varepsilon) = f(x) + f'(x)\, \varepsilon + \frac{f''(x)}{2}\, \varepsilon^2,
-$$
+```
 perché i termini di ordine $\ge 3$ si annullano.
 [09:30] Con una sola valutazione si ottengono: il valore della funzione, la derivata prima e la derivata seconda (con fattore $1/2$ associato a $\varepsilon^2$). Questo estende il calcolo duale a informazioni di secondo ordine.
 [09:45] Per funzioni di più variabili, si applica lo stesso trucco per ciascuna variabile. Per calcolare la derivata rispetto a $x_k$, si imposta $x_k \mapsto x_k + \varepsilon$ e le altre componenti $x_j$ restano invariati. Il risultato restituisce la derivata parziale rispetto a $x_k$.
@@ -295,27 +295,27 @@ perché i termini di ordine $\ge 3$ si annullano.
 - la derivata prima,
 - la derivata seconda,
 con i coefficienti coerenti con:
-$$
+```math
 x^3 = 8 + 12\, \varepsilon + 6\, \varepsilon^2,
-$$
+```
 dove i coefficienti corrispondono a $f'(2) = 12$ e $f''(2) = 12$, con il fattore $1/2$ incorporato nella componente di $\varepsilon^2$.
 ## Uso pratico dei numeri duali: calcolo numerico delle derivate
 [10:30] I numeri duali, come l’AD, non sono pensati per dedurre formule simboliche generali, ad esempio per $f(x) = \dfrac{1}{x^2}$. Formalmente:
-$$
+```math
 (x + \varepsilon)^{-2} = \frac{1}{(x + \varepsilon)^2} = \frac{1}{x^2 + 2x\, \varepsilon + \varepsilon^2}.
-$$
+```
 Poiché $\varepsilon^2 = 0$, si ha:
-$$
+```math
 \frac{1}{x^2 + 2x\, \varepsilon} = \frac{1}{x^2}\, \frac{1}{1 + \frac{2\varepsilon}{x}}.
-$$
+```
 [10:45] Espandendo al primo ordine:
-$$
+```math
 \frac{1}{1 + \frac{2\varepsilon}{x}} \approx 1 - \frac{2\varepsilon}{x},
-$$
+```
 quindi:
-$$
+```math
 \frac{1}{(x + \varepsilon)^2} \approx \frac{1}{x^2} - \frac{2}{x^3}\, \varepsilon.
-$$
+```
 La parte reale è $x^{-2}$, la parte duale è $-2 x^{-3}$, ossia la derivata. L’interesse principale sta nel calcolo numerico dei valori, non nella costruzione di formule simboliche.
 ## Gradiente di una funzione bivariata con numeri duali
 [11:00] Si vuole il gradiente di $f(x_1, x_2) = x_1 \cos(x_2)$ nel punto $(2, \pi)$. Si considerano due valutazioni:
@@ -323,9 +323,9 @@ La parte reale è $x^{-2}$, la parte duale è $-2 x^{-3}$, ossia la derivata. L�
 - Derivata rispetto a $x_2$: si imposta $x_1 = 2 + 0$, $x_2 = \pi + \varepsilon$. La valutazione produce la componente relativa a $x_2$.
 Il “gradiente” è il vettore delle due derivate parziali.
 [11:30] I risultati sono le due componenti del gradiente nel punto $(2, \pi)$:
-$$
+```math
 \nabla f(2, \pi) = \big(-1,\, 0\big).
-$$
+```
 La prima componente $-1$ deriva dalla valutazione con $x_1 = 2 + \varepsilon$, $x_2 = \pi$, mentre la seconda componente $0$ deriva dalla valutazione con $x_2 = \pi + \varepsilon$.
 [11:45] Il metodo consiste nell’impostare ciascuna variabile con una perturbazione duale quando si desidera la derivata parziale corrispondente, mantenendo le altre variabili senza perturbazione. Si ottengono, con valutazioni puntuali, le componenti del gradiente desiderato.
 ## Conclusione operativa

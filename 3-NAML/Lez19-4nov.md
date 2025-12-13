@@ -1,155 +1,155 @@
 ## Capitolo 1: Analisi della Convergenza del Metodo del Gradiente
 ### Introduzione alla Stima dell'Errore e Ipotesi Aggiuntive
 [00:00] L'analisi riprende dalla definizione di un limite superiore, o *bound*, per l'errore tra i valori della funzione obiettivo. L'obiettivo è stimare un limite per la differenza media tra il valore della funzione calcolato a ogni iterazione e il suo valore minimo. Tale quantità è espressa come:
-$$
+```math
 \frac{1}{T} \sum_{t=1}^{T} (f(x_t) - f(x^*))
-$$
+```
 dove:
 - $T$ è il numero totale di iterazioni dell'algoritmo.
 - $x_t$ è il vettore dei parametri (o iterata) alla $t$-esima iterazione.
 - $x^*$ è la soluzione ottima, ovvero il punto di minimo della funzione.
 - $f(\cdot)$ è la funzione obiettivo che si intende minimizzare.
 [00:11] Partendo dalla sola ipotesi di convessità della funzione $f$, l'analisi di base ha condotto alla seguente disuguaglianza fondamentale:
-$$
+```math
 \frac{1}{T} \sum_{t=1}^{T} (f(x_t) - f(x^*)) \le \frac{\gamma}{2T} \sum_{t=1}^{T} ||\nabla f(x_t)||^2 + \frac{1}{2\gamma T} ||x_1 - x^*||^2
-$$
+```
 Questa relazione costituisce il punto di partenza per derivare risultati più specifici sulla convergenza, i quali si ottengono introducendo ipotesi aggiuntive sulla funzione obiettivo $f$.
 ### Caso 1: Funzione Convessa con Gradiente Limitatato
 #### Ipotesi e Tesi del Teorema
 [00:30] Il primo risultato si ottiene introducendo l'ipotesi che il gradiente della funzione sia limitato. Questa proprietà è anche nota come Lipschitzianità della funzione rispetto al gradiente.
 - **Definizione di Gradiente Limitatato**: Una funzione $f$ si dice a gradiente limitato se esiste una costante positiva $B$ tale che la norma del suo gradiente è sempre inferiore o uguale a tale costante per ogni punto del dominio. Matematicamente:
-  $$
-  ||\nabla f(x)|| \le B \quad \forall x
-  $$
+  ```math
+||\nabla f(x)|| \le B \quad \forall x
+```
 [00:40] Si introduce un'ulteriore ipotesi riguardante il punto di partenza dell'algoritmo, $x_1$. Si assume che la distanza tra $x_1$ e la soluzione ottima $x^*$ sia limitata da una costante $R$:
-$$
+```math
 ||x_1 - x^*|| \le R
-$$
+```
 [00:51] Sotto queste due ipotesi, e scegliendo un passo di apprendimento (o *learning rate*) $\gamma$ specifico, definito come:
-$$
+```math
 \gamma = \frac{R}{B\sqrt{T}}
-$$
+```
 dove $T$ è il numero totale di iterazioni, si ottiene la seguente stima per la differenza media dei valori funzionali:
-$$
+```math
 \frac{1}{T} \sum_{t=1}^{T} (f(x_t) - f(x^*)) \le \frac{RB}{\sqrt{T}}
-$$
+```
 [01:06] Questa relazione implica che la differenza tra il valore della funzione calcolato nell'iterata "migliore" ($x_{best}$) e il valore ottimo $f(x^*)$ decresce con un tasso dell'ordine di $1/\sqrt{T}$.
 #### Numero di Iterazioni e Tasso di Convergenza
 [01:15] Se si desidera che la soluzione trovata, $x_{best}$, soddisfi una certa tolleranza $\epsilon$, ovvero che l'errore sia inferiore a tale soglia:
-$$
+```math
 f(x_{best}) - f(x^*) \le \epsilon
-$$
+```
 [01:23] Sfruttando la stima precedente, è possibile determinare il numero di iterazioni $T$ necessarie per garantire tale accuratezza. Il numero di iterazioni risulta essere dell'ordine di:
-$$
+```math
 T \approx \frac{R^2 B^2}{\epsilon^2}
-$$
+```
 [01:34] Questo risultato indica che il tasso di convergenza, in relazione alla tolleranza $\epsilon$ desiderata, è dell'ordine di $1/\epsilon^2$. Di conseguenza, per raggiungere una tolleranza molto piccola (ad esempio, $\epsilon = 10^{-2}$), il numero di iterazioni teoricamente richiesto può diventare estremamente elevato.
 #### Dimostrazione del Risultato
 [01:52] La dimostrazione del teorema è relativamente diretta e si basa sull'applicazione delle ipotesi aggiuntive alla disuguaglianza fondamentale.
 [02:04] Si parte dalla disuguaglianza ottenuta nell'analisi di base:
-$$
+```math
 \frac{1}{T} \sum_{t=1}^{T} (f(x_t) - f(x^*)) \le \frac{\gamma}{2T} \sum_{t=1}^{T} ||\nabla f(x_t)||^2 + \frac{1}{2\gamma T} ||x_1 - x^*||^2
-$$
+```
 Il primo termine al secondo membro viene maggiorato utilizzando l'ipotesi di gradiente limitato, per cui $||\nabla f(x_t)||^2 \le B^2$. Il secondo termine viene maggiorato utilizzando l'ipotesi sulla distanza iniziale, per cui $||x_1 - x^*||^2 \le R^2$.
 [02:13] Applicando queste maggiorazioni, si ottiene:
-$$
+```math
 \frac{1}{T} \sum_{t=1}^{T} (f(x_t) - f(x^*)) \le \frac{\gamma}{2T} \sum_{t=1}^{T} B^2 + \frac{R^2}{2\gamma T}
-$$
+```
 La sommatoria $\sum_{t=1}^{T} B^2$ è pari a $T \cdot B^2$, quindi la disuguaglianza si semplifica in:
-$$
+```math
 \frac{1}{T} \sum_{t=1}^{T} (f(x_t) - f(x^*)) \le \frac{\gamma B^2}{2} + \frac{R^2}{2\gamma T}
-$$
+```
 [02:24] Il teorema postula l'esistenza di un valore ottimale per il passo di apprendimento $\gamma$. Per trovarlo, si considera il lato destro della disuguaglianza come una funzione di $\gamma$, che si può denotare con $Q(\gamma)$:
-$$
+```math
 Q(\gamma) = \frac{\gamma B^2}{2} + \frac{R^2}{2\gamma T}
-$$
+```
 [02:32] Per trovare il valore di $\gamma$ che minimizza $Q(\gamma)$, si calcola la sua derivata prima rispetto a $\gamma$ e la si pone uguale a zero:
-$$
+```math
 \frac{dQ}{d\gamma} = \frac{B^2}{2} - \frac{R^2}{2\gamma^2 T} = 0
-$$
+```
 [02:42] Risolvendo l'equazione per $\gamma$, si ottiene il valore ottimale:
-$$
+```math
 \gamma_{opt} = \frac{R}{B\sqrt{T}}
-$$
+```
 [02:49] Sostituendo questo valore ottimale di $\gamma$ nell'espressione di $Q(\gamma)$, si ottiene il risultato finale enunciato dal teorema:
-$$
+```math
 \frac{1}{T} \sum_{t=1}^{T} (f(x_t) - f(x^*)) \le \frac{RB}{\sqrt{T}}
-$$
+```
 [02:58] Questo primo risultato stabilisce che, sotto le ipotesi di funzione convessa e a gradiente limitato, l'errore medio decresce con un fattore proporzionale a $1/\sqrt{T}$, portando a un tasso di convergenza dell'ordine di $1/\epsilon^2$.
 ### Caso 2: Funzione L-smooth (a gradiente Lipschitziano)
 #### La Condizione di Decrescita Sufficiente
 [03:10] Si analizza ora il caso in cui si aggiunge l'ipotesi di L-smoothness della funzione.
 - **Definizione di Funzione L-smooth**: Una funzione $f$ è detta L-smooth, o a gradiente L-Lipschitziano, se esiste una costante $L > 0$ tale che il suo gradiente soddisfa la seguente condizione per ogni coppia di punti $x, y$:
-  $$
-  ||\nabla f(x) - \nabla f(y)|| \le L ||x - y|| \quad \forall x, y
-  $$
+  ```math
+||\nabla f(x) - \nabla f(y)|| \le L ||x - y|| \quad \forall x, y
+```
   Una conseguenza diretta di questa proprietà è la seguente disuguaglianza, che fornisce un limite superiore quadratico alla funzione:
-  $$
-  f(y) \le f(x) + \nabla f(x)^T(y-x) + \frac{L}{2}||y-x||^2
-  $$
+  ```math
+f(y) \le f(x) + \nabla f(x)^T(y-x) + \frac{L}{2}||y-x||^2
+```
 [03:15] In questo scenario, si sceglie un passo di apprendimento costante pari a $\gamma = 1/L$. Con questa scelta, è possibile dimostrare una proprietà fondamentale nota come "condizione di decrescita sufficiente" (*sufficient decrease*).
 [03:23] Questa condizione garantisce che, se la funzione è L-smooth e si utilizza $\gamma = 1/L$, i valori della funzione obiettivo calcolati a ogni iterazione del metodo del gradiente formano una sequenza strettamente decrescente. Matematicamente, si ha:
-$$
+```math
 f(x_{t+1}) \le f(x_t) - \frac{1}{2L} ||\nabla f(x_t)||^2
-$$
+```
 Poiché il termine $||\nabla f(x_t)||^2$ è sempre non negativo, si ha $f(x_{t+1}) < f(x_t)$ (a meno che non si sia già raggiunto un punto stazionario dove il gradiente è nullo), garantendo una sequenza decrescente di valori funzionali.
 #### Dimostrazione della Decrescita Sufficiente
 [03:40] La dimostrazione parte dalla disuguaglianza che definisce la proprietà di L-smoothness.
 [03:46] In tale disuguaglianza, si sostituisce la relazione ricorsiva del metodo del gradiente con $\gamma = 1/L$:
-$$
+```math
 x_{t+1} = x_t - \frac{1}{L} \nabla f(x_t)
-$$
+```
 Ponendo $y = x_{t+1}$ e $x = x_t$, la disuguaglianza di L-smoothness diventa:
-$$
+```math
 f(x_{t+1}) \le f(x_t) + \nabla f(x_t)^T(x_{t+1}-x_t) + \frac{L}{2}||x_{t+1}-x_t||^2
-$$
+```
 [03:55] Si sostituisce ora l'espressione per la differenza $(x_{t+1}-x_t) = -\frac{1}{L}\nabla f(x_t)$:
-$$
+```math
 f(x_{t+1}) \le f(x_t) + \nabla f(x_t)^T \left(-\frac{1}{L}\nabla f(x_t)\right) + \frac{L}{2}\left\|-\frac{1}{L}\nabla f(x_t)\right\|^2
-$$
+```
 [04:01] Semplificando i termini si ottiene:
 - Il prodotto scalare diventa: $-\frac{1}{L} \nabla f(x_t)^T \nabla f(x_t) = -\frac{1}{L} ||\nabla f(x_t)||^2$.
 - Il termine quadratico diventa: $\frac{L}{2} \frac{1}{L^2} ||\nabla f(x_t)||^2 = \frac{1}{2L} ||\nabla f(x_t)||^2$.
 [04:08] Combinando i termini, la disuguaglianza si trasforma in:
-$$
+```math
 f(x_{t+1}) \le f(x_t) - \frac{1}{L} ||\nabla f(x_t)||^2 + \frac{1}{2L} ||\nabla f(x_t)||^2
-$$
+```
 [04:18] Sommando i termini simili contenenti la norma del gradiente, si ottiene la relazione finale, che dimostra la condizione di decrescita sufficiente:
-$$
+```math
 f(x_{t+1}) \le f(x_t) - \frac{1}{2L} ||\nabla f(x_t)||^2
-$$
+```
 ### Caso 3: Funzione Convessa e L-smooth
 #### Ipotesi e Tasso di Convergenza
 [04:25] Si considera ora il caso di una funzione che è contemporaneamente convessa e L-smooth.
 [04:30] Mentre il risultato precedente mostrava una decrescita tra iterazioni consecutive, l'obiettivo qui è dimostrare che, dopo $T$ iterazioni, l'errore all'ultima iterata è limitato da una costante che dipende dal numero di iterazioni e dalla distanza iniziale dalla soluzione. La disuguaglianza da dimostrare è:
-$$
+```math
 f(x_T) - f(x^*) \le \frac{L ||x_1 - x^*||^2}{2T}
-$$
+```
 [04:46] Assumendo, come nel primo caso, che la distanza iniziale dalla soluzione sia limitata da una costante $R$ (cioè $||x_1 - x^*|| \le R$), il risultato può essere riscritto come:
-$$
+```math
 f(x_T) - f(x^*) \le \frac{L R^2}{2T}
-$$
+```
 [04:56] Se si desidera raggiungere una tolleranza $\epsilon$, il numero di iterazioni $T$ necessario per garantire $f(x_T) - f(x^*) \le \epsilon$ è dell'ordine di:
-$$
+```math
 T \approx \frac{L R^2}{2\epsilon}
-$$
+```
 [05:04] La differenza fondamentale rispetto al primo caso (gradiente limitato) è che il numero di iterazioni è ora proporzionale a $1/\epsilon$, anziché a $1/\epsilon^2$. L'aggiunta dell'ipotesi di L-smoothness ha quindi permesso di ottenere un tasso di convergenza significativamente migliore.
 #### Dimostrazione del Risultato
 [05:15] La dimostrazione parte nuovamente dall'analisi di base, utilizzando un passo di apprendimento $\gamma = 1/L$.
 [05:20] Si sfrutta la condizione di decrescita sufficiente, che può essere riscritta per fornire un limite superiore alla norma del gradiente in funzione della decrescita della funzione obiettivo:
-$$
+```math
 ||\nabla f(x_t)||^2 \le 2L (f(x_t) - f(x_{t+1}))
-$$
+```
 [05:29] Partendo dalla disuguaglianza fondamentale derivata dalla convessità, $f(x_t) - f(x^*) \le \nabla f(x_t)^T(x_t - x^*)$, e sommando su tutte le iterazioni da $t=1$ a $T$, si ottiene:
-$$
+```math
 \sum_{t=1}^{T} (f(x_t) - f(x^*)) \le \sum_{t=1}^{T} \nabla f(x_t)^T(x_t - x^*)
-$$
+```
 [05:35] L'idea chiave della dimostrazione consiste nel sommare la condizione di decrescita sufficiente su tutte le iterazioni.
 [05:40] Questa operazione porta a una somma telescopica. Sommando i termini $f(x_t) - f(x_{t+1})$ per $t$ da 1 a $T$, i termini intermedi si cancellano a vicenda.
 [05:50] Il risultato della somma telescopica è la differenza tra il valore della funzione alla prima iterazione e quello all'iterazione $T+1$:
-$$
+```math
 \sum_{t=1}^{T} (f(x_t) - f(x_{t+1})) = f(x_1) - f(x_{T+1})
-$$
+```
 Poiché $x^*$ è il punto di minimo, si ha $f(x^*) \le f(x_{T+1})$. Di conseguenza, la somma può essere maggiorata come segue: $f(x_1) - f(x_{T+1}) \le f(x_1) - f(x^*)$.
 [06:00] Combinando i vari passaggi, si ottiene un limite per la media dei gradienti.
 [06:05] Questo limite viene inserito nell'equazione originale dell'analisi di base.
@@ -157,40 +157,40 @@ Poiché $x^*$ è il punto di minimo, si ha $f(x^*) \le f(x_{T+1})$. Di conseguen
 [06:20] Anche in questo passaggio si presenta una somma telescopica, il cui risultato finale è limitato superiormente da $\frac{L}{2} ||x_1 - x^*||^2$.
 [06:28] Grazie alla condizione di decrescita sufficiente, sappiamo che la sequenza dei valori funzionali $f(x_t)$ è decrescente, ovvero $f(x_{t+1}) \le f(x_t)$. Questo implica che $f(x_T)$ è il valore più piccolo tra tutti quelli calcolati durante le $T$ iterazioni.
 [06:39] Di conseguenza, la somma degli errori funzionali può essere minorata come segue:
-$$
+```math
 \sum_{t=1}^{T} (f(x_t) - f(x^*)) \ge T (f(x_T) - f(x^*))
-$$
+```
 [06:48] Combinando tutti questi risultati, si giunge alla disuguaglianza finale:
-$$
+```math
 f(x_T) - f(x^*) \le \frac{L ||x_1 - x^*||^2}{2T}
-$$
+```
 Questo limite mostra come l'errore all'ultima iterazione dipenda dalla distanza iniziale dalla soluzione e decresca linearmente con il numero di iterazioni $T$.
 ### Caso 4: Funzione $\mu$-fortemente Convessa e L-smooth
 #### Ipotesi e Risultati Principali
 [07:00] Si introduce un'ulteriore e più stringente condizione sulla funzione: la $\mu$-forte convessità.
 - **Definizione di Funzione $\mu$-fortemente Convessa**: Una funzione $f$ si dice $\mu$-fortemente convessa se esiste una costante $\mu > 0$ tale che la seguente disuguaglianza è valida per ogni coppia di punti $x, y$:
-  $$
-  f(y) \ge f(x) + \nabla f(x)^T(y-x) + \frac{\mu}{2}||y-x||^2
-  $$
+  ```math
+f(y) \ge f(x) + \nabla f(x)^T(y-x) + \frac{\mu}{2}||y-x||^2
+```
   Questa condizione implica che la funzione è limitata inferiormente da una parabola quadratica.
 [07:05] In questo caso, si ottengono due risultati fondamentali: un limite sulla distanza tra le iterate e la soluzione ottima, e un limite sulla differenza dei valori funzionali.
 [07:13] Si dimostra che la distanza al quadrato tra l'iterata $x_{t+1}$ e la soluzione $x^*$ si riduce a ogni passo di un fattore costante:
-$$
+```math
 ||x_{t+1} - x^*||^2 \le \left(1 - \frac{\mu}{L}\right) ||x_t - x^*||^2
-$$
+```
 Il rapporto $\kappa = L/\mu$ è noto come **numero di condizionamento** del problema di ottimizzazione.
 [07:25] Sfruttando questa relazione di contrazione, si può dimostrare che il numero di passi $T$ richiesto per raggiungere una data tolleranza $\epsilon$ è dell'ordine di:
-$$
+```math
 T \approx \kappa \log\left(\frac{1}{\epsilon}\right)
-$$
+```
 Questo tipo di convergenza, detta lineare (o geometrica), è molto più rapida di quelle viste in precedenza.
 #### Il Concetto di Numero di Condizionamento
 [07:35] Il numero di condizionamento è un concetto centrale in analisi numerica.
 [07:41] Per un problema numerico generico, che può essere rappresentato in forma astratta come $F(x, d) = 0$ (dove $x$ è l'incognita e $d$ sono i dati), il numero di condizionamento quantifica la sensibilità della soluzione $x$ a piccole variazioni (perturbazioni) nei dati $d$.
 [08:00] Un esempio classico è quello dei sistemi di equazioni lineari $Ax=b$. Per una matrice quadrata e invertibile $A$, il numero di condizionamento è definito come:
-$$
+```math
 \kappa(A) = ||A|| \cdot ||A^{-1}||
-$$
+```
 dove la norma può essere una qualsiasi norma matriciale indotta. Questo numero è sempre maggiore o uguale a 1.
 [08:10] Un numero di condizionamento elevato indica che il problema è "mal condizionato": piccole perturbazioni nei dati di input (ad esempio, nel vettore $b$ o nella matrice $A$) possono provocare grandi variazioni nella soluzione $x$.
 [08:18] La velocità di convergenza di molti metodi iterativi, come il metodo del gradiente o il metodo del gradiente coniugato, dipende fortemente dal numero di condizionamento della matrice del sistema. Per il metodo del gradiente, la dipendenza è da $\kappa(A)$, mentre per il gradiente coniugato, un metodo più avanzato, è da $\sqrt{\kappa(A)}$.
@@ -198,51 +198,51 @@ dove la norma può essere una qualsiasi norma matriciale indotta. Questo numero 
 [08:50] Un esempio famoso di matrice mal condizionata è la matrice di Hilbert, per la quale una minima perturbazione nel termine noto $b$ può produrre una soluzione completamente diversa da quella attesa.
 #### Dimostrazione dei Risultati
 [09:08] La dimostrazione si basa su una delle relazioni ottenute nell'analisi di base, che lega il prodotto scalare del gradiente con la differenza tra l'iterata corrente e la soluzione ottima. Questa relazione, che indichiamo come BA1 (*Basic Analysis 1*), è:
-$$
+```math
 \nabla f(x_t)^T(x_t - x^*) = \frac{1}{2\gamma} (||x_t - x^*||^2 - ||x_{t+1} - x^*||^2) + \frac{\gamma}{2} ||\nabla f(x_t)||^2
-$$
+```
 [09:25] Si utilizza inoltre la definizione di $\mu$-forte convessità. Scegliendo $x = x_t$ e $y = x^*$ nella disuguaglianza di forte convessità e riarrangiando i termini, si ottiene un limite inferiore per il prodotto scalare $\nabla f(x_t)^T(x_t - x^*)$. Questa relazione, che indichiamo come SC2 (*Strong Convexity 2*), è:
-$$
+```math
 \nabla f(x_t)^T(x_t - x^*) \ge f(x_t) - f(x^*) + \frac{\mu}{2} ||x_t - x^*||^2
-$$
+```
 [09:50] Combinando le due condizioni BA1 e SC2, e dopo alcuni passaggi algebrici, si ottiene una relazione che limita l'errore all'iterazione $t+1$:
-$$
+```math
 ||x_{t+1} - x^*||^2 \le (1 - \mu\gamma) ||x_t - x^*||^2 - 2\gamma(f(x_t) - f(x^*)) + \gamma^2 ||\nabla f(x_t)||^2
-$$
+```
 [10:05] In questa disuguaglianza, il termine $(1 - \mu\gamma) ||x_t - x^*||^2$ rappresenta il fattore di contrazione desiderato. Gli ultimi due termini, $- 2\gamma(f(x_t) - f(x^*)) + \gamma^2 ||\nabla f(x_t)||^2$, possono essere visti come un "rumore" che perturba la convergenza.
 [10:12] Il fattore $(1 - \mu\gamma)$, se minore di 1, garantisce una riduzione dell'errore a ogni passo. L'obiettivo è dimostrare che la somma dei termini di "rumore" è negativa o nulla, in modo da non ostacolare la convergenza.
 [10:25] Scegliendo il passo di apprendimento $\gamma = 1/L$, si possono sfruttare le proprietà della funzione.
 [10:30] Dalle proprietà di L-smoothness e convessità, si può derivare la seguente disuguaglianza, che lega l'errore funzionale alla norma del gradiente:
-$$
+```math
 f(x_t) - f(x^*) \ge \frac{1}{2L} ||\nabla f(x_t)||^2
-$$
+```
 [10:48] Sostituendo questa relazione nel termine di "rumore" e utilizzando $\gamma = 1/L$, si ha:
-$$
+```math
 \text{Rumore} = -\frac{2}{L}(f(x_t) - f(x^*)) + \frac{1}{L^2} ||\nabla f(x_t)||^2
-$$
+```
 Utilizzando la disuguaglianza $f(x_t) - f(x^*) \ge \frac{1}{2L} ||\nabla f(x_t)||^2$, si ottiene:
-$$
+```math
 \text{Rumore} \le -\frac{2}{L}\left(\frac{1}{2L} ||\nabla f(x_t)||^2\right) + \frac{1}{L^2} ||\nabla f(x_t)||^2 = -\frac{1}{L^2} ||\nabla f(x_t)||^2 + \frac{1}{L^2} ||\nabla f(x_t)||^2 = 0
-$$
+```
 Una derivazione più attenta mostra che il termine di rumore è strettamente non positivo.
 [11:10] Poiché il termine di rumore è non positivo, la disuguaglianza per l'errore si semplifica notevolmente:
-$$
+```math
 ||x_{t+1} - x^*||^2 \le (1 - \mu\gamma) ||x_t - x^*||^2
-$$
+```
 [11:18] Sostituendo il valore scelto per il passo di apprendimento, $\gamma = 1/L$, si ottiene la relazione di contrazione lineare dell'errore:
-$$
+```math
 ||x_{t+1} - x^*||^2 \le \left(1 - \frac{\mu}{L}\right) ||x_t - x^*||^2
-$$
+```
 [11:24] Applicando questa relazione ricorsivamente per $T$ iterazioni, si ottiene la convergenza lineare della distanza delle iterate dalla soluzione:
-$$
+```math
 ||x_T - x^*||^2 \le \left(1 - \frac{\mu}{L}\right)^T ||x_1 - x^*||^2
-$$
+```
 [11:33] Per dimostrare il secondo risultato, relativo alla convergenza dei valori funzionali, si utilizza una caratterizzazione della L-smoothness.
 [11:38] Si osserva che il gradiente calcolato nel punto di minimo è nullo, ovvero $\nabla f(x^*) = 0$.
 [11:42] Sfruttando la proprietà di L-smoothness, si può dimostrare la seguente relazione:
-$$
+```math
 f(x_t) - f(x^*) \le \frac{L}{2} ||x_t - x^*||^2
-$$
+```
 Sostituendo in questa disuguaglianza il risultato ottenuto per la convergenza della distanza delle iterate, si dimostra che anche i valori funzionali convergono linearmente al valore ottimo.
 ### Riepilogo dei Tassi di Convergenza
 [12:00] La tabella seguente riassume i tassi di convergenza ottenuti per il metodo del gradiente in base alle diverse ipotesi sulla funzione obiettivo $f$. Il tasso è espresso come il numero di iterazioni $T$ necessarie per raggiungere una tolleranza $\epsilon$.
@@ -262,9 +262,9 @@ Sostituendo in questa disuguaglianza il risultato ottenuto per la convergenza de
 [13:02] L'idea fondamentale della ricerca lineare è scegliere il passo di apprendimento $\gamma$ in modo "intelligente" a ogni iterazione dell'algoritmo.
 [13:07] A differenza dell'analisi teorica, dove $\gamma$ è una costante, in questo approccio $\gamma$ diventa adattivo: a ogni iterazione $k$, si sceglie un passo specifico $\gamma_k$.
 [13:16] Partendo dall'iterata corrente $x_k$ e dalla direzione di discesa $d_k = -\nabla f(x_k)$, si cerca il valore di $\gamma$ che minimizza la funzione monodimensionale $\phi(\gamma)$, definita come il valore della funzione obiettivo lungo la direzione di discesa:
-$$
+```math
 \phi(\gamma) = f(x_k + \gamma d_k)
-$$
+```
 [13:25] Esistono due strategie principali per eseguire questa minimizzazione:
 1.  **Ricerca Lineare Esatta (*Exact Line Search*)**: Trova il valore di $\gamma$ che minimizza esattamente la funzione $\phi(\gamma)$.
 2.  **Ricerca Lineare Inesatta (*Inexact Line Search*) o Backtracking**: Cerca un valore approssimato di $\gamma$ che garantisca una diminuzione sufficiente del valore della funzione, senza richiedere la minimizzazione esatta.
@@ -272,9 +272,9 @@ $$
 [13:40] L'obiettivo della ricerca lineare esatta è trovare il valore $\gamma > 0$ che minimizza la funzione $\phi(\gamma) = f(x_k + \gamma d_k)$.
 [13:48] Poiché $x_k$ e $d_k$ sono noti all'iterazione $k$, $\phi(\gamma)$ è una funzione della sola variabile $\gamma$.
 [14:05] Per trovare il minimo, si calcola la derivata prima di $\phi(\gamma)$ rispetto a $\gamma$ e la si pone uguale a zero. Applicando la regola della catena, si ottiene:
-$$
+```math
 \phi'(\gamma) = \nabla f(x_k + \gamma d_k)^T d_k = 0
-$$
+```
 [14:15] Poiché la nuova iterata è $x_{k+1} = x_k + \gamma d_k$, la condizione $\phi'(\gamma)=0$ ha un'interpretazione geometrica chiara: il gradiente calcolato nella nuova iterata, $\nabla f(x_{k+1})$, deve essere ortogonale alla direzione di ricerca precedente, $d_k$.
 [14:26] **Vantaggi e Svantaggi**:
 - **Vantaggi**: Se la funzione $f$ ha una forma semplice (ad esempio, quadratica), è possibile trovare una formula analitica chiusa per il $\gamma$ ottimale. Teoricamente, questo metodo garantisce la massima riduzione del valore funzionale a ogni passo e, di conseguenza, converge nel minor numero di iterazioni.
@@ -288,26 +288,26 @@ $$
     - $\tau$ è un fattore di riduzione (*shrink factor*) utilizzato per diminuire il passo.
 2.  Si inizializza il passo di apprendimento con la stima iniziale: $\gamma = \bar{\gamma}$.
 3.  Si verifica la seguente condizione, nota come **condizione di Armijo**:
-    $$
-    f(x_k + \gamma d_k) > f(x_k) + c \gamma \nabla f(x_k)^T d_k
-    $$
+    ```math
+f(x_k + \gamma d_k) > f(x_k) + c \gamma \nabla f(x_k)^T d_k
+```
     Poiché la direzione di discesa è $d_k = -\nabla f(x_k)$, la condizione può essere riscritta come:
-    $$
-    f(x_k - \gamma \nabla f(x_k)) > f(x_k) - c \gamma ||\nabla f(x_k)||^2
-    $$
+    ```math
+f(x_k - \gamma \nabla f(x_k)) > f(x_k) - c \gamma ||\nabla f(x_k)||^2
+```
     Questa condizione verifica se il passo $\gamma$ produce una diminuzione "sufficiente" del valore della funzione. Il lato destro rappresenta una retta con pendenza inferiore a quella della funzione nel punto $x_k$.
 4.  **Ciclo**: Finché la condizione di Armijo è vera, significa che il passo $\gamma$ è troppo grande e non garantisce una decrescita adeguata. Si riduce quindi $\gamma$ moltiplicandolo per il fattore di riduzione $\tau$:
-    $$
-    \gamma \leftarrow \tau \gamma
-    $$
+    ```math
+\gamma \leftarrow \tau \gamma
+```
 5.  **Uscita**: Quando la condizione di Armijo diventa falsa, si è trovato un valore di $\gamma$ adeguato. Si imposta il passo per l'iterazione corrente del gradiente, $\gamma_k$, a questo valore di $\gamma$ e si procede con l'aggiornamento di $x_k$ a $x_{k+1}$.
 [16:25] In sintesi, all'interno di ogni iterazione del metodo del gradiente, si esegue un ciclo di sotto-iterazioni (il backtracking) per calcolare un passo di apprendimento $\gamma_k$ appropriato per l'aggiornamento successivo.
 ### Introduzione alla Scelta del Passo di Apprendimento (Gamma)
 [00:00] L'algoritmo di *backtracking line search* è una delle tecniche disponibili nelle librerie di apprendimento automatico per la scelta del parametro $\gamma$. Un'altra possibilità consiste nell'utilizzare una cosiddetta **schedulazione** per $\gamma$.
 [00:06] L'idea di base della schedulazione è quella di ridurre progressivamente il valore del passo di apprendimento man mano che l'algoritmo si avvicina alla soluzione, in modo da poterla approssimare con maggiore precisione. Un esempio pratico di questa strategia consiste nel definire il passo $\gamma$ all'iterazione $k$ come inversamente proporzionale a $k$:
-$$
+```math
 \gamma_k = \frac{1}{k}
-$$
+```
 Questa è solo una delle molteplici scelte possibili per la schedulazione del passo di apprendimento.
 ### Analisi del Backtracking Line Search
 #### Vantaggi del Backtracking Line Search
@@ -350,9 +350,9 @@ Questa è solo una delle molteplici scelte possibili per la schedulazione del pa
 2.  Si esegue un passo standard di discesa del gradiente, ottenendo un punto intermedio $y_k = x_k - \gamma \nabla f(x_k)$, che potrebbe trovarsi al di fuori di $C$.
 3.  Si proietta questo punto intermedio sull'insieme ammissibile $C$ per ottenere la nuova iterata $x_{k+1}$.
 [03:41] L'intera operazione di aggiornamento può essere scritta in una singola riga:
-$$
+```math
 x_{k+1} = \text{proj}_C (x_k - \gamma \nabla f(x_k))
-$$
+```
 dove $\text{proj}_C$ indica l'operatore di proiezione sull'insieme $C$.
 [03:53] Un punto cruciale per l'efficienza di questo metodo è che il calcolo della proiezione non deve essere computazionalmente troppo oneroso.
 ### Esempi di Proiezione
@@ -362,9 +362,9 @@ dove $\text{proj}_C$ indica l'operatore di proiezione sull'insieme $C$.
 [04:18] Se il punto ottenuto dopo il passo di discesa, $y$, si trova all'interno o sulla frontiera della palla (ovvero $||y||_2 \le r$), allora il punto è già ammissibile e la sua proiezione coincide con il punto stesso.
 [04:31] Se, invece, il punto $y$ si trova all'esterno della palla ($||y||_2 > r$), la proiezione consiste nel "restringere" la lunghezza del vettore $y$ per riportarlo sulla frontiera, mantenendone la direzione. Questo si ottiene riscalando il vettore $y$ per il fattore $r/||y||_2$.
 [04:46] La formula compatta per la proiezione sulla palla L2 di raggio $r$ è:
-$$
+```math
 \text{proj}_C(y) = y \cdot \min\left(1, \frac{r}{||y||_2}\right)
-$$
+```
 Questa operazione è computazionalmente molto semplice, poiché richiede solo il calcolo della norma del vettore e una moltiplicazione scalare.
 [05:00] Questo risultato è coerente con l'interpretazione della regolarizzazione L2, che mira a trovare soluzioni con norma piccola o limitata da un valore $r$.
 [05:13] Come già osservato, questo tipo di vincolo non promuove la sparsità della soluzione, ma favorisce pesi di piccola entità.
@@ -375,9 +375,9 @@ Questa operazione è computazionalmente molto semplice, poiché richiede solo il
 ### Collegamento tra Ottimizzazione Vincolata e Regolarizzazione
 [05:50] Il problema di ottimizzazione vincolata, che consiste nel minimizzare $f(x)$ con il vincolo $x \in C$, può essere risolto con il metodo del gradiente proiettato.
 [06:07] La controparte di questo problema è il problema di minimizzazione regolarizzata, formulato come:
-$$
+```math
 \min_x f(x) + \lambda \Omega(x)
-$$
+```
 dove:
 - $f(x)$ è la funzione di costo.
 - $\Omega(x)$ è un termine di regolarizzazione che penalizza soluzioni indesiderate (es. $\Omega(x) = ||x||_p$).
@@ -407,22 +407,22 @@ Questo tipo di problema può essere risolto con una variante del metodo del grad
 [08:42] Si introduce ora il metodo di ottimizzazione più importante nel contesto dell'apprendimento automatico: il **gradiente discendente stocastico** (SGD, *Stochastic Gradient Descent*).
 [08:50] L'idea fondamentale dell'SGD nasce dalla struttura tipica delle funzioni di costo utilizzate nell'apprendimento automatico.
 [09:00] Come visto in precedenza, la funzione di costo globale $F(x)$ è tipicamente definita come una media (o una somma) di funzioni di costo elementari $f_i(x)$, dove ciascuna $f_i(x)$ è calcolata su un singolo campione del dataset. La forma tipica è:
-$$
+```math
 F(x) = \frac{1}{N} \sum_{i=1}^{N} f_i(x)
-$$
+```
 dove $N$ è il numero totale di campioni nel dataset e $f_i(x)$ è la funzione di costo (ad esempio, l'errore quadratico) valutata sull'$i$-esimo campione.
 ### Differenza tra Gradiente Discendente e Gradiente Discendente Stocastico
 [09:20] La regola di aggiornamento del gradiente discendente standard (spesso chiamato *batch gradient descent*) è:
-$$
+```math
 x_{t+1} = x_t - \gamma \nabla F(x_t) = x_t - \gamma \frac{1}{N} \sum_{i=1}^{N} \nabla f_i(x_t)
-$$
+```
 Nel gradiente discendente stocastico, invece di calcolare il gradiente dell'intera funzione di costo $F$, che richiede di processare tutti gli $N$ campioni, si approssima il gradiente globale utilizzando una sola delle sue componenti.
 [09:33] Ad ogni iterazione $t$, si seleziona casualmente un indice $i$ dall'insieme $\{1, 2, \dots, N\}$, e si approssima il gradiente vero $\nabla F(x_t)$ con il gradiente della singola componente $\nabla f_i(x_t)$.
 [09:44] Ad esempio, se la funzione di costo è una somma di 100 termini, si sceglie casualmente un indice (es. 55), si calcola il gradiente solo di quel singolo termine e si utilizza questa approssimazione per aggiornare i parametri.
 [09:56] La "stocasticità" del metodo deriva proprio da questa selezione casuale dell'indice a ogni iterazione. La regola di aggiornamento dell'SGD è quindi:
-$$
+```math
 x_{t+1} = x_t - \gamma \nabla f_i(x_t)
-$$
+```
 dove $i$ è un indice scelto casualmente a ogni passo $t$.
 ### Vantaggi Computazionali dell'SGD
 [10:08] Il motivo principale per cui si adotta questo approccio è di natura computazionale. Nelle applicazioni reali, il numero di campioni $N$ può essere enorme (milioni o miliardi). Calcolare il gradiente completo $\nabla F$ a ogni iterazione, che richiede un passaggio su tutto il dataset, diventa proibitivamente costoso.
@@ -432,9 +432,9 @@ dove $i$ è un indice scelto casualmente a ogni passo $t$.
 #### Ipotesi Fondamentale: Stimatore Imparziale del Gradiente
 [10:44] Si denota con $g_t = \nabla f_i(x_t)$ il gradiente stocastico calcolato all'iterazione $t$. L'ipotesi di fondamentale importanza per l'analisi della convergenza dell'SGD è che questo gradiente stocastico sia uno **stimatore imparziale** (*unbiased estimator*) del vero gradiente.
 [10:55] Matematicamente, ciò significa che il valore atteso del gradiente stocastico $g_t$, condizionato al valore dell'iterata $x_t$, è uguale al gradiente completo. Se la selezione dell'indice $i$ è uniforme, si ha:
-$$
+```math
 \mathbb{E}_{i}[g_t | x_t = x] = \mathbb{E}_{i}[\nabla f_i(x)] = \frac{1}{N} \sum_{i=1}^{N} \nabla f_i(x) = \nabla F(x)
-$$
+```
 Questa proprietà garantisce che, in media, la direzione di aggiornamento dell'SGD coincida con la direzione del gradiente vero.
 #### Convergenza in Valore Atteso
 [11:10] Un'altra conseguenza della natura stocastica dell'algoritmo è che i risultati di convergenza non sono più validi puntualmente (cioè per una singola traiettoria), ma lo diventano **in valore atteso** (*in expectation*).
@@ -476,15 +476,15 @@ Questa proprietà garantisce che, in media, la direzione di aggiornamento dell'S
 [00:00] L'argomento dell'arresto anticipato (*early stopping*) è stato già trattato, ma ora viene contestualizzato con un esempio significativo legato al metodo della discesa del gradiente stocastico.
 [00:13] Si consideri un semplice problema di regressione lineare. La funzione di costo globale, $F(x)$, è la somma di $n$ funzioni di costo elementari, $f_i(x)$.
 [00:24] Ciascuna funzione di costo elementare $f_i(x)$, associata all'$i$-esimo campione, ha la forma di una parabola:
-$$
+```math
 f_i(x) = \frac{1}{2} (a_i x - b_i)^2
-$$
+```
 dove $x$ è il parametro scalare da ottimizzare, mentre $a_i$ e $b_i$ sono costanti specifiche del campione.
 [00:36] Il punto di minimo di una singola parabola $f_i(x)$ si trova annullando il termine quadratico, ovvero per $x_i = \frac{b_i}{a_i}$.
 [00:43] Il minimo globale della funzione di costo complessiva $F(x) = \sum_{i=1}^n f_i(x)$ si trova nel punto $x^*$ che corrisponde a una media pesata dei minimi individuali:
-$$
+```math
 x^* = \frac{\sum_{i=1}^n a_i b_i}{\sum_{i=1}^n a_i^2}
-$$
+```
 Questo valore si ottiene calcolando il gradiente della funzione $F(x)$ e ponendolo uguale a zero.
 ### Interpretazione Grafica del Gradiente Stocastico
 [00:54] La situazione può essere visualizzata graficamente. Le parabole tratteggiate rappresentano le singole funzioni di costo elementari $f_i(x)$, mentre la parabola nera rappresenta la funzione di costo globale $F(x)$, che è la loro somma.
@@ -512,9 +512,9 @@ Questo valore si ottiene calcolando il gradiente della funzione $F(x)$ e ponendo
 [04:00] Se utilizzato con un tasso di apprendimento $\gamma$ costante, il gradiente stocastico non può convergere esattamente al minimo $x^*$, ma continuerà a "rimbalzare" (*bounce around*) nelle sue vicinanze.
 [04:08] Esiste un risultato teorico che formalizza questo comportamento, analizzando la distanza al quadrato (in valore atteso) tra l'iterata $x_t$ e la soluzione ottima $x^*$.
 [04:15] Per una funzione fortemente convessa, la disuguaglianza è la seguente:
-$$
+```math
 \mathbb{E}[\|x_t - x^*\|^2] \leq (1 - \gamma \mu)^t \|x_0 - x^*\|^2 + \frac{\gamma B^2}{\mu}
-$$
+```
 dove:
 - $\mathbb{E}[\cdot]$ indica il valore atteso.
 - $x_t$ è la soluzione all'iterazione $t$.
@@ -539,14 +539,14 @@ dove:
 [05:46] Ad esempio, se si dispone di un milione di campioni, invece di usarne uno solo o tutti, si possono selezionare casualmente 10, 32 o 128 campioni e calcolare il gradiente medio su questo sottoinsieme.
 [05:58] La dimensione del mini-batch, $m$, è un iperparametro del modello che deve essere scelto.
 [06:10] Una volta fissata la dimensione $m$, il gradiente approssimato $\tilde{g}_t$ viene calcolato come la media dei gradienti relativi ai campioni nel mini-batch selezionato all'iterazione $t$:
-$$
+```math
 \tilde{g}_t = \frac{1}{m} \sum_{i \in \mathcal{I}_t} \nabla f_i(x_t)
-$$
+```
 dove $\mathcal{I}_t$ è l'insieme degli indici degli $m$ campioni scelti casualmente.
 [06:19] La regola di aggiornamento utilizza questo gradiente mediato:
-$$
+```math
 x_{t+1} = x_t - \gamma \tilde{g}_t
-$$
+```
 ### Vantaggi del Metodo Mini-Batch
 [06:26] L'approccio mini-batch offre due vantaggi fondamentali.
 [06:28] **1. Riduzione della Varianza**: Utilizzando una media su $m$ campioni invece di un singolo campione, si riduce la varianza dell'approssimazione del gradiente. La stima $\tilde{g}_t$ del gradiente vero è quindi più accurata rispetto a quella ottenuta con l'SGD puro, portando a una convergenza generalmente più rapida e stabile.
