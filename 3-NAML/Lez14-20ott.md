@@ -29,7 +29,11 @@ dove:
 - $U$ è una matrice ortogonale $n \times n$,
 - $V$ è una matrice ortogonale $n \times n$,
 - $\Sigma$ è una matrice diagonale $n \times n$ contenente i valori singolari di $M$.
-[02:00] Nel caso in cui $\operatorname{rank}(M) = r$, la matrice diagonale $\Sigma$ contiene solo $r$ valori singolari non nulli. Di conseguenza:
+[02:00] Nel caso in cui
+```math
+\mathrm{rank}(M) = r
+```
+, la matrice diagonale $\Sigma$ contiene solo $r$ valori singolari non nulli. Di conseguenza:
 - in $\Sigma$ compaiono $r$ valori significativi,
 - in $U$ e $V$ contano solo i primi $r$ vettori singolari (colonne), mentre gli altri sono associati a valori singolari nulli o trascurabili e non sono rilevanti per descrivere il contenuto informativo del dato.
 [02:15] Si potrebbe pensare che questi $r$ vettori in $U$ e in $V$ richiedano $r \cdot n$ parametri ciascuno per essere specificati. Tuttavia non è così, perché i vettori singolari sono:
@@ -65,7 +69,7 @@ cioè dell’ordine di $10^8$, molto più piccolo di $10^{12}$. Questo evidenzia
 [04:20] Gli elementi $X_{ij}$ tali che $(i,j)\in\Omega$ costituiscono le osservazioni disponibili. Si indica con $|\Omega| = m$ il numero di elementi osservati.
 [04:30] L’obiettivo è ricostruire la matrice completa $X$ assumendo che essa sia a rango basso. Formalmente si suppone che:
 ```math
-\operatorname{rank}(X) = r \ll \min(m,d).
+\mathrm{rank}(X) = r \ll \min(m,d).
 ```
 Questa ipotesi esprime il fatto che la matrice ha una struttura intrinseca di bassa complessità rispetto alle sue dimensioni.
 [04:40] Per formulare il problema in modo compatto, si introducono due definizioni utili.
@@ -91,7 +95,7 @@ Questa quantità indica quale percentuale della matrice è effettivamente nota.
 ## Formulazione come problema di rango minimo e difficoltà di ottimizzazione
 [05:40] Si cerca, tra tutte le matrici che coincidono con le osservazioni nelle posizioni in $\Omega$, quella che ha rango minimo. Formalmente si pone il seguente problema:
 ```math
-\min_{M \in \mathbb{R}^{m \times d}} \operatorname{rank}(M)
+\min_{M \in \mathbb{R}^{m \times d}} \mathrm{rank}(M)
 ```
 soggetto al vincolo
 ```math
@@ -105,7 +109,11 @@ M_{ij} = X_{ij}, \quad \text{per tutti } (i,j) \in \Omega.
 [06:05] Tuttavia il problema così posto è estremamente difficile. La funzione rango è una funzione intera, non continua e non convessa, e il problema di minimizzarla sotto vincoli lineari appartiene alla classe dei problemi NP-hard. Ciò significa che non esiste, in generale, un algoritmo efficiente (in tempo polinomiale) che ne trovi la soluzione esatta per matrici di grandi dimensioni.
 [06:20] È quindi necessario individuare un modo per rendere il problema trattabile, pur mantenendo l’idea fondamentale: trovare una matrice a rango basso coerente con le osservazioni disponibili.
 ## Convessità, non convessità e ruolo del rango
-[06:30] La difficoltà del problema risiede nella non convessità della funzione $\operatorname{rank}(M)$. Per comprendere questo aspetto, è utile ricordare la differenza tra funzioni convesse e non convesse.
+[06:30] La difficoltà del problema risiede nella non convessità della funzione 
+```math
+\mathrm{rank}(M).
+```
+Per comprendere questo aspetto, è utile ricordare la differenza tra funzioni convesse e non convesse.
 [06:30] Una funzione convessa ha normalmente un unico minimo globale e una forma che rende l’ottimizzazione più semplice. Metodi iterativi come la discesa del gradiente possono convergere a questo minimo globale con garanzie teoriche, sotto opportune condizioni.
 [06:45] Una funzione non convessa può invece avere molti minimi locali e un paesaggio di ottimizzazione complicato. Metodi di discesa del gradiente possono fermarsi in minimi locali che non sono il minimo globale, e il risultato dipende fortemente dal punto iniziale. La funzione rango è un esempio tipico di funzione non convessa, poiché varia a salti e non in modo continuo.
 [06:45] Un esempio di funzionale convesso è quello che compare nei metodi ai minimi quadrati per la risoluzione di sistemi lineari:
@@ -138,7 +146,7 @@ Per ogni coppia $(x,y)$ si può calcolare il rango di $M(x,y)$ e rappresentarlo 
 Questa norma misura quindi la somma delle ampiezze principali della matrice, rappresentate dai valori singolari.
 [08:30] Un’espressione equivalente della norma nucleare è:
 ```math
-\|M\|_* = \operatorname{trace}\bigl(\sqrt{M^\top M}\bigr),
+\|M\|_* = \mathrm{trace}\bigl(\sqrt{M^\top M}\bigr),
 ```
 dove:
 - $M^\top M$ è una matrice simmetrica semidefinita positiva,
@@ -263,14 +271,18 @@ x + \tau, & x < -\tau.
 ```math
 M = U \Sigma V^\top,
 ```
-dove $\Sigma = \operatorname{diag}(\sigma_1, \sigma_2, \dots)$ è la matrice diagonale dei valori singolari.
+dove 
+```math
+\Sigma = \mathrm{diag}(\sigma_1, \sigma_2, \dots) 
+```
+ è la matrice diagonale dei valori singolari.
 [14:25] Si definisce l’operatore di *singular value thresholding* $D_\tau(M)$ come:
 ```math
 D_\tau(M) = U \, S_\tau(\Sigma) \, V^\top,
 ```
 dove $S_\tau(\Sigma)$ è la matrice diagonale ottenuta applicando l’operatore scalare $s_\tau$ a ciascun valore singolare:
 ```math
-S_\tau(\Sigma) = \operatorname{diag}\bigl(s_\tau(\sigma_1), s_\tau(\sigma_2), \dots\bigr).
+S_\tau(\Sigma) = \mathrm{diag}\bigl(s_\tau(\sigma_1), s_\tau(\sigma_2), \dots\bigr).
 ```
 [14:40] L’operatore $D_\tau$:
 - riduce di una quantità $\tau$ i valori singolari maggiori di $\tau$,
@@ -451,8 +463,8 @@ dove:
 ### 2. Scelta tramite cross-validation
 [15:15] Una seconda strategia consiste nell’impiegare la cross-validation. In questo caso:
 - si fissa un intervallo di ricerca per $\tau$, ad esempio:
-  ```math
-\tau \in [1, 10 \sqrt{n d}];
+```math
+\tau \in [1, 10 \sqrt{n d}]
 ```
 - si definisce una griglia di possibili valori di $\tau$ in questo intervallo;
 - per ciascun valore di $\tau$ si esegue l’algoritmo e si valuta l’errore su un sottoinsieme dei dati usato per la validazione;
@@ -584,8 +596,8 @@ w = \sum_{i=1}^n (\alpha_i - \alpha_i^*) x_i.
 [32:05] Poiché $w$ è espresso come combinazione lineare dei dati $x_i$, è possibile introdurre una mappa di feature $\phi(x)$ e un kernel $K(x_i, x_j) = \langle \phi(x_i), \phi(x_j)\rangle$. In questo modo si possono affrontare problemi non lineari nello spazio originale dei dati, trattandoli come problemi lineari nello spazio delle feature.
 [32:25] In pratica:
 - si sostituisce il prodotto scalare $\langle w, x\rangle$ con una somma di kernel:
-  ```math
-f(x) = \sum_{i=1}^n (\alpha_i - \alpha_i^*) K(x_i, x) + b;
+```math
+f(x) = \sum_{i=1}^n (\alpha_i - \alpha_i^*) K(x_i, x) + b
 ```
 - i dati $x_i$ vengono implicitamente mappati nello spazio di feature tramite $\phi$, ma non è necessario calcolare esplicitamente $\phi$ grazie alla funzione kernel;
 - si mantiene la struttura matematica della SVR, ma la frontiera nel dominio originale può assumere forme non lineari.
