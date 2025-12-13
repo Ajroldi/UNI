@@ -35,6 +35,9 @@ In questo caso, si passa da uno spazio monodimensionale a uno bidimensionale.
 [06:30] Utilizzando un approccio lineare standard (in questo caso, una rete neurale con funzione di attivazione lineare, analoga ai minimi quadrati classici), anche dopo molte iterazioni, il risultato è una linea retta che non separa efficacemente i due gruppi di dati.
 [07:00] Se però si aggiungono nuove caratteristiche, ottenute tramite una mappa delle caratteristiche, come $x_1^2$, $x_2^2$ e $x_1 x_2$, e si esegue lo stesso codice, si ottiene una rappresentazione perfetta del confine di separazione non lineare.
 [07:15] È importante notare che si sta ancora utilizzando una funzione di attivazione lineare. La capacità di trovare il confine non lineare non deriva da una funzione di attivazione non lineare, ma dall'arricchimento del vettore delle caratteristiche. Con la stessa architettura lineare, ma su dati trasformati, si ottiene una separazione corretta.
+
+![Feature mapping: esempi di arricchimento dello spazio delle caratteristiche](img/KM1\_page\_06.png)
+
 ## Capitolo 2: Formalizzazione della Ridge Regression con Kernel
 ### Il Problema di Ottimizzazione
 [08:15] Il passo successivo è formalizzare quanto descritto. Si applica una mappa delle caratteristiche $\phi$ al set di dati originale. Sul nuovo set di dati arricchito, si applica la "ridge regression", ovvero una regressione ai minimi quadrati con una regolarizzazione di norma $L_2$.
@@ -56,6 +59,9 @@ dove:
 1.  **Costo computazionale**: calcolare esplicitamente la matrice $\Phi$ può essere oneroso.
 2.  **Costo di memorizzazione**: memorizzare una matrice di grandi dimensioni richiede molta memoria.
 [10:30] Inoltre, la soluzione del problema richiede la risoluzione di un sistema lineare in cui la matrice è del tipo $\Phi^T \Phi$. Questa matrice avrebbe dimensioni $D \times D$, diventando ingestibile per valori di $D$ molto grandi.
+
+![Ridge regression: formulazione del problema e complessità computazionale](img/KM1\_page\_07.png)
+
 ### La Funzione Kernel e il "Kernel Trick"
 [10:45] L'idea per superare queste difficoltà è utilizzare la cosiddetta **funzione kernel**.
 [11:00] In pratica, una funzione kernel, indicata con $K$, calcola il prodotto scalare tra due vettori di caratteristiche arricchiti, $\phi(\mathbf{x}_i)$ e $\phi(\mathbf{x}_j)$, senza doverli calcolare esplicitamente.
@@ -80,9 +86,6 @@ K(\mathbf{x}, \mathbf{z}) = \exp\left(-\frac{\|\mathbf{x} - \mathbf{z}\|^2}{2\si
 ```
     dove $\sigma$ è un parametro che controlla la larghezza del kernel.
 [14:15] L'obiettivo è quindi passare dalla risoluzione del problema con la matrice esplicita $\Phi^T \Phi$ a una soluzione che sfrutti unicamente la funzione kernel.
-
-![Esempi di funzioni kernel (polinomiale, gaussiano/RBF)](img/KM1\_page\_02.png)
-
 ## Capitolo 3: Il Teorema del Rappresentatore e la Soluzione del Problema
 ### Il Teorema del Rappresentatore
 [14:30] Il fondamento teorico che giustifica il metodo Kernel è un risultato noto come **Teorema del Rappresentatore**. Qui ne viene presentata una versione semplificata, sufficiente per comprenderne l'idea di base.
@@ -161,6 +164,9 @@ dove:
 \boldsymbol{\alpha} = (U \Lambda U^T + \lambda I)^{-1} \mathbf{y} = U (\Lambda + \lambda I)^{-1} U^T \mathbf{y}
 ```
 Questa espressione permette di calcolare la soluzione in modo molto semplice, poiché richiede solo l'inversione di una matrice diagonale.
+
+![Decomposizione spettrale: proprietà e applicazioni alle matrici kernel](img/KM1\_page\_08.png)
+
 ### Predizione con il Modello Kernel
 [23:15] L'obiettivo finale non è solo costruire un modello che approssimi i dati, ma anche usarlo per fare previsioni su nuovi dati non visti. Ad esempio, dato un nuovo punto $\mathbf{x}^*$, si vuole calcolare il valore predetto dal modello, $y^*$.
 [24:00] Il modello di predizione è dato da:
@@ -293,6 +299,9 @@ M\pi = \pi
 [06:07] Sapendo che la coppia autovalore-autovettore ha le proprietà desiderate (l'autovalore è il più grande e l'autovettore è unico e positivo), ha senso cercare proprio questo autovettore $\pi$.
 ## Capitolo 6: Calcolo dell'Autovettore Dominante e Completamento di Matrici
 ### Calcolo dell'Autovettore: il Metodo delle Potenze
+
+![Power method: algoritmo iterativo per il calcolo dell'autovettore dominante](img/PR1\_page\_04.png)
+
 [06:15] Una domanda pratica è: come si calcola questa coppia autovalore-autovettore? Una possibilità è utilizzare il **metodo delle potenze** (power method).
 [06:20] L'idea del metodo delle potenze è di partire da una stima iniziale (guess) dell'autovettore.
 [06:25] In generale, data una matrice $A$ per cui si sa che esiste un autovalore dominante $\lambda_1$, ovvero un autovalore strettamente più grande in modulo di tutti gli altri ($|\lambda_1| > |\lambda_2| \ge \dots$), si procede come segue.
@@ -362,6 +371,9 @@ r \ll \min(n, d)
 ```
 [10:10] In altri termini, si ipotizza che sia possibile rappresentare le valutazioni di tutti gli utenti per tutti i film utilizzando solo $r$ "utenti rappresentativi" e $r$ "film rappresentativi".
 [10:20] L'algoritmo che verrà analizzato, basato sulla **decomposizione ai valori singolari** (Singular Value Decomposition, SVD), ha lo scopo di trovare queste due matrici fattore, ovvero gli utenti e i film rappresentativi.
+
+![SVD e matrix completion: fattorizzazione a basso rango per predizioni](img/KM1\_page\_09.png)
+
 [10:28] Una volta ottenute queste matrici, è possibile "riempire" le voci mancanti nella matrice originale.
 [10:32] Questo problema non è banale e richiede algoritmi di soluzione piuttosto complessi. Successivamente si entrerà nei dettagli di come sfruttare la SVD per ottenere questo risultato.
 [10:42] In questo contesto, si utilizzerà un approccio già incontrato: il **thresholding** (o sogliatura). Questo metodo è stato già visto quando si calcolavano i valori singolari per approssimare dati generici, considerando solo quelli più importanti.
