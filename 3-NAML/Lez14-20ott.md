@@ -301,7 +301,7 @@ D_\tau(Y) = \arg\min_M \left\{ \frac{1}{2} \|M - Y\|_F^2 + \tau \|M\|_* \right\}
 dove:
 - $\|M - Y\|_F$ è la norma di Frobenius:
   ```math
-\|M - Y\|_F^2 = \sum_{i,j} (M_{ij} - Y_{ij})^2,
+\|M - Y\|_F^2 = \sum_{i,j} (M_{ij} - Y_{ij})^2
 ```
 - $\|M\|_*$ è la norma nucleare di $M$.
 [15:40] Quindi, $D_\tau(Y)$ è il minimizzatore del funzionale:
@@ -358,7 +358,7 @@ La prima è una formulazione di minimizzazione non vincolata, in cui si cerca un
 [02:30] L’obiettivo è che sulle posizioni osservate la matrice $M$ coincida il più possibile con la matrice dei dati $X$, mentre la norma nucleare induce la soluzione verso una matrice a bassa rank. Il parametro $\tau > 0$ regola il compromesso tra il vincolo di bassa rank (attraverso la norma nucleare) e la fedeltà ai dati.
 [02:55] La stessa idea può essere formulata come problema di ottimizzazione vincolata:
 ```math
-\min_M \ \|M\|_* \quad \text{soggetto a} \quad \mathcal{P}_\Omega(M) = \mathcal{P}_\Omega(X).
+\min_M \ \|M\|_* \quad \mathrm{soggetto\ a} \quad \mathcal{P}_\Omega(M) = \mathcal{P}_\Omega(X)
 ```
 [03:20] Nella prima formulazione la fedeltà ai dati è espressa come un termine nel funzionale da minimizzare; nella seconda compare come un vincolo esatto sulle posizioni osservate. Le due formulazioni sono concettualmente equivalenti e, a seconda della strategia numerica scelta, può risultare più conveniente lavorare con una o con l’altra.
 ## Algoritmo iterativo basato su SVD e soft thresholding
@@ -374,20 +374,20 @@ La prima è una formulazione di minimizzazione non vincolata, in cui si cerca un
 ### Passo di sogliatura sui valori singolari
 [05:05] Alla $k$-esima iterazione si definisce una matrice $M_k$ come:
 ```math
-M_k = \mathcal{T}_\tau(Y_k),
+M_k = \mathcal{T}_\tau(Y_k)
 ```
 dove $\mathcal{T}_\tau$ indica l’operazione di soft thresholding sui valori singolari. Più precisamente:
 1. Si calcola la SVD di $Y_k$:
    ```math
-Y_k = U_k \Sigma_k V_k^\top.
+Y_k = U_k \Sigma_k V_k^\top
 ```
 2. Si applica il soft thresholding agli elementi diagonali di $\Sigma_k$:
    ```math
-(\Sigma_k')_{ii} = \max\bigl((\Sigma_k)_{ii} - \tau, 0\bigr).
+(\Sigma_k')_{ii} = \max\bigl((\Sigma_k)_{ii} - \tau, 0\bigr)
 ```
 3. Si ricostruisce la matrice sogliata:
    ```math
-M_k = U_k \Sigma_k' V_k^\top.
+M_k = U_k \Sigma_k' V_k^\top
 ```
 [05:40] In questo modo si decomprime $Y_k$ nei suoi valori singolari, si riducono i valori singolari tramite sogliatura e si ricompone una matrice $M_k$ che ha rango ridotto rispetto a $Y_k$, o comunque tende ad avere rango più basso.
 ### Passo di aggiornamento verso le osservazioni
