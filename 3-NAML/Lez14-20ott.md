@@ -17,6 +17,7 @@ Queste caratteristiche non sono necessariamente direttamente osservate nella mat
 [01:30] Si considera ora un esempio astratto per comprendere meglio la struttura a rango basso. Sia $M$ una matrice quadrata $n \times n$ e si supponga che
 ```math
 \mathrm{rank}(M) = r \ll n
+```
 
 cioè che il suo rango sia $r$ anziché $n$ (rango pieno). Si assume inoltre che $n$ sia grande. Si vuole quantificare quanti gradi di libertà sono necessari per descrivere completamente questa matrice $M$.
 [01:45] L’obiettivo è determinare il numero di parametri indipendenti necessari per specificare la matrice $M$ a rango $r$. In altre parole, si vuole capire quanti gradi di libertà servono per identificare univocamente $M$.
