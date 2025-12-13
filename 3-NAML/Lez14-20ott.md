@@ -506,7 +506,7 @@ risulta quindi applicabile a un’ampia gamma di problemi oltre al caso dei sist
 - la minimizzazione diretta della rank è un problema non convesso e difficile da trattare;
 - la norma nucleare $\|M\|_*$ viene introdotta come surrogato convesso della rank, sfruttando il fatto che è la somma dei valori singolari e promuove soluzioni a bassa rank;
 - il problema è riformulato come:
-  ```math
+```math
 \min_M \ \|M\|_* \quad \text{soggetto a} \quad \mathcal{P}_\Omega(M) = \mathcal{P}_\Omega(X),
 ```
   oppure, in forma regolarizzata:
