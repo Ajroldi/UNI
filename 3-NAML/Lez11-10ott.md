@@ -478,5 +478,4 @@ Una scelta pratica per $t$ è il punto medio tra le medie di PC1 per le due clas
 La valutazione segue la stessa logica della matrice di confusione:
 - corretti per `Cancer` (TP), corretti per `Normal` (TN)
 - errori `Cancer→Normal` (FN) e `Normal→Cancer` (FP)
-
 Nota: questa baseline è utile per capire “quanto” la separazione è già catturata dalla prima componente, ma per una valutazione robusta serve uno split train/test (o cross-validation) e, tipicamente, classificatori più flessibili.
