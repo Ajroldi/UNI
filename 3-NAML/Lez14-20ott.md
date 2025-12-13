@@ -300,7 +300,7 @@ D_\tau(Y) = \arg\min_M \left\{ \frac{1}{2} \|M - Y\|_F^2 + \tau \|M\|_* \right\}
 ```
 dove:
 - $\|M - Y\|_F$ è la norma di Frobenius:
-  ```math
+```math
 \|M - Y\|_F^2 = \sum_{i,j} (M_{ij} - Y_{ij})^2
 ```
 - $\|M\|_*$ è la norma nucleare di $M$.
@@ -378,15 +378,15 @@ M_k = \mathcal{T}_\tau(Y_k)
 ```
 dove $\mathcal{T}_\tau$ indica l’operazione di soft thresholding sui valori singolari. Più precisamente:
 1. Si calcola la SVD di $Y_k$:
-   ```math
+```math
 Y_k = U_k \Sigma_k V_k^\top
 ```
 2. Si applica il soft thresholding agli elementi diagonali di $\Sigma_k$:
-   ```math
+```math
 (\Sigma_k')_{ii} = \max\bigl((\Sigma_k)_{ii} - \tau, 0\bigr)
 ```
 3. Si ricostruisce la matrice sogliata:
-   ```math
+```math
 M_k = U_k \Sigma_k' V_k^\top
 ```
 [05:40] In questo modo si decomprime $Y_k$ nei suoi valori singolari, si riducono i valori singolari tramite sogliatura e si ricompone una matrice $M_k$ che ha rango ridotto rispetto a $Y_k$, o comunque tende ad avere rango più basso.
@@ -510,8 +510,8 @@ risulta quindi applicabile a un’ampia gamma di problemi oltre al caso dei sist
 \min_M \ \|M\|_* \quad \text{soggetto a} \quad \mathcal{P}_\Omega(M) = \mathcal{P}_\Omega(X),
 ```
   oppure, in forma regolarizzata:
-  ```math
-\min_M \ \tau \|M\|_* + \frac{1}{2} \|\mathcal{P}_\Omega(M) - \mathcal{P}_\Omega(X)\|_F^2;
+```math
+\min_M \ \tau \|M\|_* + \frac{1}{2} \|\mathcal{P}_\Omega(M) - \mathcal{P}_\Omega(X)\|_F^2
 ```
 - si sviluppa una procedura iterativa basata sulla SVD e sul soft thresholding dei valori singolari, alternando:
   - passi di riduzione del rango (sogliatura dei valori singolari),
