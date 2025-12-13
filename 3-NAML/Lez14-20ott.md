@@ -15,9 +15,10 @@ Queste caratteristiche non sono necessariamente direttamente osservate nella mat
 [01:15] Il numero di feature latenti “significative” viene indicato con $r$ ed è pari al rango della matrice. Si assume che $r$ sia molto più piccolo sia del numero di utenti $N$ sia del numero di film $D$. L’ipotesi fondamentale è quindi che il dataset possieda una struttura intrinsecamente a rango basso, e che questo possa essere sfruttato per ricostruire le voci mancanti in modo significativo.
 ## Gradi di libertà di una matrice a rango basso e decomposizione SVD
 [01:30] Si considera ora un esempio astratto per comprendere meglio la struttura a rango basso. Sia $M$ una matrice quadrata $n \times n$ e si supponga che
-```math
-\operatorname{rank}(M) = r \ll n,
-```
+$$
+\mathrm{rank}(M) = r \ll n
+$$
+
 cioè che il suo rango sia $r$ anziché $n$ (rango pieno). Si assume inoltre che $n$ sia grande. Si vuole quantificare quanti gradi di libertà sono necessari per descrivere completamente questa matrice $M$.
 [01:45] L’obiettivo è determinare il numero di parametri indipendenti necessari per specificare la matrice $M$ a rango $r$. In altre parole, si vuole capire quanti gradi di libertà servono per identificare univocamente $M$.
 [01:50] Si richiama quindi la decomposizione ai valori singolari (SVD) della matrice $M$:
