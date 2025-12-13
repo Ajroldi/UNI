@@ -1,6 +1,40 @@
 import re
 import os
 
+def escape_underscores_outside_math(content):
+    """
+    Escape degli underscore _ che sono FUORI dalle formule matematiche.
+    Gli underscore dentro $...$ e ```math...``` vengono preservati.
+    """
+    # Proteggi temporaneamente le formule inline $...$
+    inline_math = []
+    def save_inline(match):
+        inline_math.append(match.group(0))
+        return f"<<<INLINE{len(inline_math)-1}>>>"
+    
+    content = re.sub(r'\$([^\$]+?)\$', save_inline, content)
+    
+    # Proteggi temporaneamente i blocchi ```math...```
+    block_math = []
+    def save_block(match):
+        block_math.append(match.group(0))
+        return f"<<<BLOCK{len(block_math)-1}>>>"
+    
+    content = re.sub(r'```math\n(.*?)\n```', save_block, content, flags=re.DOTALL)
+    
+    # Ora fai l'escape degli underscore rimasti (quelli fuori dalle formule)
+    content = content.replace('_', r'\_')
+    
+    # Ripristina le formule inline
+    for i, formula in enumerate(inline_math):
+        content = content.replace(f"<<<INLINE{i}>>>", formula)
+    
+    # Ripristina i blocchi math
+    for i, formula in enumerate(block_math):
+        content = content.replace(f"<<<BLOCK{i}>>>", formula)
+    
+    return content
+
 def convert_latex_to_github(content):
     """
     Converte formule LaTeX display $$...$$ in blocchi ```math``` per GitHub.
@@ -29,6 +63,9 @@ def process_file(filepath):
         
         # Converti le formule
         converted_content = convert_latex_to_github(content)
+        
+        # Escape degli underscore fuori dalle formule
+        converted_content = escape_underscores_outside_math(converted_content)
         
         # Salva il file modificato
         with open(filepath, 'w', encoding='utf-8') as f:

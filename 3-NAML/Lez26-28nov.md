@@ -28,11 +28,11 @@ Our task will be to manually implement different variants of *gradient descent* 
 ### 2.1. Full-Batch Gradient Descent
 We start with the implementation of the standard version, known as *Full-Batch Gradient Descent*.
 1.  **Gradient Calculation:** Inside the training loop, we calculate the gradients of the cost function with respect to all parameters, using the entire dataset. The `gradjit` function (compiled *Just-In-Time* with JAX) returns a list of gradients.
-2.  **Parameter Update:** We update each parameter by subtracting the corresponding gradient, multiplied by a `learning_rate`. This moves the parameters in the direction of the steepest descent of the loss.
+2.  **Parameter Update:** We update each parameter by subtracting the corresponding gradient, multiplied by a `learning\_rate`. This moves the parameters in the direction of the steepest descent of the loss.
 ```python
 # Pseudocode for the update
 for i in range(len(params)):
-    params[i] = params[i] - learning_rate * grads[i]
+    params[i] = params[i] - learning\_rate * grads[i]
 ```
 #### Full-Batch Results
 Running the code, we observe two plots:
@@ -45,7 +45,7 @@ Running the code, we observe two plots:
 ### 2.2. Stochastic Gradient Descent (SGD) with Learning Rate Decay
 Now it's your turn to implement the variants.
 *   **Stochastic Gradient Descent (SGD):** Instead of using the entire dataset, a small random subset of data, called a **mini-batch**, is drawn at each step. The gradient is calculated only on this mini-batch.
-*   **Learning Rate Decay:** The `learning_rate` is not fixed but decreases over time. The idea is to take large steps at the beginning of training and smaller steps as we get closer to the minimum, to avoid "jumping" over the optimal solution.
+*   **Learning Rate Decay:** The `learning\_rate` is not fixed but decreases over time. The idea is to take large steps at the beginning of training and smaller steps as we get closer to the minimum, to avoid "jumping" over the optimal solution.
 ### 2.3. Gradient Descent with Momentum
 *Momentum* is a technique that adds "inertia" to the parameter update.
 *   **Key Idea:** The update depends not only on the current gradient but also on the direction taken in previous steps. It's like a ball rolling down a hill: it maintains a certain velocity (momentum) in the direction it was already moving.
@@ -55,14 +55,14 @@ AdaGrad adapts the learning rate for each individual parameter.
 *   **Key Idea:** It maintains a memory of past gradients for each parameter. Parameters that have received large gradients in the past will have a smaller learning rate, while those with small gradients will have a larger learning rate.
 *   **Operations:** The operations are intended to be *component-wise*, i.e., applied element by element.
 ### 2.5. RMSProp (Root Mean Square Propagation)
-RMSProp is an improvement on AdaGrad that introduces a decay factor (`decay_rate`) for the gradient memory.
+RMSProp is an improvement on AdaGrad that introduces a decay factor (`decay\_rate`) for the gradient memory.
 *   **Key Idea:** Instead of accumulating all past gradients, RMSProp gives more weight to recent ones, gradually "forgetting" older ones. This prevents the learning rate from becoming too small and stalling the learning process.
-Your task is to implement these three variants and observe their behavior, also trying to modify parameters (e.g., `batch_size`, `momentum`) to understand their effect.
+Your task is to implement these three variants and observe their behavior, also trying to modify parameters (e.g., `batch\_size`, `momentum`) to understand their effect.
 ## [08:58] Chapter 3: Analysis of the Results
 ### 3.1. SGD Implementation and Results
 Let's look at the implementation of *Stochastic Gradient Descent* together.
-1.  **Learning Rate Update:** We apply the decay formula to reduce the `learning_rate` at each epoch.
-2.  **Mini-Batch Extraction:** We select a random subset of data (`batch_size` points) from the training dataset.
+1.  **Learning Rate Update:** We apply the decay formula to reduce the `learning\_rate` at each epoch.
+2.  **Mini-Batch Extraction:** We select a random subset of data (`batch\_size` points) from the training dataset.
     *   **Technical Note:** In this implementation, to facilitate comparison, we draw a random mini-batch at each epoch. The correct approach for a full epoch would be to divide the entire dataset into mini-batches and iterate over all of them, ensuring each data point is used once. However, for our purposes, this simplified method is sufficient.
 3.  **Gradient Calculation and Update:** We calculate the gradient only on the mini-batch and update the parameters.
 #### Comparison between Full-Batch and SGD
@@ -72,7 +72,7 @@ Let's look at the implementation of *Stochastic Gradient Descent* together.
 ### 3.2. Momentum Implementation and Results
 Let's move on to implementing *Gradient Descent with Momentum*.
 1.  **Velocity Initialization:** We create a `velocity` variable to store the update "velocity" for each parameter.
-2.  **Velocity Update:** At each step, the new velocity `v` is a combination of the old velocity (multiplied by an inertia factor `alpha`) and the current gradient (multiplied by the `learning_rate`).
+2.  **Velocity Update:** At each step, the new velocity `v` is a combination of the old velocity (multiplied by an inertia factor `alpha`) and the current gradient (multiplied by the `learning\_rate`).
 3.  **Parameter Update:** The parameters are updated by adding the new velocity.
 #### Results with Momentum
 *   **Better Loss:** The final loss is `2.5 * 10^-3`, about half that of SGD, for the same computational cost. This is an excellent result.
@@ -82,7 +82,7 @@ Let's move on to implementing *Gradient Descent with Momentum*.
 The fundamental idea of AdaGrad is to use a learning rate that adapts individually for each parameter of the model. Unlike a fixed learning rate, this approach aims to stabilize training.
 #### How It Works
 The parameter update `θ` at iteration `k+1` follows a formula similar to standard gradient descent:
-`θ_k+1 = θ_k - λ * (gradient / denominator)`
+`θ\_k+1 = θ\_k - λ * (gradient / denominator)`
 The novelty lies in the **denominator**, which acts as an adaptive learning rate. This denominator depends on a variable `R`, which accumulates a history of the squares of past gradients for each parameter.
 **Logic:**
 1.  **History Accumulation:** The variable `R` stores the sum of the squares of the gradients calculated at each step. Being a square, it is always a positive quantity that represents the total "magnitude" of the changes a parameter has undergone.
@@ -91,16 +91,16 @@ The novelty lies in the **denominator**, which acts as an adaptive learning rate
     *   **Parameters with small variations:** If a parameter has changed little, its update step will be larger, encouraging it to explore the solution space more.
 In summary, each parameter gets its own personalized learning rate that decreases faster the more that parameter has been modified in the past.
 #### Practical Implementation
-1.  **Initialization:** A variable (e.g., `accumulated_squared_grad`) is initialized to store the history of squared gradients.
+1.  **Initialization:** A variable (e.g., `accumulated\_squared\_grad`) is initialized to store the history of squared gradients.
 2.  **Training Loop:**
     *   Calculate the gradient on the current mini-batch.
     *   For each parameter, update the history by summing the square of the newly calculated gradient:
-        `accumulated_squared_grad[i] += grads[i] * grads[i]`
+        `accumulated\_squared\_grad[i] += grads[i] * grads[i]`
     *   Calculate the adaptive learning rate for that parameter:
-        `learning_rate_adapt = learning_rate / (delta + sqrt(accumulated_squared_grad[i]))`
+        `learning\_rate\_adapt = learning\_rate / (delta + sqrt(accumulated\_squared\_grad[i]))`
         -   `delta`: A very small constant (e.g., `1e-7`) added to avoid division by zero and ensure numerical stability.
     *   Update the parameter using the newly calculated adaptive learning rate:
-        `params[i] -= learning_rate_adapt * grads[i]`
+        `params[i] -= learning\_rate\_adapt * grads[i]`
 #### Advantages and Disadvantages
 *   **Advantage:** AdaGrad is very effective at reducing cost function oscillations by dampening updates for parameters that change too abruptly.
 *   **Disadvantage:** Its main flaw is that the gradient history (`R`) grows continuously, never decreasing. In the long run, this causes the learning rate to become extremely small for all parameters, effectively "stalling" training and preventing further exploration. The model might stop prematurely in a local minimum.
@@ -108,17 +108,17 @@ In summary, each parameter gets its own personalized learning rate that decrease
 RMSProp (Root Mean Square Propagation) is an improvement on AdaGrad designed to solve the problem of the vanishing learning rate. The key idea is to introduce a "forgetting" mechanism for the gradient history.
 #### How It Works
 The parameter update `θ` is identical to AdaGrad's, but the way the history `R` is updated changes. Instead of accumulating indefinitely, `R` becomes an **exponential moving average** of the squared gradients.
-`R_k = ρ * R_{k-1} + (1 - ρ) * (gradient_k * gradient_k)`
+`R\_k = ρ * R\_{k-1} + (1 - ρ) * (gradient\_k * gradient\_k)`
 **Logic:**
-1.  **Exponential Memory:** The variable `R` is no longer a simple sum, but a weighted average between its past history (`R_{k-1}`) and the new squared gradient.
+1.  **Exponential Memory:** The variable `R` is no longer a simple sum, but a weighted average between its past history (`R\_{k-1}`) and the new squared gradient.
 2.  **Decay Factor (`ρ`):** The parameter `ρ` (decay rate), typically a value like 0.9, is less than 1. By multiplying the old history by `ρ` at each step, the contribution of older gradients decreases exponentially over time.
 3.  **"Forgetting" the Past:** This mechanism allows the algorithm to "forget" the distant past and adapt the learning rate based mainly on recent gradients. If a parameter stops having large gradients for a while, its learning rate can start to increase again, allowing the model to continue exploring.
 #### Practical Implementation
 The implementation is similar to AdaGrad's, with a crucial change in the history update.
 1.  **Training Loop:**
     *   Calculate the gradient.
-    *   Update the `accumulated_squared_grad` history as a moving average:
-        `accumulated_squared_grad[i] = decay_rate * accumulated_squared_grad[i] + (1 - decay_rate) * grads[i] * grads[i]`
+    *   Update the `accumulated\_squared\_grad` history as a moving average:
+        `accumulated\_squared\_grad[i] = decay\_rate * accumulated\_squared\_grad[i] + (1 - decay\_rate) * grads[i] * grads[i]`
     *   The calculation of the adaptive learning rate and the parameter update remain identical to AdaGrad's.
 #### Advantages of RMSProp over AdaGrad
 RMSProp is almost always superior to AdaGrad because it doesn't "stall" training. By maintaining a responsive learning rate, it allows for more effective and prolonged exploration, often leading to better results and faster, more stable convergence.
@@ -132,31 +132,31 @@ Second-order methods, like Newton's method, are optimizers that use not only the
 Due to these limitations, pure Newton's methods are rarely used to train deep neural networks, but they are useful for specific problems and for understanding advanced concepts.
 ### Implementation in JAX: Gradient and Hessian
 In JAX, we can calculate these ingredients efficiently:
-*   **Gradient:** `jax.grad(loss_function)`
-*   **Hessian:** `jax.hessian(loss_function)`
-For computational efficiency, the best way to calculate the Hessian is by combining "forward" and "reverse" mode differentiation: `jax.jacfwd(jax.jacrev(loss_function))`.
+*   **Gradient:** `jax.grad(loss\_function)`
+*   **Hessian:** `jax.hessian(loss\_function)`
+For computational efficiency, the best way to calculate the Hessian is by combining "forward" and "reverse" mode differentiation: `jax.jacfwd(jax.jacrev(loss\_function))`.
 ### The Hessian-Vector Product (HVP) Trick
 The main problem remains memory. However, in many algorithms, we don't need the entire Hessian matrix, but only the result of its product with a vector: `H * v`.
 **Key Idea:** It is possible to calculate the product `H * v` **without ever explicitly constructing the matrix `H`**.
 This is based on a mathematical identity:
-`H(x) * v = ∇_x [ (∇_x f(x)) ⋅ v ]`
+`H(x) * v = ∇\_x [ (∇\_x f(x)) ⋅ v ]`
 **Explanation:**
-1.  `∇_x f(x)`: Calculate the gradient of the cost function `f` at point `x`. The result is a vector.
-2.  `(∇_x f(x)) ⋅ v`: Calculate the dot product between the gradient and the vector `v`. The result is a scalar.
-3.  `∇_x [...]`: Calculate the gradient of this scalar with respect to `x`. The result is a vector, which is exactly `H * v`.
+1.  `∇\_x f(x)`: Calculate the gradient of the cost function `f` at point `x`. The result is a vector.
+2.  `(∇\_x f(x)) ⋅ v`: Calculate the dot product between the gradient and the vector `v`. The result is a scalar.
+3.  `∇\_x [...]`: Calculate the gradient of this scalar with respect to `x`. The result is a vector, which is exactly `H * v`.
 **Advantage:** At no point in this process is an `n x n` matrix created. Only vectors and scalars are manipulated, making the calculation feasible even for a huge number of parameters.
 ### HVP Implementation in JAX
 This trick translates very elegantly into JAX. To calculate `H(x) * v`:
 ```python
 # Function that calculates the dot product between the gradient and vector v
-def grad_dot_v(x, v):
+def grad\_dot\_v(x, v):
   # jax.grad(loss)(x) calculates the gradient
   # jnp.dot calculates the dot product
   return jnp.dot(jax.grad(loss)(x), v)
 # The HVP is the gradient of this function with respect to the first argument (x)
-hvp = jax.grad(grad_dot_v, argnums=0)
+hvp = jax.grad(grad\_dot\_v, argnums=0)
 # To use it:
-result_vector = hvp(x_point, v_vector) 
+result\_vector = hvp(x\_point, v\_vector) 
 ```
 This technique is fundamental for making second-order methods (or "quasi-Newton" methods like BFGS) applicable to large-scale problems, such as those encountered in machine learning.
 ## Chapter 5: Comparing Computational Costs
@@ -176,14 +176,14 @@ Now we are ready to implement Newton's method. Here are the fundamental steps:
 1.  **Calculate the Hessian (H)**: Construct the Hessian matrix.
 2.  **Calculate the Gradient (G)**: Calculate the gradient of the cost function.
 3.  **Find the update direction (increment)**: Solve the linear system `H * increment = -G`. This step generalizes Newton's method to multiple dimensions.
-4.  **Update the parameters**: Update the current estimate of the parameters `x` by adding the calculated increment: `x_new = x + increment`.
+4.  **Update the parameters**: Update the current estimate of the parameters `x` by adding the calculated increment: `x\_new = x + increment`.
 For a convex problem like ours, Newton's method is extremely efficient, like a "Ferrari": it should reach the minimum in very few iterations (2 or 3 at most).
 I'll give you five minutes to complete this part. If you have time, you can also try to implement the *matrix-free* version.
 ### Solution: Newton's Method with Explicit Matrix
 Let's go through the solution together.
 1.  **Calculation of Hessian and Gradient**:
-    - `H = hessian_jit(x)`: We calculate the Hessian at point `x`.
-    - `G = grad_jit(x)`: We calculate the gradient at point `x`.
+    - `H = hessian\_jit(x)`: We calculate the Hessian at point `x`.
+    - `G = grad\_jit(x)`: We calculate the gradient at point `x`.
 2.  **Solving the Linear System**:
     - To find the increment, we solve the linear system `H * increment = -G`. The easiest way is to use the `solve` function from linear algebra libraries.
     - `increment = solve(H, -G)`
@@ -200,7 +200,7 @@ The conjugate gradient is particularly suitable when the matrix is **symmetric a
 #### Implementation with JAX
 In JAX, we can use the `cg` function found in `jax.scipy.sparse.linalg.cg`.
 - **Main Argument**: `cg` does not accept a matrix, but a **function** that performs the matrix-vector product. In our case, we will pass the `HVP` (Hessian-Vector Product) function we defined earlier.
-- **Lambda Function**: We use a `lambda` function to "fix" the point `x` where the Hessian is evaluated: `lambda y: hvp_jit(x, y)`. This function takes a vector `y` and returns the product `H(x) * y`.
+- **Lambda Function**: We use a `lambda` function to "fix" the point `x` where the Hessian is evaluated: `lambda y: hvp\_jit(x, y)`. This function takes a vector `y` and returns the product `H(x) * y`.
 - **Other arguments**:
     - The second argument is the right-hand side of the system, `-G`.
     - Since it is an iterative method, we must provide a tolerance (`epsilon`).
@@ -219,13 +219,13 @@ The approximation of the Hessian, denoted by `B`, is updated at each step by add
 - **Progressive approximation**: We start with a rough approximation (often the identity matrix) and refine it at each step.
 ### BFGS Implementation
 Let's code the algorithm together.
-1.  **Search direction (p)**: `p = -B_inv * G`, where `B_inv` is the approximation of the inverse of the Hessian and `G` is the gradient. Initially, `B_inv` is the identity matrix, so the first step is simply a gradient descent.
+1.  **Search direction (p)**: `p = -B\_inv * G`, where `B\_inv` is the approximation of the inverse of the Hessian and `G` is the gradient. Initially, `B\_inv` is the identity matrix, so the first step is simply a gradient descent.
 2.  **Line Search (alpha)**: We search for the optimal *learning rate* (or step, `alpha`) along the direction `p`. This is an important step in quasi-Newton methods. We use a function from `scipy.optimize` to find `alpha`. If the search fails, we use a very small step.
-3.  **Parameter update**: `x_new = x + alpha * p`. This is similar to a gradient descent step, but the direction `p` is modulated by the Hessian approximation.
+3.  **Parameter update**: `x\_new = x + alpha * p`. This is similar to a gradient descent step, but the direction `p` is modulated by the Hessian approximation.
 4.  **Calculate vectors for the update (s, y)**:
-    - `s = x_new - x` (the change in parameters).
-    - `y = new_grad - old_grad` (the change in the gradient).
-5.  **Update the inverse of the Hessian (B_inv)**: Using `s` and `y`, the new `B_inv` is calculated by adding two rank-one matrices. This is the core of BFGS.
+    - `s = x\_new - x` (the change in parameters).
+    - `y = new\_grad - old\_grad` (the change in the gradient).
+5.  **Update the inverse of the Hessian (B\_inv)**: Using `s` and `y`, the new `B\_inv` is calculated by adding two rank-one matrices. This is the core of BFGS.
 ### Analysis of the Results
 - **Convergence**: The BFGS method requires more epochs to converge than Newton's method, as it starts with a rough approximation of the Hessian.
 - **Behavior**: Initially, the method behaves like a gradient descent (plateau phase). As the Hessian approximation improves, convergence accelerates dramatically, leading to a rapid drop in error.
@@ -303,17 +303,17 @@ def MSW(params):
     # The parameters are in a list [W1, b1, W2, b2, ...], so we take every other element.
     weights = params[0::2]
     
-    weight_sum = 0
-    num_weights = 0
+    weight\_sum = 0
+    num\_weights = 0
     
     for w in weights:
         # Sum the square of each weight
-        weight_sum += jnp.sum(w * w)
+        weight\_sum += jnp.sum(w * w)
         # Count the total number of weights
-        num_weights += w.shape[0] * w.shape[1]
+        num\_weights += w.shape[0] * w.shape[1]
         
     # Return the average
-    return weight_sum / num_weights
+    return weight\_sum / num\_weights
 ```
 In practice, for each weight matrix in the network, we square it to get its "magnitude" and then calculate the average over all weights.
 #### Complete Loss Function
@@ -321,12 +321,12 @@ Now we define the complete loss function that combines MSE and MSW.
 ```python
 def loss(x, y, params, beta):
     # Calculate the MSE
-    mse_val = MSE(x, y, params)
+    mse\_val = MSE(x, y, params)
     # Calculate the MSW
-    msw_val = MSW(params)
+    msw\_val = MSW(params)
     
     # Return the weighted sum
-    return mse_val + beta * msw_val
+    return mse\_val + beta * msw\_val
 ```
 The idea is that the loss function now has two objectives:
 1.  **Minimize the error** with respect to the target values (via MSE).

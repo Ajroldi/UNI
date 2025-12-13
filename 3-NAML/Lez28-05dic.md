@@ -114,9 +114,9 @@ K * v = [0,  0,  k1, k2, k3, 0] * [v3]
 ```
 ## [01:28] Implementation in Python
 To implement this concept, we first need to define the correct dimensions for the matrix and vectors.
-1.  **Kernel Padding**: The length of the signal resulting from the convolution is `length(signal) + length(kernel) - 1`. We create a new vector for the kernel (which we call `K_padded`) of this dimension, initially filled with zeros.
-2.  **Inserting the Kernel**: We copy the values of the original kernel to the beginning of `K_padded`. This `K_padded` vector will form the first column of our Toeplitz matrix.
-3.  **Creating the Toeplitz Matrix**: Using a specific function from the `scipy.linalg` library (`toeplitz`), we can generate the entire matrix `K` starting from its first column (`K_padded`) and its first row (which will be the first element of `K_padded` followed by zeros).
+1.  **Kernel Padding**: The length of the signal resulting from the convolution is `length(signal) + length(kernel) - 1`. We create a new vector for the kernel (which we call `K\_padded`) of this dimension, initially filled with zeros.
+2.  **Inserting the Kernel**: We copy the values of the original kernel to the beginning of `K\_padded`. This `K\_padded` vector will form the first column of our Toeplitz matrix.
+3.  **Creating the Toeplitz Matrix**: Using a specific function from the `scipy.linalg` library (`toeplitz`), we can generate the entire matrix `K` starting from its first column (`K\_padded`) and its first row (which will be the first element of `K\_padded` followed by zeros).
 4.  **Calculating the Convolution**: Finally, we perform the matrix-vector product between `K` and the signal `v` to get the convolution result.
 ## [02:48] Analysis of Results and Kernel Types
 By applying this technique to a step function signal, we can observe the effect of different kernels.
@@ -147,7 +147,7 @@ This operation is equivalent to a dot product (`np.dot`) between the two vectors
 # Chapter 5: Convolution in the Frequency Domain
 ## [09:54] The Convolution Theorem
 The **Convolution Theorem** states that the convolution of two signals in the time domain is equivalent to the **element-wise product** of their Fourier transforms in the frequency domain.
-`Fourier_Transform(signal * kernel) = Fourier_Transform(signal) ⋅ Fourier_Transform(kernel)`
+`Fourier\_Transform(signal * kernel) = Fourier\_Transform(signal) ⋅ Fourier\_Transform(kernel)`
 (*where `*` is convolution and `⋅` is the element-wise product*)
 This provides us with a very efficient calculation method, especially for large signals and kernels.
 ## [10:27] Implementation with the Fast Fourier Transform (FFT)
@@ -202,20 +202,20 @@ s2 = np.array(k.shape)
 Once the dimensions are defined, we can calculate the shape of the output. The formula is the same as for 1D convolution, but applied to both dimensions thanks to the use of NumPy arrays:
 ```python
 # Calculation of the output shape
-output_shape = s1 - s2 + 1 
+output\_shape = s1 - s2 + 1 
 ```
 Next, we allocate memory for the output image, initializing it with zeros. This initialization is crucial if, as in this case, we accumulate the results manually within a loop.
 ```python
 # Memory allocation for the result
-v_conv1 = np.zeros(output_shape) 
+v\_conv1 = np.zeros(output\_shape) 
 ```
 **Note:** If we had used a vector sum function (as we will see later), we could have used `np.empty` instead of `np.zeros`, as zero-initialization would not have been necessary.
 ## [00:48] Implementation with Nested Loops
 Now let's implement the actual convolution. For each pixel of the output image, we need to calculate the dot product between the kernel and the corresponding portion of the input image. This requires four nested `for` loops: two to iterate over the output pixels and two to iterate over the kernel elements.
 ```python
 # Loops to iterate over the output image pixels
-for i in range(output_shape[0]):
-    for j in range(output_shape[1]):
+for i in range(output\_shape[0]):
+    for j in range(output\_shape[1]):
         # Loops to iterate over the kernel elements
         for ki in range(s2[0]):
             for kj in range(s2[1]):
@@ -224,7 +224,7 @@ for i in range(output_shape[0]):
 **Warning:** Using four nested loops in Python is extremely inefficient and, in a professional context, is almost always a sign that the approach is wrong. For educational purposes, however, it is useful for understanding the mechanism.
 The core of the operation is the accumulation of the product between the kernel and image elements. Remember that convolution requires "flipping" the kernel. We do this by accessing the elements of kernel `K` with negative indices:
 ```python
-v_conv1[i, j] += k[-ki-1, -kj-1] * b[i+ki, j+kj]
+v\_conv1[i, j] += k[-ki-1, -kj-1] * b[i+ki, j+kj]
 ```
 Explanation of the flip:
 - When `ki` is 0, `-ki-1` becomes `-1`, which in Python corresponds to the last element along that dimension.
@@ -235,11 +235,11 @@ The `np.flip()` function is perfect for this purpose. As the documentation state
 The operation for each output pixel `(i, j)` becomes:
 ```python
 # Extract the image portion
-sub_image = b[i : i+s2[0], j : j+s2[1]] 
+sub\_image = b[i : i+s2[0], j : j+s2[1]] 
 # Flip the kernel
-flipped_k = np.flip(k)
+flipped\_k = np.flip(k)
 # Calculate the product and sum
-v_conv1[i, j] = np.sum(flipped_k * sub_image)
+v\_conv1[i, j] = np.sum(flipped\_k * sub\_image)
 ```
 This approach is much more concise and performant, as NumPy's vector operations are implemented in C and optimized. The final result is a blurred image, where the kernel has acted as an averaging filter.
 # Chapter 8: 2D Convolution in the Frequency Domain
@@ -248,17 +248,17 @@ An alternative and often more efficient method for calculating convolution is to
 The steps are analogous to the 1D case, but using the 2D functions (`fft2` and `ifft2`):
 1.  **Fourier Transform:** We calculate the 2D DFT of both the image (`v`) and the kernel (`k`).
     ```python
-    v_fft = np.fft.fft2(v)
-    k_fft = np.fft.fft2(k, s=v.shape) # Add padding to the kernel
+    v\_fft = np.fft.fft2(v)
+    k\_fft = np.fft.fft2(k, s=v.shape) # Add padding to the kernel
     ```
     It is crucial to apply *padding* to the kernel to make it the same size as the image. This way, element-wise multiplication will be possible.
 2.  **Multiplication in the Frequency Domain:** We multiply the two transforms.
     ```python
-    vk_fft = v_fft * k_fft
+    vk\_fft = v\_fft * k\_fft
     ```
 3.  **Inverse Fourier Transform:** We apply the 2D Inverse Fourier Transform (`ifft2`) to the result to return to the spatial domain.
     ```python
-    v_conv2 = np.fft.ifft2(vk_fft)
+    v\_conv2 = np.fft.ifft2(vk\_fft)
     ```
 ## [05:35] Analysis of the Frequency Spectrum
 Visualizing the frequency spectrum of the kernel provides valuable information about its behavior. For better visualization, a logarithmic scale is often applied, which allows for better distinction of amplitude variations between different frequencies.
@@ -290,7 +290,7 @@ Scientific libraries like SciPy offer highly optimized functions to perform thes
 ```python
 from scipy import signal
 # v: image, k: kernel
-v_conv3 = signal.convolve(v, k, mode='valid')
+v\_conv3 = signal.convolve(v, k, mode='valid')
 ```
 - **`v` and `k`:** The image and the kernel.
 - **`mode='valid'`:** Specifies that the convolution should be calculated only where the image and kernel completely overlap. This corresponds to our manual calculation without padding.
@@ -298,9 +298,9 @@ This approach is simple, readable, and much faster than manual implementations.
 ## [12:45] Notes on Convolution in JAX (for Deep Learning)
 In the context of deep learning and neural networks, convolution is a fundamental operation. Frameworks like JAX provide implementations for acceleration on GPUs/TPUs. However, JAX's low-level API (`jax.lax`) is much more complex and requires manual handling of many details.
 **Complexity of the Low-Level API:**
-To perform a convolution with `jax.lax.conv_general_dilated`, you need to:
-1.  **Reshape the Kernel:** The 2D kernel must be expanded to a 4D tensor, adding dimensions for input and output channels: `(height, width, input_channels, output_channels)`.
-2.  **Reshape the Input:** The input image must also be expanded to a 4D tensor, adding the *batch* dimension and the channel dimension: `(batch_size, height, width, channels)`.
+To perform a convolution with `jax.lax.conv\_general\_dilated`, you need to:
+1.  **Reshape the Kernel:** The 2D kernel must be expanded to a 4D tensor, adding dimensions for input and output channels: `(height, width, input\_channels, output\_channels)`.
+2.  **Reshape the Input:** The input image must also be expanded to a 4D tensor, adding the *batch* dimension and the channel dimension: `(batch\_size, height, width, channels)`.
 3.  **Calculate Padding Manually:** You must explicitly calculate the padding needed to maintain the output dimensions.
 4.  **Specify Detailed Parameters:** You need to define the *stride* (the step with which the kernel moves over the image), the dimension order (e.g., `NHWC` for Batch, Height, Width, Channel), and other configuration parameters.
 This level of detail, while powerful, makes the code verbose and complex. This is why in practice, high-level libraries (like Flax or Haiku, based on JAX) are used to abstract this complexity, allowing you to work with 2D or 3D tensors more intuitively.

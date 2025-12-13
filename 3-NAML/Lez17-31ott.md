@@ -22,9 +22,9 @@ Di seguito è riportata la traduzione e la rielaborazione strutturata della tras
 ## Estrazione delle Dimensioni del Dataset
 [03:08] Il passo successivo è verificare le dimensioni del problema: quanti utenti, film e valutazioni totali ci sono.
 [03:14] Per contare il numero di utenti unici, si utilizza la funzione `numpy.unique` sulla colonna degli ID utente. Questa funzione restituisce un array contenente tutti gli ID univoci.
-[03:22] Il numero di utenti (`n_users`) è quindi la dimensione (`size`) di questo array di ID unici.
-[03:29] Analogamente, per determinare il numero di film (`n_movies`), si applica `numpy.unique` alla colonna degli ID dei film e se ne ottiene la dimensione.
-[03:39] Il numero totale di valutazioni (`n_ratings`) corrisponde semplicemente al numero di righe del `DataFrame`.
+[03:22] Il numero di utenti (`n\_users`) è quindi la dimensione (`size`) di questo array di ID unici.
+[03:29] Analogamente, per determinare il numero di film (`n\_movies`), si applica `numpy.unique` alla colonna degli ID dei film e se ne ottiene la dimensione.
+[03:39] Il numero totale di valutazioni (`n\_ratings`) corrisponde semplicemente al numero di righe del `DataFrame`.
 [03:48] I risultati ottenuti confermano le informazioni fornite nella descrizione del dataset: il numero di utenti, film e valutazioni corrisponde a quanto atteso. Eseguire questo doppio controllo è una buona pratica per assicurarsi che il caricamento dei dati sia avvenuto correttamente.
 ## Pre-elaborazione dei Dati: Mescolamento (Shuffling)
 [04:05] Si introduce ora un passaggio fondamentale quando si lavora con dataset realistici, non visto nel laboratorio precedente: il mescolamento (*shuffling*) dei dati.
@@ -34,7 +34,7 @@ Di seguito è riportata la traduzione e la rielaborazione strutturata della tras
 [04:48] Per garantire che l'algoritmo venga addestrato e testato su un campione rappresentativo, si vuole che le valutazioni di uno stesso utente siano distribuite casualmente tra training e test. Questo aumenta l'entropia del dataset e rompe le dipendenze legate all'ordine di inserimento.
 [05:06] Per eseguire lo shuffling, per prima cosa si imposta un seme casuale (*random seed*) per garantire la riproducibilità dei risultati. Successivamente, si crea un array di indici da 0 al numero totale di valutazioni (100.000).
 [05:16] La funzione `numpy.random.shuffle` permuta casualmente questo array di indici.
-[05:25] Si utilizza quindi questo array di indici permutati per riordinare le righe del `DataFrame`. L'indicizzazione tramite un array di indici (es. `data[shuffled_indices]`) permette di riorganizzare le righe secondo l'ordine specificato, ottenendo così un mescolamento completo del dataset.
+[05:25] Si utilizza quindi questo array di indici permutati per riordinare le righe del `DataFrame`. L'indicizzazione tramite un array di indici (es. `data[shuffled\_indices]`) permette di riorganizzare le righe secondo l'ordine specificato, ottenendo così un mescolamento completo del dataset.
 ## Estrazione e Pulizia degli Indici
 [05:41] Una volta mescolate le righe, si estraggono le colonne di interesse:
 -   `rows`: gli ID degli utenti.
@@ -50,7 +50,7 @@ Di seguito è riportata la traduzione e la rielaborazione strutturata della tras
 [06:38] Ad esempio, si avrebbe una riga per l'utente 0, ma anche per gli utenti 1 e 2 (che non esistono nel mini-dataset) e una per l'utente 3. Similmente, si avrebbe una colonna per il film 0 (non valutato), una per il film 1 e una per il film 2.
 [06:47] Questo genera righe e colonne piene di zeri, che non portano alcuna informazione utile. Non ha senso fare inferenza su un film che nessuno ha visto o su un utente che non ha espresso valutazioni.
 [07:06] Si vogliono quindi eliminare questi "buchi" negli indici, compattandoli.
-[07:13] Per questo esercizio, è sufficiente sapere che esiste una funzione che esegue questa compattazione. Non si entrerà nei dettagli implementativi, ma la funzione `numpy.unique`, con l'opzione `return_inverse=True`, permette di mappare gli indici originali (sparsi) a un nuovo insieme di indici contigui (compatti).
+[07:13] Per questo esercizio, è sufficiente sapere che esiste una funzione che esegue questa compattazione. Non si entrerà nei dettagli implementativi, ma la funzione `numpy.unique`, con l'opzione `return\_inverse=True`, permette di mappare gli indici originali (sparsi) a un nuovo insieme di indici contigui (compatti).
 [07:30] In pratica, questo passaggio trasforma i vettori di indici `rows` e `cols` in modo da eliminare le righe e le colonne completamente vuote dalla matrice finale.
 ## Suddivisione in Training e Test Set
 [07:44] Ora che gli indici sono stati puliti e compattati, si può procedere con la suddivisione del dataset in training e test.
@@ -61,10 +61,10 @@ Di seguito è riportata la traduzione e la rielaborazione strutturata della tras
 [08:23] Al termine di questo passaggio, si ottengono sei vettori: una tripletta (righe, colonne, valori) per il training e una tripletta analoga per il test.
 ## Costruzione della Matrice delle Valutazioni
 [08:32] Il passo successivo è trasformare queste triplette di dati in una matrice. La libreria `scipy` offre una funzione specifica per questo scopo, ottimizzata per matrici con molti zeri, note come matrici sparse.
-[08:45] La funzione `scipy.sparse.csr_matrix` prende in input la tripletta (valori, (indici di riga, indici di colonna)) e costruisce una matrice sparsa.
+[08:45] La funzione `scipy.sparse.csr\_matrix` prende in input la tripletta (valori, (indici di riga, indici di colonna)) e costruisce una matrice sparsa.
 [08:56] In questa matrice, l'elemento $(i, j)$ conterrà la valutazione corrispondente se la coppia (utente $i$, film $j$) è presente nel dataset; altrimenti, l'elemento sarà zero.
 [09:06] Infine, per le operazioni successive, si converte questa matrice sparsa (che memorizza implicitamente gli zeri) in una matrice densa (`full matrix`), dove gli zeri sono rappresentati esplicitamente.
-[09:15] La matrice risultante, `X_full`, conterrà molti zeri, poiché la maggior parte delle coppie utente-film non ha una valutazione associata. Tuttavia, grazie al passaggio di pulizia precedente, si è sicuri che non ci siano righe o colonne interamente nulle.
+[09:15] La matrice risultante, `X\_full`, conterrà molti zeri, poiché la maggior parte delle coppie utente-film non ha una valutazione associata. Tuttavia, grazie al passaggio di pulizia precedente, si è sicuri che non ci siano righe o colonne interamente nulle.
 ## Compito 1: Implementazione di un Sistema di Raccomandazione Banale (Baseline)
 [09:27] Ora inizia la parte pratica da implementare. Il primo compito è creare un sistema di raccomandazione banale (*Trivial Recommender System*).
 [09:33] Quando si sviluppa un nuovo modello di machine learning, è una buona pratica confrontarlo con una baseline, ovvero un modello molto semplice. Questo serve a verificare che il modello più sofisticato offra un reale vantaggio.
@@ -103,37 +103,37 @@ Di seguito è riportata la traduzione e la rielaborazione strutturata della tras
 [12:47] Infine, opzionalmente, si può visualizzare l'andamento dell'RMSE e del coefficiente di correlazione nel corso delle iterazioni.
 [12:55] Per completare questi compiti sono previsti 20 minuti.
 ## Soluzione Compito 1: Predittore Banale
-[13:26] Si analizza la soluzione del primo compito. L'obiettivo è produrre un vettore, `vals_trivial`, contenente le predizioni per ogni campione del test set. Questo vettore avrà una dimensione pari al numero di campioni di test (20.000).
-[13:37] Ogni elemento di questo vettore è una predizione per una specifica coppia (utente, film), definita dai vettori `row_test` e `col_test`.
+[13:26] Si analizza la soluzione del primo compito. L'obiettivo è produrre un vettore, `vals\_trivial`, contenente le predizioni per ogni campione del test set. Questo vettore avrà una dimensione pari al numero di campioni di test (20.000).
+[13:37] Ogni elemento di questo vettore è una predizione per una specifica coppia (utente, film), definita dai vettori `row\_test` e `col\_test`.
 [13:48] Il processo si svolge in due fasi. La prima è calcolare la valutazione media per ogni utente. Un modo diretto, ma computazionalmente meno efficiente, è usare un ciclo `for`.
-[14:02] Si inizializza un vettore vuoto, `average_rating`, con una dimensione pari al numero di utenti (`n_people`).
+[14:02] Si inizializza un vettore vuoto, `average\_rating`, con una dimensione pari al numero di utenti (`n\_people`).
 [14:17] Successivamente, si itera su ogni utente `i` da 0 al numero totale di utenti.
-[14:24] Per ogni utente `i`, si estrae la riga corrispondente dalla matrice `X_full`.
+[14:24] Per ogni utente `i`, si estrae la riga corrispondente dalla matrice `X\_full`.
 [14:32] Si sommano tutti gli elementi di questa riga.
 [14:36] Per calcolare la media, si deve dividere questa somma per il numero di valutazioni non nulle. Per contare queste valutazioni, si può creare una maschera booleana verificando dove gli elementi della riga sono maggiori di zero.
 [14:45] Sommando questa maschera booleana (dove `True` vale 1 e `False` vale 0), si ottiene il numero di elementi non nulli.
 [15:00] La valutazione media per l'utente `i` è quindi il rapporto tra la somma delle sue valutazioni e il numero di film che ha valutato.
 [15:10] Un approccio alternativo e più pulito consiste nell'utilizzare direttamente i vettori delle triplette (righe, colonne, valori) del training set.
-[15:20] Per calcolare la media per l'utente `i`, si filtra il vettore `vals_train` usando una maschera booleana. La maschera è `True` dove l'ID utente in `row_trains` è uguale a `i`.
-[15:33] Applicando questa maschera a `vals_train`, si estraggono solo le valutazioni dell'utente `i`.
+[15:20] Per calcolare la media per l'utente `i`, si filtra il vettore `vals\_train` usando una maschera booleana. La maschera è `True` dove l'ID utente in `row\_trains` è uguale a `i`.
+[15:33] Applicando questa maschera a `vals\_train`, si estraggono solo le valutazioni dell'utente `i`.
 [15:45] A questo punto, si può calcolare direttamente la media (`.mean()`) di questi valori.
 [16:00] Verificando, si può notare che entrambi i metodi producono lo stesso risultato, confermando la correttezza di entrambi gli approcci.
-[16:15] Una volta ottenuto il vettore `average_rating` (con una valutazione media per ogni utente), lo si deve usare per generare le predizioni sul test set.
+[16:15] Una volta ottenuto il vettore `average\_rating` (con una valutazione media per ogni utente), lo si deve usare per generare le predizioni sul test set.
 [16:22] Il modello banale predice un valore che dipende solo dall'utente, non dal film.
-[16:35] Per ottenere il vettore `vals_trivial`, si può usare un'indicizzazione avanzata. Il vettore `row_test` contiene gli ID degli utenti per ogni campione di test. Usando `average_rating[row_test]`, si associa a ogni campione di test la valutazione media dell'utente corrispondente.
-[16:55] In modo più esplicito (verboso), si potrebbe inizializzare un vettore vuoto `vals_trivial` e iterare su ogni campione del test set.
-[17:02] Per ogni campione `i`, si estrae l'ID dell'utente (`userId = row_test[i]`) e l'ID del film (`movieId = col_test[i]`).
+[16:35] Per ottenere il vettore `vals\_trivial`, si può usare un'indicizzazione avanzata. Il vettore `row\_test` contiene gli ID degli utenti per ogni campione di test. Usando `average\_rating[row\_test]`, si associa a ogni campione di test la valutazione media dell'utente corrispondente.
+[16:55] In modo più esplicito (verboso), si potrebbe inizializzare un vettore vuoto `vals\_trivial` e iterare su ogni campione del test set.
+[17:02] Per ogni campione `i`, si estrae l'ID dell'utente (`userId = row\_test[i]`) e l'ID del film (`movieId = col\_test[i]`).
 [17:10] La predizione per questa coppia è semplicemente la valutazione media per `userId`, ignorando completamente `movieId`.
-[17:20] Questo valore viene quindi assegnato all'i-esimo elemento di `vals_trivial`. L'indicizzazione avanzata `average_rating[row_test]` è una versione vettorizzata e più efficiente di questo ciclo.
-[17:50] Infine, per calcolare le metriche, si confrontano i valori predetti (`vals_trivial`) con i valori reali del test set (`vals_test`). L'errore è la discrepanza tra questi due vettori.
-[18:00] Una domanda sorge sulla corrispondenza degli indici: l'utente nella posizione 0 del vettore `average_rating` corrisponde all'utente con ID 0? Sì, grazie al passaggio di pulizia e compattazione degli indici eseguito in precedenza, c'è una corrispondenza diretta tra l'indice dell'array e l'ID dell'entità (utente o film).
+[17:20] Questo valore viene quindi assegnato all'i-esimo elemento di `vals\_trivial`. L'indicizzazione avanzata `average\_rating[row\_test]` è una versione vettorizzata e più efficiente di questo ciclo.
+[17:50] Infine, per calcolare le metriche, si confrontano i valori predetti (`vals\_trivial`) con i valori reali del test set (`vals\_test`). L'errore è la discrepanza tra questi due vettori.
+[18:00] Una domanda sorge sulla corrispondenza degli indici: l'utente nella posizione 0 del vettore `average\_rating` corrisponde all'utente con ID 0? Sì, grazie al passaggio di pulizia e compattazione degli indici eseguito in precedenza, c'è una corrispondenza diretta tra l'indice dell'array e l'ID dell'entità (utente o film).
 ## Confronto tra Sintassi: Groupby e Ciclo For
 [00:00] L'operazione eseguita con la sintassi `groupby` è semanticamente identica a quella realizzata tramite un ciclo `for`. Sebbene la sintassi sia differente, l'azione sottostante è la medesima.
 [00:05] Ad esempio, se si considera che la predizione sia un determinato valore e l'ID utente un altro, la riga di codice che utilizza `groupby` compie la stessa operazione di un ciclo `for` esplicito.
 [00:10] In sostanza, il metodo `groupby` esegue internamente un'operazione equivalente a un ciclo. Una volta compreso questo, si capisce che si tratta solo di una diversa modalità sintattica per esprimere lo stesso concetto.
 [00:15] I dati in questo contesto sono già mescolati (shuffled) e mantengono la coerenza tra di loro.
 ## Valutazione del Predittore Banale
-[00:20] L'errore riscontrato in precedenza era dovuto a un'imprecisione nel codice: il ciclo stava iterando sulla dimensione del set di test (`test_size`) invece che su quella del set di addestramento (`training_size`).
+[00:20] L'errore riscontrato in precedenza era dovuto a un'imprecisione nel codice: il ciclo stava iterando sulla dimensione del set di test (`test\_size`) invece che su quella del set di addestramento (`training\_size`).
 [00:23] Dopo aver calcolato l'errore, definito come la discrepanza tra i valori reali del set di test e le previsioni del modello, si procede a calcolare le metriche di valutazione.
 [00:27] La prima metrica è l'**Errore Quadratico Medio Radice (Root Mean Squared Error, RMSE)**.
 *   **Definizione di RMSE**: L'RMSE è una metrica che misura la deviazione media delle previsioni rispetto ai valori reali. Si calcola elevando al quadrato ogni errore, calcolandone la media e infine estraendo la radice quadrata del risultato.
@@ -152,27 +152,27 @@ Di seguito è riportata la traduzione e la rielaborazione strutturata della tras
 [00:51] La soglia, in particolare, è un iperparametro che richiede una calibrazione specifica per ogni problema (tuning). In questo caso, viene fornito un valore di 100, che è stato precedentemente testato e si è dimostrato efficace.
 [00:58] In un contesto reale, sarebbe necessario variare leggermente i parametri per osservare quali combinazioni funzionano meglio.
 ## Implementazione dell'Algoritmo SVT: Passaggi Chiave
-[01:02] L'implementazione dell'algoritmo inizia con il salvataggio di una copia della matrice `A`. Questa copia (`A_old`) è necessaria per calcolare l'incremento, ovvero la differenza tra la matrice allo stato corrente e quella allo stato precedente, al fine di verificare la convergenza.
-[01:10] Successivamente, si applica la Decomposizione a Valori Singolari (SVD) alla matrice `A`, utilizzando la funzione `np.linalg.svd` con il parametro `full_matrices=False`.
+[01:02] L'implementazione dell'algoritmo inizia con il salvataggio di una copia della matrice `A`. Questa copia (`A\_old`) è necessaria per calcolare l'incremento, ovvero la differenza tra la matrice allo stato corrente e quella allo stato precedente, al fine di verificare la convergenza.
+[01:10] Successivamente, si applica la Decomposizione a Valori Singolari (SVD) alla matrice `A`, utilizzando la funzione `np.linalg.svd` con il parametro `full\_matrices=False`.
 [01:15] A questo punto, si applica il *thresholding*: i valori singolari inferiori alla soglia predefinita vengono impostati a zero.
-[01:19] La matrice `A` viene quindi ricostruita. La ricostruzione avviene moltiplicando la matrice `U` per i valori singolari modificati (`S_l`).
+[01:19] La matrice `A` viene quindi ricostruita. La ricostruzione avviene moltiplicando la matrice `U` per i valori singolari modificati (`S\_l`).
 ```math
 A = U \cdot S_l
 ```
 [01:22] Sebbene non sia il metodo più efficiente dal punto di vista computazionale, questa rappresentazione è la più chiara per comprendere il processo.
 [01:25] Annullando i valori singolari inferiori alla soglia, si eliminano i contributi delle componenti principali associate a quelle direzioni, conservando solo le informazioni ritenute più significative.
-[01:33] Un passaggio cruciale consiste nell'assicurarsi che, nelle posizioni in cui i dati sono noti (cioè nel set di addestramento), la matrice ricostruita corrisponda ai valori originali. Pertanto, per ogni componente $(i, j)$ nota, il valore corrispondente in `A` viene forzato ad essere uguale al valore corretto (`vals_trained`).
-[01:44] Si calcola poi l'incremento tra l'iterazione corrente e la precedente utilizzando la norma di Frobenius della differenza tra la matrice `A` e la sua copia `A_old`.
+[01:33] Un passaggio cruciale consiste nell'assicurarsi che, nelle posizioni in cui i dati sono noti (cioè nel set di addestramento), la matrice ricostruita corrisponda ai valori originali. Pertanto, per ogni componente $(i, j)$ nota, il valore corrispondente in `A` viene forzato ad essere uguale al valore corretto (`vals\_trained`).
+[01:44] Si calcola poi l'incremento tra l'iterazione corrente e la precedente utilizzando la norma di Frobenius della differenza tra la matrice `A` e la sua copia `A\_old`.
 ```math
 \text{incremento} = \| A - A_{\text{old}} \|_F
 ```
 *   **Norma di Frobenius**: È una norma matriciale definita come la radice quadrata della somma dei quadrati dei suoi elementi. Misura la "grandezza" complessiva della matrice.
 [01:50] Successivamente, si calcolano le predizioni del modello. I valori predetti sono estratti dalla matrice `A` ricostruita, in corrispondenza delle righe e delle colonne del set di test.
 [01:57] La matrice `A` risulterà ora "piena" (dense), poiché il processo di SVD e ricostruzione, eliminando alcuni valori singolari, modifica la struttura originale, trasformando gli zeri in valori non nulli.
-[02:04] L'errore viene calcolato come la differenza tra i valori reali del set di test (`vals_test`) e i valori predetti.
+[02:04] L'errore viene calcolato come la differenza tra i valori reali del set di test (`vals\_test`) e i valori predetti.
 [02:07] Infine, le metriche di valutazione vengono salvate in due liste:
-*   `rmse_list`: Viene aggiunto il valore dell'RMSE, calcolato come `np.sqrt(np.mean(errors**2))`.
-*   `rho_list`: Viene aggiunto il coefficiente di correlazione di Pearson tra i valori reali e quelli predetti.
+*   `rmse\_list`: Viene aggiunto il valore dell'RMSE, calcolato come `np.sqrt(np.mean(errors**2))`.
+*   `rho\_list`: Viene aggiunto il coefficiente di correlazione di Pearson tra i valori reali e quelli predetti.
 ## Analisi dei Risultati dell'Algoritmo SVT
 [02:13] L'esecuzione dell'algoritmo richiede del tempo. L'obiettivo è ottenere un risultato migliore rispetto al predittore banale.
 [02:17] Si ricorda che il predittore banale aveva un RMSE di circa 1 e una correlazione (rho) di circa 0.3.
@@ -186,7 +186,7 @@ A = U \cdot S_l
 [02:50] Nel primo subplot (`ax[0]`), viene plottato l'andamento dell'RMSE nel tempo (numero di iterazioni).
 [02:53] Nel secondo subplot (`ax[1]`), viene plottato l'andamento del coefficiente di correlazione `rho`.
 [02:55] Per il confronto, i valori del predittore banale vengono rappresentati come una linea orizzontale, poiché si tratta di un singolo valore costante che non ha una cronologia di miglioramento.
-[02:59] La funzione `ax.hlines` (horizontal line) viene utilizzata per tracciare una linea orizzontale parallela all'asse x, con un'ordinata `y` pari al valore della metrica del predittore banale (es. `rmse_trivial`).
+[02:59] La funzione `ax.hlines` (horizontal line) viene utilizzata per tracciare una linea orizzontale parallela all'asse x, con un'ordinata `y` pari al valore della metrica del predittore banale (es. `rmse\_trivial`).
 [03:09] Il risultato finale mostra che, per quanto riguarda il coefficiente di correlazione, l'algoritmo SVT diventa rapidamente migliore del predittore banale, superando il valore di 0.3438 in poche iterazioni.
 [03:16] Tuttavia, per l'RMSE, il predittore banale si dimostra molto competitivo. L'algoritmo SVT riesce a scendere al di sotto del valore di riferimento del predittore banale solo verso la fine del processo e con un margine molto ridotto.
 [03:22] Questo evidenzia l'importanza di utilizzare sempre un modello di base (baseline) come termine di paragone. Un modello molto semplice, come la media, può già fornire prestazioni notevoli, indicando che un algoritmo più complesso, pur migliorando il risultato, potrebbe non offrire un vantaggio così significativo.
@@ -205,7 +205,7 @@ A = U \cdot S_l
 ## Implementazione dell'Algoritmo di Ricostruzione
 [04:21] Si definisce una percentuale di pixel corrotti, ad esempio il 50%. Viene generata una maschera di rumore casuale che copre il 50% dei pixel dell'immagine.
 [04:27] Vengono impostati i parametri dell'algoritmo:
-*   `max_iter`: Numero massimo di iterazioni (es. 700).
+*   `max\_iter`: Numero massimo di iterazioni (es. 700).
 *   `tolerance`: Tolleranza per il criterio di arresto (es. 0.01).
 [04:31] I parametri `delta`, `tau` e `c0` sono quelli definiti nelle slide del corso.
 *   `delta` è impostato a 1.2.
@@ -291,7 +291,7 @@ A = U \cdot S_l
 [06:50] **Scenario 1: Tutto su GPU.** Si crea un array `x` con JAX. Di default, se una GPU è disponibile e configurata, questo array viene allocato sulla memoria della GPU. Si calcola il prodotto scalare tra l'array e la sua trasposta. Tutte le computazioni avvengono direttamente sulla GPU.
 [07:08] **Scenario 2: Tutto su CPU.** Si esegue la stessa operazione utilizzando NumPy. Poiché NumPy non può utilizzare la GPU, sia i dati che i calcoli rimangono sulla CPU.
 [07:20] **Scenario 3: Trasferimento implicito CPU -> GPU.** Si crea un array con NumPy (quindi sulla CPU). Successivamente, si utilizza una funzione JAX (come il prodotto scalare) su questo array. JAX, per eseguire il calcolo sulla GPU, deve prima copiare implicitamente i dati dalla memoria della CPU a quella della GPU. Questa operazione di copia introduce un overhead.
-[07:38] **Scenario 4: Trasferimento esplicito CPU -> GPU.** È possibile gestire il trasferimento dei dati in modo esplicito. Si può forzare lo spostamento di un array dalla CPU alla GPU utilizzando la funzione `jax.device_put`. Successivamente, si esegue il calcolo JAX sui dati che sono già stati trasferiti sulla GPU. Questo approccio è concettualmente simile allo scenario 1, ma rende esplicito il momento del trasferimento di memoria.
+[07:38] **Scenario 4: Trasferimento esplicito CPU -> GPU.** È possibile gestire il trasferimento dei dati in modo esplicito. Si può forzare lo spostamento di un array dalla CPU alla GPU utilizzando la funzione `jax.device\_put`. Successivamente, si esegue il calcolo JAX sui dati che sono già stati trasferiti sulla GPU. Questo approccio è concettualmente simile allo scenario 1, ma rende esplicito il momento del trasferimento di memoria.
 ### Analisi delle performance
 [08:00] I risultati dei test di performance mostrano differenze significative:
 -   **Tutto su GPU:** L'operazione richiede circa 15 millisecondi.
@@ -362,15 +362,15 @@ A = U \cdot S_l
 [14:51] Si supponga di avere due matrici, `X` e `Y`, e di voler applicare questa funzione a ogni coppia di righe corrispondenti delle due matrici. Questo è un pattern comune, ad esempio, nell'elaborazione di un dataset, dove ogni riga rappresenta un campione di dati.
 [15:07] **Approccio ingenuo:** Si utilizza un ciclo `for` in Python per iterare su ogni riga delle matrici e applicare la funzione. Questo approccio sarà lento.
 [15:26] **Prima ottimizzazione (JIT):** Una prima idea è compilare la funzione che contiene il ciclo `for` con JIT. Questo si può fare usando la sintassi del decoratore `@jax.jit` sopra la definizione della funzione.
-[15:38] Il decoratore `@` è una scorciatoia sintattica. Scrivere `@jax.jit` sopra una funzione `mia_funzione` è equivalente a scrivere `mia_funzione = jax.jit(mia_funzione)` dopo la sua definizione.
+[15:38] Il decoratore `@` è una scorciatoia sintattica. Scrivere `@jax.jit` sopra una funzione `mia\_funzione` è equivalente a scrivere `mia\_funzione = jax.jit(mia\_funzione)` dopo la sua definizione.
 [15:55] La compilazione JIT del ciclo migliorerà le performance rispetto alla versione ingenua.
 [16:01] **Seconda ottimizzazione (`vmap`):** Si può fare di meglio usando `vmap`. `vmap` agisce come un ciclo `for` implicito e ottimizzato.
 [16:06] A `vmap` si passano due argomenti principali:
 1.  La funzione da applicare.
-2.  Un argomento `in_axes` che specifica su quali assi degli input la funzione deve essere "mappata" (iterata).
-[16:14] Ad esempio, `in_axes=(0, 0)` significa che si vuole applicare la funzione iternado lungo l'asse 0 (le righe) del primo argomento e l'asse 0 del secondo argomento. `vmap` restituisce una nuova funzione vettorizzata.
+2.  Un argomento `in\_axes` che specifica su quali assi degli input la funzione deve essere "mappata" (iterata).
+[16:14] Ad esempio, `in\_axes=(0, 0)` significa che si vuole applicare la funzione iternado lungo l'asse 0 (le righe) del primo argomento e l'asse 0 del secondo argomento. `vmap` restituisce una nuova funzione vettorizzata.
 [16:40] **Terza ottimizzazione (JIT + `vmap`):** L'approccio migliore consiste nel combinare `vmap` e JIT. Si applica prima `vmap` per creare un ciclo for ottimizzato e poi si compila la funzione risultante con JIT. Questo garantisce le massime performance.
-[17:00] L'argomento `in_axes` è una sequenza di interi la cui lunghezza corrisponde al numero di argomenti della funzione. Ogni intero indica l'asse su cui iterare per l'argomento corrispondente.
+[17:00] L'argomento `in\_axes` è una sequenza di interi la cui lunghezza corrisponde al numero di argomenti della funzione. Ogni intero indica l'asse su cui iterare per l'argomento corrispondente.
 [17:18] Questo meccanismo è un'estensione del concetto di `axis` presente in funzioni NumPy come `min` o `sum`, ma generalizzato a qualsiasi funzione definita dall'utente.
 ### Analisi delle performance con `vmap`
 [17:34] I risultati del confronto tra i diversi approcci sono impressionanti:
@@ -399,7 +399,7 @@ A = U \cdot S_l
 ### Esempio: Operazione di Convoluzione
 [00:52] Un esempio pratico è l'operazione di convoluzione. Utilizzando l'interfaccia di alto livello, simile a NumPy, è sufficiente passare gli array `x` e `y` alla funzione `convolve` per ottenere il risultato.
 [01:00] Se si utilizza l'interfaccia di basso livello, l'operazione richiede una configurazione più dettagliata. Innanzitutto, è necessario assicurarsi che entrambi gli array di input abbiano lo stesso tipo di dato, ad esempio `float`.
-[01:05] Inoltre, è obbligatorio specificare argomenti aggiuntivi per definire il comportamento della convoluzione, come la dimensione della finestra (`window_dimensions`) e il `padding` da applicare all'inizio e alla fine degli array.
+[01:05] Inoltre, è obbligatorio specificare argomenti aggiuntivi per definire il comportamento della convoluzione, come la dimensione della finestra (`window\_dimensions`) e il `padding` da applicare all'inizio e alla fine degli array.
 [01:12] Questo dimostra che l'interfaccia di basso livello offre maggiore potenza e un numero superiore di opzioni, ma richiede una conoscenza approfondita della documentazione.
 [01:19] È importante notare che il risultato finale delle due interfacce è identico, poiché l'interfaccia di alto livello di JAX agisce come un "wrapper", ovvero un involucro, per quella di basso livello.
 ## Limiti della Compilazione Just-In-Time (JIT)
@@ -431,9 +431,9 @@ A = U \cdot S_l
 [03:21] Vengono conservate solo le operazioni strettamente necessarie al calcolo del risultato.
 [03:26] Il messaggio fondamentale è che la prima chiamata a una funzione compilata con `jit` è costosa, poiché include il tempo necessario per il tracciamento e la compilazione.
 [03:31] Dalla seconda chiamata in poi, l'esecuzione è estremamente rapida, poiché JAX utilizza la versione compilata e salvata in memoria.
-### Analisi della Grammatica Astratta con `make_jaxpr`
-[03:37] È possibile ispezionare ciò che JAX fa internamente utilizzando la funzione `make_jaxpr`. Questa funzione, data una funzione Python, restituisce la grammatica astratta (`jaxpr`) che JAX costruisce per rappresentare e ottimizzare il calcolo.
-[03:47] Applicando `make_jaxpr` a una funzione, si può osservare come JAX rappresenti gli input tramite i tracer.
+### Analisi della Grammatica Astratta con `make\_jaxpr`
+[03:37] È possibile ispezionare ciò che JAX fa internamente utilizzando la funzione `make\_jaxpr`. Questa funzione, data una funzione Python, restituisce la grammatica astratta (`jaxpr`) che JAX costruisce per rappresentare e ottimizzare il calcolo.
+[03:47] Applicando `make\_jaxpr` a una funzione, si può osservare come JAX rappresenti gli input tramite i tracer.
 [03:52] L'oggetto `jaxpr` risultante contiene informazioni cruciali, come il tipo e la dimensione degli array di input. Ad esempio, un input `A` potrebbe essere descritto come un array in virgola mobile a 32 bit (`float32`) di dimensione `3x4`, e un input `B` come un array di dimensione `4`.
 [04:00] Questo conferma perché JAX richiede che la forma e il tipo degli array rimangano costanti: queste informazioni sono indispensabili per costruire la grammatica astratta necessaria all'ottimizzazione.
 [04:10] La grammatica `jaxpr` descrive testualmente la sequenza di chiamate all'API di basso livello (`lax`) che implementano la funzione.
@@ -454,11 +454,11 @@ A = U \cdot S_l
 [05:35] Se `neg` è `False` (cioè `0`), l'espressione diventa `x * (1 - 0) = x`.
 [05:39] Se `neg` è `True` (cioè `1`), l'espressione diventa `x * (1 - 2) = -x`.
 [05:46] Questa versione della funzione può essere compilata con `jit` perché la sua struttura computazionale è fissa e non dipende dal valore di `neg`.
-### Soluzione 2: Argomenti Statici (`static_argnums`)
+### Soluzione 2: Argomenti Statici (`static\_argnums`)
 [05:53] Un'altra soluzione, sebbene meno raccomandata, è l'uso degli argomenti statici.
-[05:58] Utilizzando il decoratore `@partial` o specificando l'opzione `static_argnums` in `@jit`, si può indicare a JAX di trattare un certo argomento come "statico".
+[05:58] Utilizzando il decoratore `@partial` o specificando l'opzione `static\_argnums` in `@jit`, si può indicare a JAX di trattare un certo argomento come "statico".
 [06:02] Questo approccio istruisce JAX a creare e compilare una versione specializzata della funzione per ogni valore unico che l'argomento statico assume.
-[06:10] Nel nostro esempio, specificare `neg` come argomento statico (passando il suo indice, `1`, a `static_argnums`) equivale a definire due funzioni separate, `f_true` e `f_false`, e a compilare entrambe con `jit`.
+[06:10] Nel nostro esempio, specificare `neg` come argomento statico (passando il suo indice, `1`, a `static\_argnums`) equivale a definire due funzioni separate, `f\_true` e `f\_false`, e a compilare entrambe con `jit`.
 [06:20] Il meccanismo è automatico: JAX gestisce la creazione e la memorizzazione delle diverse versioni compilate.
 [06:25] Di conseguenza, ogni volta che la funzione viene chiamata con un nuovo valore per l'argomento statico, JAX deve eseguire un nuovo tracciamento e una nuova compilazione.
 [06:31] Ad esempio, la prima chiamata con `True` innescherà un tracciamento. La prima chiamata con `False` innescherà un altro tracciamento.
@@ -489,7 +489,7 @@ A = U \cdot S_l
 [08:34] Per comprendere l'approccio di JAX alla generazione di numeri casuali, è utile analizzare prima il funzionamento di NumPy.
 [08:39] In NumPy, si imposta un `seed` (seme) iniziale. Dietro le quinte, NumPy mantiene uno **stato** globale, un numero che tiene traccia del punto corrente nella sequenza del generatore di numeri casuali.
 [08:49] Ogni volta che si chiama una funzione per generare un numero casuale (es. `numpy.random.rand`), NumPy aggiorna implicitamente questo stato interno per produrre un nuovo valore.
-[08:58] È possibile ispezionare questo stato con la funzione `get_state()`. Dopo aver impostato il seed, lo stato ha un certo valore. Dopo aver generato un numero casuale, si può osservare che lo stato è cambiato.
+[08:58] È possibile ispezionare questo stato con la funzione `get\_state()`. Dopo aver impostato il seed, lo stato ha un certo valore. Dopo aver generato un numero casuale, si può osservare che lo stato è cambiato.
 ### L'Approccio Funzionale Puro di JAX
 [09:08] Il problema del modello di NumPy è che le sue funzioni di generazione casuale sono **impure**: dipendono e modificano uno stato globale esterno, proprio come la variabile `g` nell'esempio precedente.
 [09:17] JAX, basandosi interamente sul paradigma delle funzioni pure, non può adottare questo tipo di implementazione.
@@ -528,12 +528,12 @@ A = U \cdot S_l
 [11:51] Ad esempio, si può definire una funzione che restituisce una parabola per $x \le 3$ e una retta per $x > 3$. Usando `where`, l'output avrà sempre la stessa dimensione dell'input `x`, ma i suoi valori saranno presi da due calcoli diversi a seconda della condizione.
 [12:00] Poiché la forma del risultato è statica, è possibile comporre `jit` e `grad` senza problemi.
 ## Altri Concetti Avanzati di JAX
-### `fori_loop`: Alternativa a Basso Livello per `vmap`
-[12:03] La funzione `vmap` ha un equivalente nell'API di basso livello chiamato `fori_loop`.
-[12:07] `fori_loop` permette di implementare un ciclo `for` in modo vettorizzato, specificando l'indice iniziale, l'indice finale, la funzione da applicare a ogni iterazione e un valore iniziale su cui operare. È un altro strumento per la vettorizzazione dei cicli in JAX.
+### `fori\_loop`: Alternativa a Basso Livello per `vmap`
+[12:03] La funzione `vmap` ha un equivalente nell'API di basso livello chiamato `fori\_loop`.
+[12:07] `fori\_loop` permette di implementare un ciclo `for` in modo vettorizzato, specificando l'indice iniziale, l'indice finale, la funzione da applicare a ogni iterazione e un valore iniziale su cui operare. È un altro strumento per la vettorizzazione dei cicli in JAX.
 ### Debug di Valori `NaN`
 [12:15] Quando si lavora con codice complesso, può capitare che i calcoli producano valori `NaN` (Not a Number), rendendo difficile individuare l'origine del problema.
-[12:20] JAX offre un'opzione di configurazione per abilitare il tracciamento dei `NaN`. Impostando `jax.config.update("jax_debug_nans", True)`, JAX solleverà un errore non appena un `NaN` viene generato, facilitando il debug.
+[12:20] JAX offre un'opzione di configurazione per abilitare il tracciamento dei `NaN`. Impostando `jax.config.update("jax\_debug\_nans", True)`, JAX solleverà un errore non appena un `NaN` viene generato, facilitando il debug.
 ### Precisione Computazionale: 32-bit vs. 64-bit
 [12:28] Per impostazione predefinita, JAX esegue tutti i calcoli in precisione a 32 bit (`float32`). Questa scelta è motivata dal fatto che le GPU sono altamente ottimizzate per operazioni a 32 bit.
 [12:34] Al contrario, NumPy e molti contesti matematici utilizzano di default la precisione a 64 bit (`float64` o "double precision").

@@ -43,19 +43,19 @@ Idea chiave: meshgrid trasforma griglie 1D in una griglia 2D per valutare e visu
 - Le formule esatte non sono centrali: le funzioni servono come test.
 ## [13:00] Gradient Descent (passo fisso) – Algoritmo e parametri
 Parametri:
-- grad_f: funzione che calcola il gradiente della loss.
+- grad\_f: funzione che calcola il gradiente della loss.
 - x0: punto iniziale.
 - lr: learning rate (ampiezza del passo).
 - tol: soglia per arresto su ||grad||.
-- max_iter: massimo numero di iterazioni.
+- max\_iter: massimo numero di iterazioni.
 Procedura:
 1) Inizializza x = copia di x0 (per evitare aliasing) e crea “path” con x.
-2) Loop per iterazione in [1, max_iter]:
-- Calcola g = grad_f(x).
+2) Loop per iterazione in [1, max\_iter]:
+- Calcola g = grad\_f(x).
 - Aggiorna x = x − lr · g.
 - Salva x nel path.
 - Se ||g|| < tol, arresta (punto stazionario, idealmente un minimo).
-Buona pratica: usare “_” per variabili non usate nel loop, per chiarezza.
+Buona pratica: usare “\_” per variabili non usate nel loop, per chiarezza.
 ## [15:30] Conclusione e note operative (prima parte)
 - Verifica della soluzione: tutto ok.
 - Indicazioni operative: proseguire con implementazioni e test.
@@ -75,7 +75,7 @@ Concetti:
 - Gradiente: ∇f(x) = A x − b (o Ax + b, in base alla convenzione dei segni).
 - Passo ottimo lungo −g: t* = (gᵀ g) / (gᵀ A g).
 Procedura:
-1) Calcola g = grad_f(x).
+1) Calcola g = grad\_f(x).
 2) Calcola t* con la formula analitica.
 3) Aggiorna x = x − t* · g.
 4) Salva nel path e verifica arresto su ||g||.
@@ -85,8 +85,8 @@ Vantaggi: passo ottimale lungo la direzione corrente, convergenza molto rapida s
 - La colorbar permette di leggere i valori associati ai colori.
 - Sovrapporre le traiettorie ai contour mostra il percorso verso i minimi (il blu indica valori bassi).
 ## [27:00] Criteri di arresto e implementazione
-- Arresto tipico: ||grad_f(x)|| < tol.
-- Impostare sempre max_iter per evitare loop infiniti.
+- Arresto tipico: ||grad\_f(x)|| < tol.
+- Impostare sempre max\_iter per evitare loop infiniti.
 - Salvare copie di x nel path per non sovrascrivere punti precedenti.
 ## [30:00] Conclusione del modulo su Gradient Descent
 - Abbiamo implementato:
@@ -128,7 +128,7 @@ Vantaggi: passo ottimale lungo la direzione corrente, convergenza molto rapida s
 ## [11:30] Train/Test split e validazione
 - Suddividere i dati in training e test (in ML spesso anche validation).
 - Test set: dati mai visti in addestramento, serve per valutare generalizzazione.
-- Comodo usare train_test_split di scikit‑learn con percentuale e seed.
+- Comodo usare train\_test\_split di scikit‑learn con percentuale e seed.
 ## [12:30] Definizione del modello, loss e gradiente (con JAX)
 Ingredienti:
 - Modello lineare: ŷ = θ0 + θ1 · x.
@@ -139,7 +139,7 @@ Dettaglio sugli argomenti:
 - Assicurarsi che la firma sia MSE(θ, x, y) per ottenere ∂/∂θ.
 ## [13:30] Aggiornamento dei parametri (Gradient Descent)
 - A ogni iterazione:
-  - Calcolare MSE(θ, x_batch, y_batch).
+  - Calcolare MSE(θ, x\_batch, y\_batch).
   - Calcolare ∇θ MSE.
   - Aggiornare θ ← θ − lr · ∇θ MSE.
 - Questo corrisponde a muoversi nello spazio dei parametri verso il minimo della loss.
@@ -155,12 +155,12 @@ Dettaglio sugli argomenti:
 ## [03:10] Ciclo di addestramento: epoche, permutazioni, mini-batch
 Terminologia:
 - Epoca: un passaggio completo sul training set.
-- max_epochs: quante volte ripetiamo il ciclo.
+- max\_epochs: quante volte ripetiamo il ciclo.
 Procedura:
 - A ogni epoca, aggiornare il random key di JAX e permutare gli indici.
-- Iterare per i in 0..len(X_train) a passo batch_size:
+- Iterare per i in 0..len(X\_train) a passo batch\_size:
   - Selezionare indici del batch.
-  - Creare X_batch e Y_batch.
+  - Creare X\_batch e Y\_batch.
   - Aggiornare θ con lo step SGD.
 ## [04:10] Gestione della casualità in JAX
 - JAX richiede gestione esplicita del random key.
@@ -168,15 +168,15 @@ Procedura:
 - Beneficio: batch casuali aumentano la stabilità media dei gradienti.
 ## [05:00] Parametri di training: inizializzazione e tuning
 - Inizializzazione: θ = [0, 0].
-- Parametri: θ iniziale, X_train/Y_train, X_test/Y_test, learning_rate, max_epochs, batch_size.
-- Effetto del batch_size:
+- Parametri: θ iniziale, X\_train/Y\_train, X\_test/Y\_test, learning\_rate, max\_epochs, batch\_size.
+- Effetto del batch\_size:
   - Grande: gradiente più accurato, LR potenzialmente maggiore, costo per aggiornamento più alto.
   - Piccolo: gradiente più rumoroso, LR più piccolo e più epoche.
 - Esempio: 100 epoche di SGD portano θ vicino ai parametri reali (≈ [3, 1.5]).
 ## [06:10] Visualizzazione: dati e retta appresa
 - Tracciare punti di train/test con scatter.
-- Costruire x_plot = linspace(0, 10, 1000).
-- Valutare y_plot = θ0 + θ1 · x_plot e tracciare la retta.
+- Costruire x\_plot = linspace(0, 10, 1000).
+- Valutare y\_plot = θ0 + θ1 · x\_plot e tracciare la retta.
 - Obiettivo: verificare visivamente l’adattamento della retta ai dati.
 ## [06:40] Chiusura: importanza dei concetti
 - Concetti fondamentali:
@@ -185,7 +185,7 @@ Procedura:
   - Gradiente (autodiff JAX),
   - Aggiornamento (SGD, mini-batch),
   - Casualità (random key, permutazioni),
-  - Tuning (learning_rate, batch_size, epoche).
+  - Tuning (learning\_rate, batch\_size, epoche).
 - Questi elementi saranno riutilizzati in modelli più complessi.
 ## [00:00] Modello – Idea chiave
 Contesto: dato un input x e parametri θ, il modello produce una previsione ŷ.
@@ -208,8 +208,8 @@ Estensione a modelli complessi (reti neurali):
 - Usare jax.grad(MSE) per ottenere ∂MSE/∂θ.
 - Importante: jax.grad differenzia rispetto al primo argomento, mantenere l’ordine corretto (θ come primo argomento).
 ## [02:05] Aggiornamento del gradiente
-- Su un mini-batch: gradients = grad_MSE(θ, X_batch, Y_batch).
-- Aggiornare: θ ← θ − learning_rate · gradients.
+- Su un mini-batch: gradients = grad\_MSE(θ, X\_batch, Y\_batch).
+- Aggiornare: θ ← θ − learning\_rate · gradients.
 - È la discesa lungo la direzione opposta al gradiente.
 ## [02:30] SGD – differenze e motivazioni
 - Mini-batch al posto del full-batch:
@@ -225,8 +225,8 @@ Estensione a modelli complessi (reti neurali):
 - Nuove permutazioni a ogni epoca migliorano la qualità media dei gradienti.
 ## [05:00] Parametri di training e effetti
 - θ iniziale = [0, 0].
-- Parametri: learning_rate, max_epochs, batch_size.
-- Trade-off del batch_size:
+- Parametri: learning\_rate, max\_epochs, batch\_size.
+- Trade-off del batch\_size:
   - Grande: gradiente più accurato, aggiornamenti più costosi.
   - Piccolo: gradiente più rumoroso, serve LR minore e più epoche.
 ## [06:10] Visualizzazione del modello
@@ -235,7 +235,7 @@ Estensione a modelli complessi (reti neurali):
 - Verifica visiva della bontà dell’adattamento.
 ## [00:00] Risultati e metrica sul test set
 - Il modello è addestrato sul training (punti blu).
-- Valutazione: calcolare la metrica sul test (punti arancioni), ad es. MSE(θ_opt, X_test, Y_test) = 0.75.
+- Valutazione: calcolare la metrica sul test (punti arancioni), ad es. MSE(θ\_opt, X\_test, Y\_test) = 0.75.
 - Tracciare la linea di regressione e interpretare il risultato.
 - Regola fondamentale: le metriche si calcolano sempre sul test set, non sul training.
 ## [01:00] Verso modelli più complessi: SVR e SVM
@@ -244,25 +244,25 @@ Estensione a modelli complessi (reti neurali):
   2) SVM di classificazione lineare in 2D con un iperpiano separatore.
 - L’idea generale resta: dati X e Y, definire loss, gradiente e aggiornamento.
 ## [02:00] Implementazione SVR: strumenti e organizzazione
-- Librerie: JAX, NumPy, Matplotlib, train_test_split.
+- Librerie: JAX, NumPy, Matplotlib, train\_test\_split.
 - Struttura in una classe “SupportVectorRegression” per gestire parametri, loss, training e predizione.
 ## [03:00] Loss epsilon-insensitive e regolarizzazione
 Concetti:
 - Loss tubolare: errori entro ±epsilon non sono penalizzati; oltre epsilon, la loss cresce.
 - Regolarizzazione L2: λ · ||W||² per controllare la grandezza dei parametri ed evitare overfitting.
 Formula operativa:
-- ŷ = X · w_slope + b.
+- ŷ = X · w\_slope + b.
 - epsilon-loss per campione: max(0, |ŷ − y| − epsilon).
 - Loss totale: mean(epsilon-loss) + λ · sum(params²).
 ## [04:30] Training SVR: inizializzazione, gradiente e update
 - X come matrice (righe = campioni, colonne = feature).
-- Inizializzazione: zeri, dimensione = n_feature + 1 (bias).
+- Inizializzazione: zeri, dimensione = n\_feature + 1 (bias).
 - grad = jax.grad(loss).
 - Step SGD con JIT: w ← w − lr · grad(w, X, Y).
 - Loop su maxiter epoche, aggiornando i parametri ad ogni step.
 ## [06:00] Predizione SVR
 - Per dati X e parametri w:
-  - ŷ = X · w_slope + b.
+  - ŷ = X · w\_slope + b.
 - Struttura identica al caso lineare, con loss diversa (epsilon-insensitive).
 ## [07:00] Dati, split e visualizzazione SVR
 - Generare dati sintetici lineari con rumore e suddividere 80/20 train/test.
@@ -295,10 +295,10 @@ Differenze:
 - jnp.maximum applica l’operazione per elemento (con broadcasting).
 - Esempio concettuale: per ogni componente, prende max(0, valore).
 ## [13:00] Soluzione SVM: decision, hinge loss, training
-- Decision: decision = X · w_slope + b (eventuale reshape di w_slope per coerenza dimensionale).
+- Decision: decision = X · w\_slope + b (eventuale reshape di w\_slope per coerenza dimensionale).
 - Hinge loss: mean(max(0, 1 − y · decision)) + λ · sum(params²).
 - Training:
-  - n_feature = 2,
+  - n\_feature = 2,
   - parametri iniziali a zero (w1, w2, b),
   - grad = jax.grad(loss),
   - step JIT: w ← w − lr · grad(w, X, Y),
@@ -307,7 +307,7 @@ Purezza e JIT:
 - Con jax.jit, le funzioni devono essere pure rispetto ai parametri aggiornati.
 - Passare esplicitamente w alla funzione step; evitare di catturare self.w per non confondere il caching di JAX.
 ## [15:00] Predizione SVM
-- Predizione binaria: y_pred = sign(decision).
+- Predizione binaria: y\_pred = sign(decision).
 - Se serve mappare a 0/1: −1 → 0, +1 → 1.
 ## [16:00] Valutazione, risultati e debugging
 Pipeline:

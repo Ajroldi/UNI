@@ -28,7 +28,7 @@ In questo caso, si passa da uno spazio monodimensionale a uno bidimensionale.
 [05:15] Proiettando questi dati in uno spazio tridimensionale, come mostrato nell'esempio, si può scoprire che in 3D è possibile separare i punti rossi dai quadrati blu utilizzando un iperpiano, che è una superficie lineare. Il terzo asse di questo nuovo spazio può essere, ad esempio, una combinazione delle caratteristiche originali.
 [05:45] Tenere a mente questa immagine aiuta a cogliere l'idea di base del metodo Kernel: trasformare un problema di separazione non lineare in uno lineare, operando in uno spazio a dimensione più elevata.
 
-![Vista geometrica: separazione non lineare (cerchio) resa lineare nello spazio liftato](img/lez12_vista_geometrica_separazione_circolare.png)
+![Vista geometrica: separazione non lineare (cerchio) resa lineare nello spazio liftato](img/lez12\_vista\_geometrica\_separazione\_circolare.png)
 
 ### Esempio Pratico di Classificazione Non Lineare
 [06:00] Si consideri un set di dati simile a quello appena descritto, con punti blu e punti arancioni. L'obiettivo è classificare questi dati, trovando un confine di separazione. Le caratteristiche date sono $x_1$ e $x_2$, le coordinate dei punti.
@@ -81,7 +81,7 @@ K(\mathbf{x}, \mathbf{z}) = \exp\left(-\frac{\|\mathbf{x} - \mathbf{z}\|^2}{2\si
     dove $\sigma$ è un parametro che controlla la larghezza del kernel.
 [14:15] L'obiettivo è quindi passare dalla risoluzione del problema con la matrice esplicita $\Phi^T \Phi$ a una soluzione che sfrutti unicamente la funzione kernel.
 
-![Esempi di funzioni kernel (polinomiale, gaussiano/RBF)](img/KM1_page_02.png)
+![Esempi di funzioni kernel (polinomiale, gaussiano/RBF)](img/KM1\_page\_02.png)
 
 ## Capitolo 3: Il Teorema del Rappresentatore e la Soluzione del Problema
 ### Il Teorema del Rappresentatore
@@ -123,7 +123,7 @@ Questo significa che il termine di errore dipende solo dalla componente parallel
 [18:45] Per minimizzare questa espressione, dato che il termine $\|\mathbf{w}_{\perp}\|^2$ è non negativo e non influenza il termine di errore, la scelta ottimale è porlo a zero, ovvero $\mathbf{w}_{\perp} = \mathbf{0}$.
 [19:00] Di conseguenza, la soluzione ottima $\mathbf{w}^*$ deve appartenere interamente allo spazio generato dai vettori delle caratteristiche di addestramento. Può quindi essere rappresentata come una combinazione lineare di tali vettori.
 
-![Teorema del Rappresentatore: dimostrazione geometrica](img/KM1_page_03.png)
+![Teorema del Rappresentatore: dimostrazione geometrica](img/KM1\_page\_03.png)
 
 ### Applicazione del Teorema e Soluzione del Problema
 [19:30] Il messaggio chiave del Teorema del Rappresentatore è che la soluzione di un problema di regressione regolarizzato può essere scritta come una combinazione lineare dei vettori di caratteristiche dei dati di addestramento.
@@ -140,7 +140,7 @@ K_{ij} = K(\mathbf{x}_i, \mathbf{x}_j) = \phi(\mathbf{x}_i)^T \phi(\mathbf{x}_j)
 ```
 La matrice $K$ può anche essere scritta come $K = \Phi \Phi^T$.
 
-![Esempio di matrice kernel (Gram) visualizzata come heatmap](img/lez12_kernel_matrix_heatmap.png)
+![Esempio di matrice kernel (Gram) visualizzata come heatmap](img/lez12\_kernel\_matrix\_heatmap.png)
 
 [21:15] Il vettore dei coefficienti $\boldsymbol{\alpha}$ può quindi essere trovato risolvendo il sistema:
 ```math
@@ -207,7 +207,7 @@ K(x, z) = (xz + 1)^2 = x^2 z^2 + 2xz + 1
 che è esattamente l'espressione del kernel.
 [28:00] Questo dimostra che la funzione kernel $K(x, z) = (xz+1)^2$ corrisponde implicitamente alla mappa delle caratteristiche $\phi(x) = (x^2, \sqrt{2}x, 1)$.
 
-![Esempio kernel polinomiale: calcolo esplicito della matrice K](img/KM1_page_04.png)
+![Esempio kernel polinomiale: calcolo esplicito della matrice K](img/KM1\_page\_04.png)
 
 [28:15] Il punto fondamentale è che, scegliendo una funzione kernel appropriata, non è necessario definire esplicitamente la mappa $\phi$, arricchire i vettori e poi calcolare il prodotto scalare. Tutto è racchiuso nella scelta della funzione kernel.
 ## Capitolo 4: Applicazioni dei Metodi Kernel e Introduzione al PageRank
@@ -230,7 +230,7 @@ che è esattamente l'espressione del kernel.
 ### Il Modello del "Random Surfer"
 [02:08] L'idea di base può essere visualizzata attraverso un semplice grafo. Immaginiamo una rete di quattro siti web, dove le frecce rappresentano i link. Ad esempio, il sito 3 ha un link verso il sito 4. Alcuni link possono essere bidirezionali.
 
-![PageRank: esempio di rete di pagine e intuizione del random surfer (slide)](img/PR1_page_01.png)
+![PageRank: esempio di rete di pagine e intuizione del random surfer (slide)](img/PR1\_page\_01.png)
 
 [02:20] Data questa rappresentazione grafica della rete di siti web, l'algoritmo simula il comportamento di un utente che naviga casualmente. Si parte da una pagina web scelta a caso tra quelle disponibili.
 [02:29] A partire da questa pagina, l'utente clicca casualmente su uno dei link presenti, spostandosi così a una nuova pagina.
@@ -250,7 +250,7 @@ A_{ij} = \begin{cases} 1 & \text{se esiste un link da } j \to i \\ 0 & \text{alt
 -   $A_{14} = 1$: c'è un link dalla pagina 4 alla pagina 1.
 Lo stesso procedimento si applica per le altre righe della matrice, che cattura così tutte le connessioni della rete.
 
-![PageRank: costruzione della matrice di adiacenza e transizione](img/PR1_page_02.png)
+![PageRank: costruzione della matrice di adiacenza e transizione](img/PR1\_page\_02.png)
 
 [03:30] Il passo successivo è la normalizzazione della matrice di adiacenza. A partire da $A$, si costruisce una nuova matrice $M$ normalizzando ogni colonna in modo che la somma dei suoi elementi sia pari a 1.
 [03:40] La matrice normalizzata $M$ avrà quindi colonne la cui somma è 1. Ad esempio, se una colonna di $A$ ha due '1', gli elementi corrispondenti in $M$ diventeranno $1/2$. Se una colonna ha un solo '1', l'elemento corrispondente in $M$ sarà 1.
@@ -288,7 +288,7 @@ M\pi = \pi
 -   Inoltre, questo autovettore può essere scelto in modo da avere componenti strettamente positive, il che permette di interpretarle come probabilità.
 [06:00] Nell'implementazione reale dell'algoritmo di Google, la matrice utilizzata non è esattamente la semplice matrice di transizione presentata, ma l'idea di base rimane la stessa.
 
-![Teorema di Perron-Frobenius: proprietà delle matrici stocastiche](img/PR1_page_03.png)
+![Teorema di Perron-Frobenius: proprietà delle matrici stocastiche](img/PR1\_page\_03.png)
 
 [06:07] Sapendo che la coppia autovalore-autovettore ha le proprietà desiderate (l'autovalore è il più grande e l'autovettore è unico e positivo), ha senso cercare proprio questo autovettore $\pi$.
 ## Capitolo 6: Calcolo dell'Autovettore Dominante e Completamento di Matrici
@@ -331,7 +331,7 @@ x_k \approx c_1 \lambda_1^k v_1
 Il vettore $x_k$ converge quindi alla direzione dell'autovettore associato all'autovalore più grande.
 [07:50] Sfruttando questo fatto, si può calcolare il vettore $\pi$ (che corrisponde a $v_1$) e ottenere così la classifica delle pagine web nella rete.
 
-![Metodo delle potenze: esempio di convergenza verso l'autovettore dominante](img/lez12_power_method_convergence.png)
+![Metodo delle potenze: esempio di convergenza verso l'autovettore dominante](img/lez12\_power\_method\_convergence.png)
 
 [07:58] La dimostrazione del teorema di Perron-Frobenius nel caso semplificato è disponibile ma può essere omessa.
 ### Introduzione al Completamento di Matrici (Matrix Completion)
@@ -344,7 +344,7 @@ Il vettore $x_k$ converge quindi alla direzione dell'autovettore associato all'a
 [08:52] La situazione è analoga a quella di avere una matrice con alcuni valori noti (le valutazioni date) e molte posizioni vuote (valori sconosciuti). Ad esempio, potremmo non sapere se a un utente "Einstein" piacerebbe il film "Il Padrino".
 [09:02] L'obiettivo è riuscire a inserire una valutazione significativa in queste caselle vuote. In sintesi, il problema consiste nel predire le valutazioni mancanti.
 
-![Matrix Completion: problema Netflix e applicazioni](img/KM1_page_05.png)
+![Matrix Completion: problema Netflix e applicazioni](img/KM1\_page\_05.png)
 
 [09:10] Un altro esempio di applicazione è il problema dell'**inpainting** di immagini. Si ha un'immagine con una porzione mancante e si vuole riempire quest'area con contenuti coerenti con ciò che la circonda.
 ### L'Ipotesi di Basso Rango

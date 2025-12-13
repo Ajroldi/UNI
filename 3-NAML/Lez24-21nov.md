@@ -19,13 +19,13 @@ Prima di costruire un modello è essenziale esaminare il dataset:
 Le colonne principali sono:
 - `longitude`: longitudine della zona;
 - `latitude`: latitudine della zona;
-- `housing_median_age`: età delle abitazioni;
-- `total_rooms`: numero totale di stanze;
-- `total_bedrooms`: numero totale di camere da letto;
+- `housing\_median\_age`: età delle abitazioni;
+- `total\_rooms`: numero totale di stanze;
+- `total\_bedrooms`: numero totale di camere da letto;
 - `population`: popolazione dell’area;
 - `households`: numero di nuclei familiari;
-- `median_income`: reddito mediano;
-- `median_house_value`: valore mediano delle case (**target**).
+- `median\_income`: reddito mediano;
+- `median\_house\_value`: valore mediano delle case (**target**).
 Con `head()` vediamo le prime righe, ma il dataset contiene circa **17 000** campioni.  
 Con `info()` osserviamo:
 - numero di campioni;
@@ -42,15 +42,15 @@ Queste statistiche servono a:
 - trovare valori sospetti;
 - scoprire eventuali `NaN` o problemi di qualità del dato.
 ---
-## [03:10] Analisi della variabile target: `median_house_value`
-Per la regressione useremo come target `median_house_value`.  
+## [03:10] Analisi della variabile target: `median\_house\_value`
+Per la regressione useremo come target `median\_house\_value`.  
 Tracciamo un **istogramma** con stima di densità (KDE).
 Osservazioni:
 - c’è una coda verso valori alti;
 - c’è un **picco molto netto** all’estremo superiore, intorno a **500 000**.
 Questo è innaturale: nella realtà i prezzi molto alti dovrebbero essere rari e la densità decrescere gradualmente, non concentrarsi in un picco.
 Motivo:
-- nel dataset originale i valori di `median_house_value` sono stati **troncati**;
+- nel dataset originale i valori di `median\_house\_value` sono stati **troncati**;
 - tutte le case con valore superiore a una soglia sono state **tagliate a 500 000**.
 Questa informazione è documentata, ma è facile dimenticarla se il dataset viene riutilizzato in contesti diversi.  
 La **visualizzazione** permette di accorgersi subito di questo problema dalla forma dell’istogramma.
@@ -58,20 +58,20 @@ La **visualizzazione** permette di accorgersi subito di questo problema dalla fo
 ## [05:10] Gestione degli outlier e filtraggio con maschere booleane
 Il troncamento a 500 000 fa perdere informazione sulla parte alta della distribuzione.  
 Una scelta semplice è rimuovere queste righe:
-- teniamo solo le righe con `median_house_value < 500000`.
+- teniamo solo le righe con `median\_house\_value < 500000`.
 In Pandas:
 ```python
-data = data[data["median_house_value"] < 500000]
+data = data[data["median\_house\_value"] < 500000]
 ```
 Spiegazione:
-1. `data["median_house_value"] < 500000`  
+1. `data["median\_house\_value"] < 500000`  
    restituisce una `Series` di booleani (`True`/`False`):
    - `True` se il valore è minore di 500 000;
    - `False` altrimenti.
 2. Usando questa maschera nelle quadre, Pandas seleziona solo le righe con `True`.
 È lo stesso meccanismo delle maschere in NumPy.
 Dopo il filtraggio:
-- la distribuzione di `median_house_value` appare più realistica;
+- la distribuzione di `median\_house\_value` appare più realistica;
 - il picco artificiale a 500 000 scompare;
 - lavoriamo con dati che rappresentano meglio l’andamento reale dei prezzi.
 ---
@@ -104,12 +104,12 @@ che mostra una mappa di colori con:
 - righe e colonne = feature;
 - colore = intensità e segno della correlazione.
 **Correlazioni rilevanti:**
-- `median_house_value` è fortemente correlata con `median_income`:  
+- `median\_house\_value` è fortemente correlata con `median\_income`:  
   zone con redditi più alti → case più costose.
 - forte correlazione positiva all’interno del blocco:
-  - `total_rooms`, `total_bedrooms`, `population`, `households`;  
+  - `total\_rooms`, `total\_bedrooms`, `population`, `households`;  
   è coerente: più stanze, più camere, più famiglie, più popolazione.
-- alcune correlazioni negative con `housing_median_age`: case più vecchie possono avere più stanze o configurazioni diverse.
+- alcune correlazioni negative con `housing\_median\_age`: case più vecchie possono avere più stanze o configurazioni diverse.
 - correlazione negativa tra `longitude` e `latitude`: le due coordinate non sono indipendenti nella distribuzione geografica della California.
 ---
 ## [10:10] Scatter plot: longitudine, latitudine e prezzo
@@ -119,7 +119,7 @@ sns.scatterplot(
     data=data,
     x="longitude",
     y="latitude",
-    hue="median_house_value"
+    hue="median\_house\_value"
 )
 ```
 Interpretazione:
@@ -131,8 +131,8 @@ Interpretazione:
 ---
 ## [12:10] Altre correlazioni e idee di feature engineering
 Possiamo esplorare altre coppie di variabili:
-- `total_rooms` vs `total_bedrooms` mostra una correlazione quasi lineare: più stanze totali → più camere da letto.
-- un grafico `latitude` vs `median_house_value` mostra due picchi significativi del valore delle case, che corrispondono probabilmente a grandi aree urbane, come:
+- `total\_rooms` vs `total\_bedrooms` mostra una correlazione quasi lineare: più stanze totali → più camere da letto.
+- un grafico `latitude` vs `median\_house\_value` mostra due picchi significativi del valore delle case, che corrispondono probabilmente a grandi aree urbane, come:
   - San Francisco,
   - Los Angeles.
 Le zone tra questi picchi sono tipicamente meno pregiate (rurali o meno urbanizzate).
@@ -162,12 +162,12 @@ Prima di normalizzare, tracciamo un **violin plot** per ogni feature:
 - mostra il box plot e la densità di probabilità stimata (simile alla KDE).
 Risultato:
 - le feature hanno scale molto diverse (alcune 10⁵, altre 10¹);
-- `median_house_value` ha un ordine di grandezza diverso da molte altre.
+- `median\_house\_value` ha un ordine di grandezza diverso da molte altre.
 È un’ulteriore conferma che la normalizzazione è necessaria.
 ### Come normalizziamo
 Per ogni colonna:
 \[
-x_{\text{norm}} = \frac{x - \mu}{\sigma}
+x\_{\text{norm}} = \frac{x - \mu}{\sigma}
 \]
 dove:
 - \(\mu\) = media della colonna;
@@ -176,7 +176,7 @@ In Pandas:
 ```python
 mean = data.mean()
 std = data.std()
-data_normalized = (data - mean) / std
+data\_normalized = (data - mean) / std
 ```
 Pandas lavora per colonne:
 - `mean()` e `std()` calcolano media e deviazione standard di ogni colonna;
@@ -225,30 +225,30 @@ Carichiamo il file di training+validation, poi:
 ### Implementazione pratica della split
 1. Convertiamo il DataFrame normalizzato in NumPy:
    ```python
-   data_np = data_normalized.to_numpy()
+   data\_np = data\_normalized.to\_numpy()
    ```
    JAX lavora con array “grezzi” (tipo NumPy).
 2. Rendiamo la permutazione riproducibile:
    ```python
    np.random.seed(0)
-   np.random.shuffle(data_np)
+   np.random.shuffle(data\_np)
    ```
 3. Calcoliamo il numero di esempi di training:
    ```python
-   n_samples = data_np.shape[0]
-   frac_val = 0.2
-   n_train = int(n_samples * (1 - frac_val))  # 80% train
+   n\_samples = data\_np.shape[0]
+   frac\_val = 0.2
+   n\_train = int(n\_samples * (1 - frac\_val))  # 80% train
    ```
 4. Separiamo feature e target (ultima colonna):
    ```python
-   X_train = data_np[:n_train, :-1]
-   y_train = data_np[:n_train, -1]
-   X_val = data_np[n_train:, :-1]
-   y_val = data_np[n_train:, -1]
+   X\_train = data\_np[:n\_train, :-1]
+   y\_train = data\_np[:n\_train, -1]
+   X\_val = data\_np[n\_train:, :-1]
+   y\_val = data\_np[n\_train:, -1]
    ```
 Otteniamo:
-- `X_train`, `y_train` per il training;
-- `X_val`, `y_val` per la validation.
+- `X\_train`, `y\_train` per il training;
+- `X\_val`, `y\_val` per la validation.
 ---
 ## Capitolo 2 – Inizializzazione dei parametri e forward pass dell’ANN
 ---
@@ -265,16 +265,16 @@ Ora passiamo all’implementazione della rete neurale fully connected in JAX.
 Per avere esperimenti riproducibili:
 - impostiamo un **random seed** all’interno della funzione di inizializzazione dei parametri;
 - chiamando la funzione con gli stessi input, ottenremo gli stessi pesi.
-Descriviamo l’architettura con una lista `layer_sizes`:
-- ad esempio `[input_size, hidden1, hidden2, ..., output_size]`.
-Se `layer_sizes = [8, 5, 1]`:
+Descriviamo l’architettura con una lista `layer\_sizes`:
+- ad esempio `[input\_size, hidden1, hidden2, ..., output\_size]`.
+Se `layer\_sizes = [8, 5, 1]`:
 - 8 neuroni in input, 5 nel primo hidden, 1 in output;
 - abbiamo **2** matrici di pesi (input→hidden, hidden→output).
-Se `layer_sizes = [8, 1]` (senza hidden):
+Se `layer\_sizes = [8, 1]` (senza hidden):
 - abbiamo **1** matrice di pesi (input→output).
 Il pattern del loop sui layer è:
 ```python
-for i in range(len(layer_sizes) - 1):
+for i in range(len(layer\_sizes) - 1):
     ...
 ```
 Bisogna sempre considerare anche il caso limite con solo input e output.
@@ -282,23 +282,23 @@ Bisogna sempre considerare anche il caso limite con solo input e output.
 ## [28:00] Convenzioni su pesi e bias (shape)
 Esistono due convenzioni comuni per la shape dei pesi `W`:
 1. **Output sulle righe, input sulle colonne**  
-   - `W` ha shape `(output_size, input_size)`.
+   - `W` ha shape `(output\_size, input\_size)`.
 2. **Input sulle righe, output sulle colonne**  
-   - `W` ha shape `(input_size, output_size)`.
+   - `W` ha shape `(input\_size, output\_size)`.
 Entrambe funzionano, ma è fondamentale:
 - sceglierne una;
 - mantenerla ovunque (forward, loss, aggiornamento, ecc.).
 Nel seguito assumiamo:
 - `W` con **output sulle righe**, **input sulle colonne**:
-  - `W` ha shape `(n_out, n_in)`:
-    - `n_out = layer_sizes[i+1]` (neuroni del layer successivo),
-    - `n_in = layer_sizes[i]` (neuroni in ingresso al layer).
+  - `W` ha shape `(n\_out, n\_in)`:
+    - `n\_out = layer\_sizes[i+1]` (neuroni del layer successivo),
+    - `n\_in = layer\_sizes[i]` (neuroni in ingresso al layer).
 Per i bias `b`:
 - vogliamo che si sommino correttamente per broadcasting a `W @ layer`;
-- se `layer` ha shape `(n_in, batch_size)`:
-  - `W @ layer` ha shape `(n_out, batch_size)`;
-  - scegliamo `b` come **vettore colonna** di shape `(n_out, 1)`;
-  - così `b` viene broadcastato sulla dimensione `batch_size`.
+- se `layer` ha shape `(n\_in, batch\_size)`:
+  - `W @ layer` ha shape `(n\_out, batch\_size)`;
+  - scegliamo `b` come **vettore colonna** di shape `(n\_out, 1)`;
+  - così `b` viene broadcastato sulla dimensione `batch\_size`.
 ---
 ## [26:00] Inizializzazione Xavier/Glorot e varianti
 Una buona inizializzazione serve a:
@@ -307,7 +307,7 @@ Una buona inizializzazione serve a:
 ### Xavier/Glorot uniform
 Per una matrice di pesi \( W \) di dimensione \( n \times m \):
 \[
-W_{ij} \sim \mathcal{U}\left(-\sqrt{\frac{6}{n + m}},\; \sqrt{\frac{6}{n + m}}\right)
+W\_{ij} \sim \mathcal{U}\left(-\sqrt{\frac{6}{n + m}},\; \sqrt{\frac{6}{n + m}}\right)
 \]
 dove:
 - \( n \) = numero di neuroni in input al layer;
@@ -321,21 +321,21 @@ W \sim \mathcal{N}(0, 1) \times \text{coefficiente}
 \]
 In JAX:
 ```python
-n = layer_sizes[i+1]
-m = layer_sizes[i]
+n = layer\_sizes[i+1]
+m = layer\_sizes[i]
 coef = jnp.sqrt(2.0 / (n + m))
 W = coef * jax.random.normal(key, shape=(n, m))
 ```
 Anche questa scelta mira a mantenere le attivazioni in un range ragionevole.
 ---
-## [28:00] Implementazione di `initialize_params(layer_sizes)`
+## [28:00] Implementazione di `initialize\_params(layer\_sizes)`
 Vogliamo una funzione:
 ```python
-def initialize_params(layer_sizes):
+def initialize\_params(layer\_sizes):
     ...
     return params
 ```
-- `layer_sizes`: lista con le dimensioni dei layer (es. `[8, 5, 1]`);
+- `layer\_sizes`: lista con le dimensioni dei layer (es. `[8, 5, 1]`);
 - `params`: lista di coppie `(W, b)` per ogni layer.
 Schema:
 1. inizializziamo una lista vuota:
@@ -344,12 +344,12 @@ Schema:
    ```
 2. cicliamo sui layer consecutivi:
    ```python
-   for i in range(len(layer_sizes) - 1):
-       n_in = layer_sizes[i]
-       n_out = layer_sizes[i + 1]
-       limit = np.sqrt(6.0 / (n_in + n_out))  # Xavier uniform
-       W = np.random.uniform(-limit, limit, size=(n_out, n_in))
-       b = np.zeros((n_out, 1))
+   for i in range(len(layer\_sizes) - 1):
+       n\_in = layer\_sizes[i]
+       n\_out = layer\_sizes[i + 1]
+       limit = np.sqrt(6.0 / (n\_in + n\_out))  # Xavier uniform
+       W = np.random.uniform(-limit, limit, size=(n\_out, n\_in))
+       b = np.zeros((n\_out, 1))
        params.append((W, b))
    ```
 3. ritorniamo `params`.
@@ -370,7 +370,7 @@ L’importante è mantenere la stessa struttura ovunque (forward, gradienti, agg
 ### Test rapido
 Per testare:
 ```python
-params = initialize_params([8, 1])
+params = initialize\_params([8, 1])
 ```
 Ci aspettiamo:
 - `W` con shape `(1, 8)`;
@@ -385,21 +385,21 @@ Definiamo:
 def ann(x, params):
     ...
 ```
-- `x`: matrice degli input, shape `(num_samples, num_features)`;
+- `x`: matrice degli input, shape `(num\_samples, num\_features)`;
 - `params`: lista di coppie `(W, b)`;
 - output: predizione del modello sugli input.
 ### Convenzione per righe e colonne
 Per coerenza con `W`:
-- consideriamo `x` come `(num_samples, num_features)` (righe = campioni, colonne = feature);
+- consideriamo `x` come `(num\_samples, num\_features)` (righe = campioni, colonne = feature);
 - all’interno della funzione lavoriamo con vettori colonna:
   ```python
-  layer = x.T  # shape: (num_features, num_samples)
+  layer = x.T  # shape: (num\_features, num\_samples)
   ```
 Alla fine:
 ```python
 return layer.T
 ```
-così l’output torna al formato `(num_samples, output_dim)`.
+così l’output torna al formato `(num\_samples, output\_dim)`.
 ### Struttura del forward pass
 Nel loop sui layer:
 ```python
@@ -408,10 +408,10 @@ for i, (W, b) in enumerate(params):
     if i < len(params) - 1:
         layer = activation(layer)
 ```
-- `W`: shape `(n_out, n_in)`;
-- `layer` in ingresso: `(n_in, batch_size)`;
-- `b`: `(n_out, 1)` (broadcast sulla dimensione batch);
-- risultato: `(n_out, batch_size)`.
+- `W`: shape `(n\_out, n\_in)`;
+- `layer` in ingresso: `(n\_in, batch\_size)`;
+- `b`: `(n\_out, 1)` (broadcast sulla dimensione batch);
+- risultato: `(n\_out, batch\_size)`.
 Applichiamo una funzione di attivazione solo sui **layer nascosti**, non sull’ultimo.
 ### Nessuna attivazione sull’output per regressione
 Per un problema di regressione vogliamo un output reale arbitrario:
@@ -434,10 +434,10 @@ Tutto ciò che rientra nel calcolo della loss (forward, loss, gradienti) deve us
 ### Verifica della funzione `ann`
 Esempio:
 ```python
-y_pred = ann(X_train, params)
+y\_pred = ann(X\_train, params)
 ```
-Se `X_train` ha shape `(12000, 8)`:
-- ci aspettiamo `y_pred` con shape `(12000, 1)` (o `(12000,)` a seconda dell’implementazione finale).
+Se `X\_train` ha shape `(12000, 8)`:
+- ci aspettiamo `y\_pred` con shape `(12000, 1)` (o `(12000,)` a seconda dell’implementazione finale).
 Possiamo anche controllare che:
 - l’output non sia limitato a `[-1, 1]` (per confermare che non abbiamo messo `tanh` sull’ultimo layer);
 - le shape siano coerenti in tutto il flusso (input → hidden → output).
@@ -461,26 +461,26 @@ Definiamo la loss come funzione di:
 ### Mean Squared Error (MSE)
 Per regressione si usa spesso la **MSE**:
 \[
-\text{MSE} = \frac{1}{N} \sum_{i=1}^{N} (y^{\text{pred}}_i - y_i)^2
+\text{MSE} = \frac{1}{N} \sum\_{i=1}^{N} (y^{\text{pred}}\_i - y\_i)^2
 \]
 In codice:
 ```python
 def loss(x, y, params):
-    y_pred = ann(x, params)
-    error = y_pred - y
+    y\_pred = ann(x, params)
+    error = y\_pred - y
     return jnp.mean(error * error)
 ```
 Il risultato è uno scalare.
 ### L1 loss (alternativa)
 Un’alternativa è la **L1 loss**:
 \[
-\text{L1} = \frac{1}{N} \sum_{i=1}^{N} |y^{\text{pred}}_i - y_i|
+\text{L1} = \frac{1}{N} \sum\_{i=1}^{N} |y^{\text{pred}}\_i - y\_i|
 \]
 In JAX:
 ```python
-def loss_l1(x, y, params):
-    y_pred = ann(x, params)
-    error = y_pred - y
+def loss\_l1(x, y, params):
+    y\_pred = ann(x, params)
+    error = y\_pred - y
     return jnp.mean(jnp.abs(error))
 ```
 Differenze:
@@ -490,8 +490,8 @@ Per questo esempio useremo la MSE.
 ### Test della loss
 Esempio:
 ```python
-params = initialize_params([8, 5, 5, 1])
-L = loss(X_train, y_train, params)
+params = initialize\_params([8, 5, 5, 1])
+L = loss(X\_train, y\_train, params)
 ```
 Ci aspettiamo:
 - `L` sia uno scalare (shape vuota o `()` in JAX);
@@ -500,7 +500,7 @@ Se la loss restituisce un vettore o una matrice, manca probabilmente la media o 
 ---
 ## [30:00] Addestramento con full batch gradient descent
 Obiettivo: minimizzare la loss rispetto ai parametri della rete usando **gradient descent full batch**:
-- a ogni aggiornamento usiamo **tutto il dataset** di training (`X_train`, `y_train`).
+- a ogni aggiornamento usiamo **tutto il dataset** di training (`X\_train`, `y\_train`).
 ### Impostazione degli iperparametri
 All’inizio definiamo:
 - architettura (es. `[8, 5, 5, 1]`);
@@ -512,35 +512,35 @@ All’inizio definiamo:
   - `loss`;
   - funzione per il gradiente (tramite `jax.grad`).
 Inoltre teniamo traccia delle curve di loss:
-- `train_loss_history`;
-- `val_loss_history`.
+- `train\_loss\_history`;
+- `val\_loss\_history`.
 ### Struttura del loop di training (full batch)
 Pseudo‑codice:
 ```python
 for epoch in range(epochs):
     # 1. Calcolo gradiente della loss rispetto ai parametri
-    grads = grad_loss(X_train, y_train, params)
+    grads = grad\_loss(X\_train, y\_train, params)
     # 2. Aggiornamento dei parametri (gradient descent)
-    params = update(params, grads, learning_rate)
+    params = update(params, grads, learning\_rate)
     # 3. Calcolo delle loss
-    L_train = loss(X_train, y_train, params)
-    L_val = loss(X_val, y_val, params)
-    train_loss_history.append(L_train)
-    val_loss_history.append(L_val)
+    L\_train = loss(X\_train, y\_train, params)
+    L\_val = loss(X\_val, y\_val, params)
+    train\_loss\_history.append(L\_train)
+    val\_loss\_history.append(L\_val)
 ```
 dove:
-- `grad_loss` è ottenuta da `jax.grad(loss, argnum=2)` (o equivalente);
+- `grad\_loss` è ottenuta da `jax.grad(loss, argnum=2)` (o equivalente);
 - `update` applica:
   \[
-  \theta_{\text{new}} = \theta_{\text{old}} - \eta \cdot \nabla_{\theta}\text{loss}
+  \theta\_{\text{new}} = \theta\_{\text{old}} - \eta \cdot \nabla\_{\theta}\text{loss}
   \]
 per ciascun parametro `θ`, con `η` = learning rate.
 ### Aggiornamento manuale dei parametri
 Se `params` è una lista di coppie `(W, b)` e `grads` ha la stessa struttura:
 ```python
 for i in range(len(params)):
-    params[i][0] -= learning_rate * grads[i][0]  # pesi
-    params[i][1] -= learning_rate * grads[i][1]  # bias
+    params[i][0] -= learning\_rate * grads[i][0]  # pesi
+    params[i][1] -= learning\_rate * grads[i][1]  # bias
 ```
 Dopo aggiornare, calcoliamo e salviamo train e validation loss, oltre a misurare il tempo di esecuzione complessivo.
 Con full batch:
@@ -550,56 +550,56 @@ Se aumentiamo molto il numero di epoche, è normale che:
 - la training loss scenda sotto la validation loss (overfitting);
 - la validation loss possa essere leggermente più alta.
 A volte può capitare anche il contrario (validation leggermente più bassa), ma in generale ci aspettiamo:
-- `training_loss ≤ validation_loss`.
+- `training\_loss ≤ validation\_loss`.
 ---
-## Capitolo 4 – Aggiornamento dei parametri con `tree_map` e introduzione allo SGD
+## Capitolo 4 – Aggiornamento dei parametri con `tree\_map` e introduzione allo SGD
 ---
-## [06:00] Uso di `tree_map` per strutture di parametri complesse
+## [06:00] Uso di `tree\_map` per strutture di parametri complesse
 Aggiornare i parametri con un for esplicito è semplice quando:
 - `params` è una lista corta e poco annidata.
 Ma in reti complesse, `params` può essere:
 - una lista di dizionari, nested list, dict di liste, ecc.
-JAX fornisce `jax.tree_util.tree_map`, che è pensato per i cosiddetti **py-tree**:
+JAX fornisce `jax.tree\_util.tree\_map`, che è pensato per i cosiddetti **py-tree**:
 - strutture annidate (liste, tuple, dizionari, ecc.) di JAX arrays.
 L’idea:
 - `params` è una struttura annidata;
 - `grads` è una struttura con la **stessa forma** (stessa struttura intermedia, stesse chiavi, stessa annidazione).
 Vogliamo applicare a ogni coppia (parametro, gradiente):
 \[
-\text{nuovo\_parametro} = p - \text{learning\_rate} \cdot g
+\text{nuovo\\_parametro} = p - \text{learning\\_rate} \cdot g
 \]
 In JAX:
 ```python
-new_params = jax.tree_util.tree_map(
-    lambda p, g: p - learning_rate * g,
+new\_params = jax.tree\_util.tree\_map(
+    lambda p, g: p - learning\_rate * g,
     params,
     grads
 )
 ```
 Oppure definendo prima la funzione:
 ```python
-def grad_update(p, g):
-    return p - learning_rate * g
-new_params = jax.tree_util.tree_map(grad_update, params, grads)
+def grad\_update(p, g):
+    return p - learning\_rate * g
+new\_params = jax.tree\_util.tree\_map(grad\_update, params, grads)
 ```
-`tree_map` applica automaticamente la funzione a ogni coppia di foglie (array) nelle due strutture, senza dover scrivere cicli annidati.
+`tree\_map` applica automaticamente la funzione a ogni coppia di foglie (array) nelle due strutture, senza dover scrivere cicli annidati.
 ---
 ## [00:00] Aggiornamento full batch con `gradjit` e salvataggio delle loss
 Nel codice completo abbiamo una funzione `gradjit`:
 - è la versione compilata JIT della funzione che calcola i gradienti della loss;
 - ha la stessa firma della loss:
-  - `gradjit(x_train, y_train, params)`.
-Il loop full batch con `tree_map` diventa:
+  - `gradjit(x\_train, y\_train, params)`.
+Il loop full batch con `tree\_map` diventa:
 ```python
 t0 = time.time()
-for epoch in range(num_epochs):
-    grads = gradjit(x_train, y_train, params)
-    params = jax.tree_util.tree_map(
-        lambda p, g: p - learning_rate * g,
+for epoch in range(num\_epochs):
+    grads = gradjit(x\_train, y\_train, params)
+    params = jax.tree\_util.tree\_map(
+        lambda p, g: p - learning\_rate * g,
         params, grads
     )
-    train_loss_history.append(loss(x_train, y_train, params))
-    val_loss_history.append(loss(x_val, y_val, params))
+    train\_loss\_history.append(loss(x\_train, y\_train, params))
+    val\_loss\_history.append(loss(x\_val, y\_val, params))
 elapsed = time.time() - t0
 ```
 L’aggiornamento ha così una forma compatta e generica, indipendente dalla struttura interna di `params`.
@@ -635,13 +635,13 @@ Per questo usiamo un learning rate che **decresce nel tempo**:
 Formula tipica:
 ```python
 lr = max(
-    learning_rate_min,
-    learning_rate_max * (1 - epoch / learning_rate_decay)
+    learning\_rate\_min,
+    learning\_rate\_max * (1 - epoch / learning\_rate\_decay)
 )
 ```
-Se `learning_rate_decay = num_epochs`, l’andamento è:
-- epoca 0: `lr ≈ learning_rate_max`;
-- epoca finale: `lr ≈ learning_rate_min`.
+Se `learning\_rate\_decay = num\_epochs`, l’andamento è:
+- epoca 0: `lr ≈ learning\_rate\_max`;
+- epoca finale: `lr ≈ learning\_rate\_min`.
 Interpretazione:
 - all’inizio: passi grandi per scendere velocemente;
 - vicino al minimo: passi più piccoli per evitare overshooting e oscillazioni eccessive.
@@ -651,26 +651,26 @@ Per ogni epoca:
 1. **Aggiornare il learning rate** secondo la schedule decrescente.
 2. **Permutare i dati**:
    ```python
-   n_samples = x_train.shape[0]
-   perm_indices = np.random.permutation(n_samples)
+   n\_samples = x\_train.shape[0]
+   perm\_indices = np.random.permutation(n\_samples)
    ```
 3. **Scorrere sui mini‑batch**:
    ```python
-   for i in range(0, n_samples, batch_size):
-       batch_indices = perm_indices[i : i + batch_size]
-       x_batch = x_train[batch_indices]
-       y_batch = y_train[batch_indices]
-       grads = gradjit(x_batch, y_batch, params)
-       params = jax.tree_util.tree_map(
-           lambda p, g: p - learning_rate * g,
+   for i in range(0, n\_samples, batch\_size):
+       batch\_indices = perm\_indices[i : i + batch\_size]
+       x\_batch = x\_train[batch\_indices]
+       y\_batch = y\_train[batch\_indices]
+       grads = gradjit(x\_batch, y\_batch, params)
+       params = jax.tree\_util.tree\_map(
+           lambda p, g: p - learning\_rate * g,
            params, grads
        )
    ```
-   Usiamo la stessa lista di indici sia su `x_train` sia su `y_train` per mantenere allineati input e target.
+   Usiamo la stessa lista di indici sia su `x\_train` sia su `y\_train` per mantenere allineati input e target.
 4. **Fine epoca: calcolo delle loss** su tutto il dataset:
    ```python
-   train_loss_history.append(loss(x_train, y_train, params))
-   val_loss_history.append(loss(x_val, y_val, params))
+   train\_loss\_history.append(loss(x\_train, y\_train, params))
+   val\_loss\_history.append(loss(x\_val, y\_val, params))
    ```
 Ricordiamo che per salvare i valori nella history bisogna usare `.append()`.
 ---
@@ -702,8 +702,8 @@ osserviamo che:
 - verso la fine la loss comincia a **oscillare** molto;
 - il grafico mostra salti marcati e manca stabilità.
 Se, invece, usiamo un decay più deciso, ad esempio:
-- `learning_rate_start = 0.1`;
-- `learning_rate_end = 0.01`;
+- `learning\_rate\_start = 0.1`;
+- `learning\_rate\_end = 0.01`;
 alla fine dell’addestramento:
 - le oscillazioni nella loss sono ridotte;
 - la curva è più liscia e tende a stabilizzarsi.
@@ -753,12 +753,12 @@ Ora vogliamo testarlo su un dataset di **test** mai utilizzato in precedenza.
 ## [17:00] Caricamento e pulizia del dataset di test
 Carichiamo il dataset di test:
 ```python
-data_test = pandas.read_csv("california_housing_test.csv")
+data\_test = pandas.read\_csv("california\_housing\_test.csv")
 ```
-`data_test` è un DataFrame con le stesse colonne del training.
+`data\_test` è un DataFrame con le stesse colonne del training.
 Per coerenza con la pulizia effettuata prima, applichiamo lo stesso filtro sui valori estremi del prezzo:
 ```python
-data_test = data_test[data_test["median_house_value"] < 500000.1]
+data\_test = data\_test[data\_test["median\_house\_value"] < 500000.1]
 ```
 In questo modo eliminiamo i valori troncati a 500 000 anche nel test.
 ---
@@ -768,59 +768,59 @@ In questo modo eliminiamo i valori troncati a 500 000 anche nel test.
 - se forniamo dati non normalizzati o normalizzati diversamente, le previsioni saranno errate.
 Per il test:
 ```python
-data_test_norm = (data_test - mean_train) / std_train
+data\_test\_norm = (data\_test - mean\_train) / std\_train
 ```
 dove:
-- `mean_train`: media calcolata sul **training**;
-- `std_train`: deviazione standard calcolata sul **training**.
+- `mean\_train`: media calcolata sul **training**;
+- `std\_train`: deviazione standard calcolata sul **training**.
 Non dobbiamo mai usare media e deviazione standard calcolate sul test, altrimenti introduciamo una incoerenza nel pre‑processing.
 Convertiamo in NumPy:
 ```python
-data_test_np = data_test_norm.to_numpy()
-x_test = data_test_np[:, :-1]  # feature
-y_test = data_test_np[:, -1]   # target normalizzato
+data\_test\_np = data\_test\_norm.to\_numpy()
+x\_test = data\_test\_np[:, :-1]  # feature
+y\_test = data\_test\_np[:, -1]   # target normalizzato
 ```
 Controlliamo le shape:
-- `x_test` → `(n_test_samples, 8)`;
-- `y_test` → `(n_test_samples,)` o `(n_test_samples, 1)`.
+- `x\_test` → `(n\_test\_samples, 8)`;
+- `y\_test` → `(n\_test\_samples,)` o `(n\_test\_samples, 1)`.
 Devono essere compatibili con quelle usate in training.
 ---
 ## [22:00] Predizione sui dati di test
 Calcoliamo le predizioni:
 ```python
-y_pred = ann(x_test, params)
+y\_pred = ann(x\_test, params)
 ```
-`y_pred` contiene le predizioni **normalizzate** del modello sul test.
+`y\_pred` contiene le predizioni **normalizzate** del modello sul test.
 ---
 ## [23:00] Denormalizzazione delle predizioni
 Per avere predizioni interpretabili (prezzo in dollari) dobbiamo **invertire la normalizzazione** del target.
 Se:
-- `mean_target_train` è la media di `median_house_value` sul training;
-- `std_target_train` è la deviazione standard di `median_house_value` sul training;
+- `mean\_target\_train` è la media di `median\_house\_value` sul training;
+- `std\_target\_train` è la deviazione standard di `median\_house\_value` sul training;
 allora:
 ```python
-Y_pred = y_pred * std_target_train + mean_target_train
+Y\_pred = y\_pred * std\_target\_train + mean\_target\_train
 ```
-`Y_pred` è ora in dollari.
+`Y\_pred` è ora in dollari.
 In pratica:
 ```python
-std_target_train = data_train["median_house_value"].std()
-mean_target_train = data_train["median_house_value"].mean()
-Y_pred = y_pred * std_target_train + mean_target_train
+std\_target\_train = data\_train["median\_house\_value"].std()
+mean\_target\_train = data\_train["median\_house\_value"].mean()
+Y\_pred = y\_pred * std\_target\_train + mean\_target\_train
 ```
 ---
 ## [26:00] Confronto grafico tra valori veri e predetti
 Per confrontare valori veri e predetti quando l’output è scalare, un grafico molto utile è lo **scatter plot**:
-- asse x: valori veri (`Y_test`);
-- asse y: valori predetti (`Y_pred`).
+- asse x: valori veri (`Y\_test`);
+- asse y: valori predetti (`Y\_pred`).
 In un modello perfetto:
 - tutti i punti starebbero sulla bisettrice `y = x`.
 Per disegnare la bisettrice:
 ```python
-min_val = min(Y_test.min(), Y_pred.min())
-max_val = max(Y_test.max(), Y_pred.max())
-plt.scatter(Y_test, Y_pred)
-plt.plot([min_val, max_val], [min_val, max_val], 'k-')
+min\_val = min(Y\_test.min(), Y\_pred.min())
+max\_val = max(Y\_test.max(), Y\_pred.max())
+plt.scatter(Y\_test, Y\_pred)
+plt.plot([min\_val, max\_val], [min\_val, max\_val], 'k-')
 plt.axis('equal')
 ```
 - `'k-'` traccia una linea nera;
@@ -847,16 +847,16 @@ Conclusioni:
 Un modo pratico per costruire questi grafici è usare pandas + Seaborn.
 Creiamo un DataFrame:
 ```python
-test_df = pandas.DataFrame({
-    "predicted": Y_pred_flat,
-    "target": Y_test_flat
+test\_df = pandas.DataFrame({
+    "predicted": Y\_pred\_flat,
+    "target": Y\_test\_flat
 })
 ```
 dove:
-- `Y_pred_flat` e `Y_test_flat` sono versioni 1D (flatten) di predetti e target.
+- `Y\_pred\_flat` e `Y\_test\_flat` sono versioni 1D (flatten) di predetti e target.
 Ora possiamo usare:
 ```python
-sns.jointplot(data=test_df, x="target", y="predicted")
+sns.jointplot(data=test\_df, x="target", y="predicted")
 ```
 Questo comando produce:
 - uno scatter plot di `target` vs `predicted`;
@@ -871,9 +871,9 @@ L’idea generale:
 Infine calcoliamo il **Root Mean Squared Error (RMSE)** in dollari sul test.
 Definiamo:
 ```python
-Y_test_np = data_test["median_house_value"].to_numpy().flatten()
-Y_pred_np = Y_pred.flatten()
-error = Y_pred_np - Y_test_np
+Y\_test\_np = data\_test["median\_house\_value"].to\_numpy().flatten()
+Y\_pred\_np = Y\_pred.flatten()
+error = Y\_pred\_np - Y\_test\_np
 rmse = np.sqrt(np.mean(error * error))
 print(f"RMSE = {rmse/1000:.2f} (migliaia di dollari)")
 ```
@@ -885,8 +885,8 @@ Qui:
 Il risultato può essere, ad esempio, intorno a **49 000 dollari** di RMSE, che ci dà un’idea dell’errore medio (in termini quadratici) sulle stime del valore delle case.
 ### Attenzione a tipi e dimensioni
 Prima c’era un errore perché:
-- `Y_pred` era un array NumPy 2D;
-- `Y_test` una `Series` pandas.
+- `Y\_pred` era un array NumPy 2D;
+- `Y\_test` una `Series` pandas.
 Per evitare problemi:
 1. Convertiamo entrambi in NumPy;
 2. Usiamo `.flatten()` per avere vettori 1D di uguale dimensione.
@@ -908,7 +908,7 @@ Per il quadrato:
   - Loss di regressione: MSE (eventuale L1).
   - Gradient descent full batch e poi mini‑batch SGD.
   - Learning rate decrescente per stabilizzare l’SGD.
-  - Aggiornamento dei parametri con `jax.tree_util.tree_map`.
+  - Aggiornamento dei parametri con `jax.tree\_util.tree\_map`.
 - **Valutazione**
   - Monitoraggio di training e validation loss (overfitting).
   - Test su dataset separato, normalizzato con statistiche del training.

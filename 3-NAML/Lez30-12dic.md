@@ -4,7 +4,7 @@
 [00:15] L'utilizzo di queste librerie ci permetterà di implementare una rete neurale convoluzionale (CNN) e altre architetture più avanzate per la predizione delle cifre. Per questo laboratorio, utilizzeremo un unico notebook disponibile su Webip.
 [00:30] È fondamentale modificare il tipo di runtime del notebook e selezionare la GPU, altrimenti l'esecuzione del codice risulterà estremamente lenta. Nella prima cella del notebook, si trovano le librerie standard come NumPy e Matplotlib, insieme a JAX. Le due nuove librerie che introdurremo sono Flax e Optax.
 [00:45] Flax è una libreria progettata per la costruzione di architetture di reti neurali, che offre un metodo molto semplice per comporre diversi strati (layer) con varie proprietà. L'altra libreria è Optax, specializzata nell'implementazione di ottimizzatori. Grazie a Optax, passeremo dall'ottimizzatore base, la discesa stocastica del gradiente (Stochastic Gradient Descent), e le sue varianti come *momentum* e *RMSprop*, a un ottimizzatore allo stato dell'arte, in particolare Adam.
-[01:07] Il dataset che utilizzeremo è quello del NIST, già presente su Colab nella cartella `sample_data`. È sufficiente aggiungere il percorso `sample_data` per caricarlo, oppure si può utilizzare la versione in formato CSV che è stata caricata per altri laboratori.
+[01:07] Il dataset che utilizzeremo è quello del NIST, già presente su Colab nella cartella `sample\_data`. È sufficiente aggiungere il percorso `sample\_data` per caricarlo, oppure si può utilizzare la versione in formato CSV che è stata caricata per altri laboratori.
 ## Caricamento e Suddivisione del Dataset
 [01:21] Il primo passo consiste nel caricare il nostro dataset. Una volta caricato, otteniamo una matrice NumPy con 20.000 righe e 785 colonne. Questo significa che abbiamo 20.000 campioni, ovvero 20.000 immagini. Il primo compito è suddividere questa matrice in dati di input (le immagini) e dati di output (le etichette o target).
 [01:36] In particolare, la prima colonna di questa matrice contiene le etichette (target labels). Il secondo passo è trasformare i dati in un formato facilmente utilizzabile dalla rete neurale. Dobbiamo convertire la matrice di input, di dimensioni 20.000 x 784, in un tensore di quarto ordine.
@@ -25,7 +25,7 @@ Poiché si tratta di immagini in scala di grigi, avremo un solo canale.
 ## Implementazione della Pre-elaborazione
 [03:36] Vediamo insieme una possibile implementazione. Per prima cosa, dobbiamo separare le etichette e i dati di input. Le etichette (`labels`) si ottengono selezionando tutte le righe e la prima colonna della matrice `data`.
 [03:47] Possiamo verificare la correttezza stampando l'array. I valori sembrano essere compresi tra 0 e 9. Per esserne certi, possiamo calcolare il valore minimo e massimo dell'array.
-[04:00] Il minimo è 0 e il massimo è 9, il che è coerente, poiché se fossero valori di pixel, sarebbero compresi tra 0 e 255. Successivamente, estraiamo i dati di input (`x_data`), che corrispondono alle immagini. Questi si ottengono selezionando tutte le righe e tutte le colonne a partire dalla seconda.
+[04:00] Il minimo è 0 e il massimo è 9, il che è coerente, poiché se fossero valori di pixel, sarebbero compresi tra 0 e 255. Successivamente, estraiamo i dati di input (`x\_data`), che corrispondono alle immagini. Questi si ottengono selezionando tutte le righe e tutte le colonne a partire dalla seconda.
 [04:16] In questo modo, escludiamo la prima colonna che contiene le etichette. Ora dobbiamo rimodellare (`reshape`) questi dati secondo la convenzione richiesta. Il primo asse rappresenta i campioni, il cui numero è `data.shape[0]` (o direttamente 20.000).
 [04:31] Le dimensioni X e Y sono 28x28, poiché la radice quadrata di 784 è 28. Infine, il numero di canali è 1, trattandosi di immagini in scala di grigi.
 [04:46] Aggiungere una dimensione per i canali, anche se è solo 1, è fondamentale. Come abbiamo visto più volte, la forma (`shape`) dei dati in Python, e in particolare in NumPy, è molto importante. Una matrice con una sola colonna non è la stessa cosa di un array monodimensionale.
@@ -38,26 +38,26 @@ Poiché si tratta di immagini in scala di grigi, avremo un solo canale.
 [06:07] `sub` non è un comando valido, il comando corretto è `subplots`.
 [06:13] Questo è il risultato. Vediamo le immagini in scala di grigi e, sopra ciascuna, il titolo con l'etichetta corretta. Si può notare che la predizione per alcuni campioni potrebbe essere difficile. Ad esempio, il '6' nella prima riga ha una parte mancante, rendendolo non immediatamente riconoscibile.
 ## Normalizzazione dei Dati e Codifica One-Hot
-[06:29] Un passaggio importante che è stato dimenticato è la normalizzazione dei dati. Se calcoliamo il valore massimo dei dati di input (`x_data`), otteniamo 255, che corrisponde al valore massimo per un pixel a 8 bit.
+[06:29] Un passaggio importante che è stato dimenticato è la normalizzazione dei dati. Se calcoliamo il valore massimo dei dati di input (`x\_data`), otteniamo 255, che corrisponde al valore massimo per un pixel a 8 bit.
 [06:40] Per normalizzare i dati, dividiamo ogni valore per 255. In questo modo, tutti i valori saranno compresi nell'intervallo [0, 1]. Questa operazione è analoga alla normalizzazione gaussiana che abbiamo usato in passato per altri dataset, come quelli sull'inquinamento delle auto o sui prezzi delle case.
-[06:54] In questo caso, conosciamo a priori il valore massimo, quindi possiamo semplicemente dividere per 255 per scalare i dati tra 0 e 1. Ora passiamo alla codifica one-hot. Creiamo un nuovo array, `labels_one_hot`, inizializzandolo con zeri.
+[06:54] In questo caso, conosciamo a priori il valore massimo, quindi possiamo semplicemente dividere per 255 per scalare i dati tra 0 e 1. Ora passiamo alla codifica one-hot. Creiamo un nuovo array, `labels\_one\_hot`, inizializzandolo con zeri.
 [07:09] La sua forma sarà `(labels.shape[0], 10)`, ovvero 20.000 righe (una per campione) e 10 colonne (una per classe, da 0 a 9).
 [07:23] Un approccio diretto per popolare questa matrice è iterare su ogni campione. Per ogni riga `i`, si imposta a 1 la colonna corrispondente all'etichetta intera di quel campione.
-[07:37] Ad esempio, se l'etichetta del campione `i` è 6, imposteremo `labels_one_hot[i, 6] = 1`. Tuttavia, questo approccio non è ideale perché i cicli `for` in Python possono essere costosi, specialmente quando si itera su un numero elevato di elementi come migliaia o milioni di campioni.
+[07:37] Ad esempio, se l'etichetta del campione `i` è 6, imposteremo `labels\_one\_hot[i, 6] = 1`. Tuttavia, questo approccio non è ideale perché i cicli `for` in Python possono essere costosi, specialmente quando si itera su un numero elevato di elementi come migliaia o milioni di campioni.
 [07:55] Un metodo più efficiente è utilizzare le maschere booleane. Invece di iterare sulle righe, iteriamo sulle colonne, ovvero sulle 10 classi.
 [08:05] Per ogni classe `i` (da 0 a 9), selezioniamo tutte le righe in cui l'etichetta originale è uguale a `i`. Su queste righe, impostiamo il valore della colonna `i`-esima a 1.
-[08:14] L'espressione `labels == i` crea un vettore booleano (`True`/`False`). Usando questo vettore come indice, selezioniamo tutte le righe della matrice `labels_one_hot` per le quali l'etichetta originale è `i`.
+[08:14] L'espressione `labels == i` crea un vettore booleano (`True`/`False`). Usando questo vettore come indice, selezioniamo tutte le righe della matrice `labels\_one\_hot` per le quali l'etichetta originale è `i`.
 [08:26] Ad esempio, quando `i` è 6, selezioniamo tutte le righe corrispondenti a campioni con etichetta 6. Per queste righe, impostiamo a 1 il valore nella sesta colonna. Questo approccio è preferibile perché il ciclo è molto più breve, iterando solo sul numero di categorie, che è generalmente molto inferiore alla dimensione del dataset.
 [08:43] È chiaro questo concetto?
-[08:46] Per verificare la correttezza, calcoliamo la somma per ogni riga della matrice `labels_one_hot`. Utilizziamo `numpy.sum` specificando `axis=1`, che indica di sommare lungo le colonne.
+[08:46] Per verificare la correttezza, calcoliamo la somma per ogni riga della matrice `labels\_one\_hot`. Utilizziamo `numpy.sum` specificando `axis=1`, che indica di sommare lungo le colonne.
 [09:00] Ci aspettiamo che il valore minimo e massimo di queste somme sia 1. Il risultato conferma che la matrice è stata costruita correttamente. Ogni riga rappresenta un vettore di probabilità, e la somma dei suoi elementi deve essere 1.
 # Capitolo 2: Architettura della Rete Neurale Convoluzionale (CNN)
 ## Definizione della Struttura della Rete
 [09:16] Ora introduciamo la parte nuova: l'architettura di una rete neurale convoluzionale. Nei laboratori precedenti, scrivevamo la funzione della rete da zero, una funzione che prendeva in input i parametri, i dati `x` e restituiva una predizione.
 [09:32] Per semplificare, ora utilizziamo il modulo `nn` della libreria Flax, che abbiamo importato come `linen`. Questo modulo fornisce strumenti specifici per la costruzione di reti neurali.
-[09:48] Invece di una funzione, definiamo una classe, che chiamiamo `CNN` (Convolutional Neural Network). Questa classe eredita da `nn.module`. All'interno della classe, dobbiamo definire un metodo speciale chiamato `__call__`, che conterrà la struttura della nostra rete neurale.
+[09:48] Invece di una funzione, definiamo una classe, che chiamiamo `CNN` (Convolutional Neural Network). Questa classe eredita da `nn.module`. All'interno della classe, dobbiamo definire un metodo speciale chiamato `\_\_call\_\_`, che conterrà la struttura della nostra rete neurale.
 [10:03] Inoltre, dobbiamo aggiungere il decoratore `@nn.compact`. Sebbene questa sintassi sia specifica della libreria Flax, il concetto è equivalente a definire una funzione con input `x` e i parametri della rete. Questo approccio strutturato semplifica la definizione dell'architettura.
-[10:20] All'interno del metodo `__call__`, implementiamo la sequenza di strati della rete neurale.
+[10:20] All'interno del metodo `\_\_call\_\_`, implementiamo la sequenza di strati della rete neurale.
 ## Strati Convoluzionali e di Pooling
 [10:25] Iniziamo con uno strato convoluzionale. A differenza di uno strato denso (fully connected), dove l'input viene moltiplicato per una matrice di pesi, uno strato convoluzionale applica una convoluzione.
 [10:34] Uno **strato convoluzionale** prende in input una matrice (l'immagine) e applica su di essa un'operazione di convoluzione, come visto nel laboratorio precedente. Invece di definire manualmente i filtri (o kernel), la rete neurale impara i kernel ottimali.
@@ -98,7 +98,7 @@ Poiché si tratta di immagini in scala di grigi, avremo un solo canale.
 [15:21] La funzione softmax garantisce che, dato un vettore di attivazioni `z`, l'output sia un vettore di valori tra 0 e 1 la cui somma è 1. Tuttavia, non la inseriamo direttamente nell'architettura della rete perché questa operazione è numericamente instabile a causa della presenza della funzione esponenziale.
 [15:36] L'esponenziale cresce molto rapidamente. Lavorando con numeri in virgola mobile a precisione finita, si possono incontrare problemi sia con numeri molto piccoli (vicini a zero) sia con numeri molto grandi.
 [15:50] L'instabilità numerica può verificarsi quando i valori calcolati si avvicinano al massimo numero rappresentabile dal computer. Esistono quindi delle tecniche intelligenti per evitare che ciò accada.
-[16:01] La soluzione migliore è utilizzare funzioni pre-implementate che combinano la softmax con la funzione di costo, come la `softmax_cross_entropy` di JAX. Il messaggio chiave è: ogni volta che si incontra una softmax o un'altra operazione con un esponenziale, bisogna prestare attenzione alla precisione numerica e cercare una funzione ottimizzata che gestisca questi problemi.
+[16:01] La soluzione migliore è utilizzare funzioni pre-implementate che combinano la softmax con la funzione di costo, come la `softmax\_cross\_entropy` di JAX. Il messaggio chiave è: ogni volta che si incontra una softmax o un'altra operazione con un esponenziale, bisogna prestare attenzione alla precisione numerica e cercare una funzione ottimizzata che gestisca questi problemi.
 [16:19] Un collega, durante il suo dottorato, ha perso tre giorni a capire perché il suo codice non funzionasse, e il problema era proprio una sua implementazione della softmax che non teneva conto della stabilità numerica. È un problema reale e comune.
 ## Visualizzazione dell'Architettura
 [16:33] Una volta definita la classe `CNN`, dobbiamo creare un'istanza concreta di essa. Non abbiamo approfondito la programmazione orientata agli oggetti, ma l'idea è che una classe è un modello astratto, da cui si possono creare oggetti concreti (istanze).
@@ -128,12 +128,12 @@ Poiché si tratta di immagini in scala di grigi, avremo un solo canale.
 2.  Una funzione per calcolare gli aggiornamenti dei gradienti.
 3.  Un ciclo che itera sulle epoche per eseguire l'addestramento.
 [02:03] La logica di base rimane sostanzialmente la stessa. Tuttavia, a causa di alcune piccole differenze sintattiche, queste funzioni verranno implementate insieme. Anche se la gestione generale è simile, è preferibile analizzare le differenze specifiche passo dopo passo.
-## Funzione `compute_metrics`
-[02:16] La prima funzione da implementare è `compute_metrics`. Lo scopo di questa funzione è calcolare alcune metriche per valutare le prestazioni della rete neurale, a partire dai suoi output (chiamati *logits*) e dalle etichette di riferimento (*target labels*), codificate in formato *one-hot*.
+## Funzione `compute\_metrics`
+[02:16] La prima funzione da implementare è `compute\_metrics`. Lo scopo di questa funzione è calcolare alcune metriche per valutare le prestazioni della rete neurale, a partire dai suoi output (chiamati *logits*) e dalle etichette di riferimento (*target labels*), codificate in formato *one-hot*.
 - **Logits**: Gli output grezzi di un modello di classificazione, prima dell'applicazione di una funzione di attivazione come la *softmax*. Rappresentano una misura non normalizzata della "fiducia" del modello per ciascuna classe.
 - **One-Hot Encoding**: Una tecnica per rappresentare dati categorici come vettori binari. In un vettore *one-hot*, solo un elemento è `1` (indicando la classe attiva), mentre tutti gli altri sono `0`.
 [02:26] In particolare, si vogliono calcolare due metriche: la *loss*, che in questo caso è la *cross-entropy*, e l'*accuracy* (accuratezza), un valore compreso tra 0 e 1.
-[02:34] La *loss* viene calcolata come la media (`gmp.mean`) della *softmax cross-entropy* su tutti i campioni del batch. La funzione `optax.softmax_cross_entropy` richiede due argomenti: i `logits` e le etichette `labels_one_hot`. I `logits` possono essere considerati come le predizioni della rete neurale (precedentemente indicate anche come `Y_hat`), mentre `labels_one_hot` sono le etichette corrette (`Y`).
+[02:34] La *loss* viene calcolata come la media (`gmp.mean`) della *softmax cross-entropy* su tutti i campioni del batch. La funzione `optax.softmax\_cross\_entropy` richiede due argomenti: i `logits` e le etichette `labels\_one\_hot`. I `logits` possono essere considerati come le predizioni della rete neurale (precedentemente indicate anche come `Y\_hat`), mentre `labels\_one\_hot` sono le etichette corrette (`Y`).
 [02:50] Per calcolare l'*accuracy*, è necessario prima determinare la classe predetta dalla rete neurale. Questa si ottiene trovando l'indice del valore massimo nei `logits` per ogni campione. L'operazione viene eseguita con `gmp.argmax(logits, axis=-1)`.
 - **`gmp.argmax`**: Una funzione che restituisce l'indice del valore massimo lungo un asse specificato di un array.
 [02:56] L'operazione `argmax` trova l'indice in cui si trova il valore massimo per ogni riga del tensore dei `logits`. L'argomento `axis=-1` specifica che l'operazione deve essere eseguita lungo l'ultimo asse, ovvero per ogni campione (riga) individualmente. Se si volesse il valore massimo, si userebbe `max`; poiché si desidera l'indice, si usa `argmax`.
@@ -143,53 +143,53 @@ Poiché si tratta di immagini in scala di grigi, avremo un solo canale.
 ## Ottenere i Logits dalla Rete Neurale
 [03:43] Per ottenere i `logits`, ovvero le predizioni della rete neurale, è necessario utilizzare una sintassi specifica. Si utilizza il metodo `apply` dell'oggetto `CNN`. A questo metodo devono essere passati due argomenti: i parametri del modello e i dati di input `x`.
 [03:51] La sintassi corretta è `cnn.apply({'params': params}, x)`. In passato, si sarebbe potuto usare qualcosa di simile a `ANN(params, x)`. La nuova sintassi richiede di chiamare esplicitamente il metodo `apply` e di passare i parametri all'interno di un dizionario con la chiave `'params'`.
-## Funzione `loss_fn`
-[04:04] La funzione di perdita (`loss_fn`) è molto simile a quella vista in precedenza. Utilizza `optax.softmax_cross_entropy`, a cui vengono passati i `logits` e le etichette `y`. Poiché questa operazione viene eseguita per ogni campione (riga per riga), il risultato finale è la media (`gmp.mean`) delle perdite individuali.
+## Funzione `loss\_fn`
+[04:04] La funzione di perdita (`loss\_fn`) è molto simile a quella vista in precedenza. Utilizza `optax.softmax\_cross\_entropy`, a cui vengono passati i `logits` e le etichette `y`. Poiché questa operazione viene eseguita per ogni campione (riga per riga), il risultato finale è la media (`gmp.mean`) delle perdite individuali.
 [04:13] Una differenza rispetto alle implementazioni precedenti è che questa funzione non restituisce solo il valore scalare della *loss*, ma anche i `logits`. Questo sarà utile in seguito. È importante ricordare che si vuole calcolare il gradiente di questa funzione, e il fatto che restituisca due output richiede l'uso di un argomento aggiuntivo in JAX per gestire correttamente la derivazione.
-## Funzione `train_step`
-[04:28] La funzione `train_step` ha il compito di aggiornare i parametri della rete neurale dato lo stato corrente del modello (`state`), un batch di dati di input (`x_batch`) e le relative etichette (`y_batch`). In precedenza, l'aggiornamento consisteva nel calcolare il gradiente della funzione di perdita e sottrarlo dai parametri, moltiplicato per il *learning rate*.
-[04:39] Con JAX e Optax, questo processo viene gestito in modo più strutturato. Per prima cosa, si definisce la funzione per il calcolo del gradiente. Invece di usare `jax.grad`, si utilizza `jax.value_and_grad`.
-- **`jax.value_and_grad`**: Una trasformazione di JAX che, data una funzione, ne restituisce una nuova che calcola sia il valore della funzione originale sia il suo gradiente in un'unica chiamata.
-[04:45] L'uso di `value_and_grad` sulla `loss_fn` permette di ottenere sia il valore della *loss* sia il suo gradiente con una sola esecuzione. Questo è efficiente perché evita di dover chiamare nuovamente la `loss_fn` solo per stampare il suo valore corrente.
-[04:59] Come accennato, la `loss_fn` restituisce anche i `logits` come output ausiliario. Per comunicare a JAX questa caratteristica, si utilizza l'argomento `has_aux=True`. Questo indica a JAX che il primo output della funzione è la *loss* (su cui calcolare il gradiente), mentre il secondo è un valore ausiliario da restituire senza essere differenziato.
-[05:10] Una volta definita la funzione del gradiente (`grad_fn`), la si valuta con i dati correnti. Gli argomenti da passare sono `state.params` (i parametri della rete, contenuti in un oggetto `state` che verrà definito in seguito), `x_batch` e `y_batch`.
-[05:19] L'output di questa chiamata sarà una tupla strutturata. A causa di `value_and_grad`, l'output principale è una tupla `(value, grad)`. A sua volta, `value` è una tupla `(loss, logits)` perché la `loss_fn` ha un output ausiliario. Quindi, la struttura completa dell'output è `((loss, logits), grads)`.
-[05:25] Il primo elemento della tupla esterna è il valore restituito da `loss_fn`, che è a sua volta una tupla contenente la *loss* e i *logits* ausiliari. Il secondo elemento della tupla esterna è il gradiente (`grads`).
+## Funzione `train\_step`
+[04:28] La funzione `train\_step` ha il compito di aggiornare i parametri della rete neurale dato lo stato corrente del modello (`state`), un batch di dati di input (`x\_batch`) e le relative etichette (`y\_batch`). In precedenza, l'aggiornamento consisteva nel calcolare il gradiente della funzione di perdita e sottrarlo dai parametri, moltiplicato per il *learning rate*.
+[04:39] Con JAX e Optax, questo processo viene gestito in modo più strutturato. Per prima cosa, si definisce la funzione per il calcolo del gradiente. Invece di usare `jax.grad`, si utilizza `jax.value\_and\_grad`.
+- **`jax.value\_and\_grad`**: Una trasformazione di JAX che, data una funzione, ne restituisce una nuova che calcola sia il valore della funzione originale sia il suo gradiente in un'unica chiamata.
+[04:45] L'uso di `value\_and\_grad` sulla `loss\_fn` permette di ottenere sia il valore della *loss* sia il suo gradiente con una sola esecuzione. Questo è efficiente perché evita di dover chiamare nuovamente la `loss\_fn` solo per stampare il suo valore corrente.
+[04:59] Come accennato, la `loss\_fn` restituisce anche i `logits` come output ausiliario. Per comunicare a JAX questa caratteristica, si utilizza l'argomento `has\_aux=True`. Questo indica a JAX che il primo output della funzione è la *loss* (su cui calcolare il gradiente), mentre il secondo è un valore ausiliario da restituire senza essere differenziato.
+[05:10] Una volta definita la funzione del gradiente (`grad\_fn`), la si valuta con i dati correnti. Gli argomenti da passare sono `state.params` (i parametri della rete, contenuti in un oggetto `state` che verrà definito in seguito), `x\_batch` e `y\_batch`.
+[05:19] L'output di questa chiamata sarà una tupla strutturata. A causa di `value\_and\_grad`, l'output principale è una tupla `(value, grad)`. A sua volta, `value` è una tupla `(loss, logits)` perché la `loss\_fn` ha un output ausiliario. Quindi, la struttura completa dell'output è `((loss, logits), grads)`.
+[05:25] Il primo elemento della tupla esterna è il valore restituito da `loss\_fn`, che è a sua volta una tupla contenente la *loss* e i *logits* ausiliari. Il secondo elemento della tupla esterna è il gradiente (`grads`).
 ## Aggiornamento dei Parametri con Optax
 [05:32] In passato, l'aggiornamento dei parametri avveniva manualmente sottraendo il gradiente moltiplicato per il *learning rate*. Con Optax, il processo è molto più semplice. Si utilizza un oggetto `state` creato da Optax.
-[05:41] Questo oggetto `state` possiede un metodo chiamato `apply_updates`. A questo metodo è sufficiente passare i gradienti calcolati (`grads`). L'oggetto `state` si occuperà di aggiornare automaticamente tutti i parametri nel modo corretto, utilizzando l'ottimizzatore specificato durante la sua creazione.
+[05:41] Questo oggetto `state` possiede un metodo chiamato `apply\_updates`. A questo metodo è sufficiente passare i gradienti calcolati (`grads`). L'oggetto `state` si occuperà di aggiornare automaticamente tutti i parametri nel modo corretto, utilizzando l'ottimizzatore specificato durante la sua creazione.
 [05:51] L'oggetto `state` contiene due elementi fondamentali:
 1.  I parametri della rete neurale (`params`).
 2.  Uno stato interno dell'ottimizzatore.
 [05:56] Lo stato interno memorizza informazioni necessarie per algoritmi di ottimizzazione avanzati, come il momento per gli aggiornamenti dei parametri o la somma dei gradienti passati (utilizzata in ottimizzatori come Adagrad per avere *learning rate* adattivi). Tutte le informazioni di cui l'ottimizzatore ha bisogno per aggiornare i gradienti sono incapsulate all'interno di questo `state`.
-[06:11] Infine, la funzione `train_step` calcola le metriche per il batch corrente. Per fare ciò, si richiama la funzione `compute_metrics` definita in precedenza, passandole i `logits` e le etichette `y` del batch.
-## Funzione `eval_model`
-[06:21] Oltre alle funzioni per l'addestramento, è utile avere una funzione per valutare il modello una volta addestrato. Questa funzione, `eval_model`, calcolerà gli output e le metriche senza eseguire il calcolo del gradiente.
-[06:28] I `logits` vengono calcolati utilizzando il metodo `apply_fn` dello `state`. Questa è una sintassi alternativa per eseguire l'inferenza.
+[06:11] Infine, la funzione `train\_step` calcola le metriche per il batch corrente. Per fare ciò, si richiama la funzione `compute\_metrics` definita in precedenza, passandole i `logits` e le etichette `y` del batch.
+## Funzione `eval\_model`
+[06:21] Oltre alle funzioni per l'addestramento, è utile avere una funzione per valutare il modello una volta addestrato. Questa funzione, `eval\_model`, calcolerà gli output e le metriche senza eseguire il calcolo del gradiente.
+[06:28] I `logits` vengono calcolati utilizzando il metodo `apply\_fn` dello `state`. Questa è una sintassi alternativa per eseguire l'inferenza.
 [06:33] Si sta introducendo una varietà di librerie (Optax, Flax), e ciò comporta che esistano modi diversi per compiere la stessa operazione. Questa sintassi alternativa serve a mostrare un altro modo per calcolare i `logits`.
 [06:42] Si sta utilizzando la funzione `apply` dello `state`, che a sua volta deriva dalla funzione `apply` del modello `CNN`. La sintassi è la stessa: si passano i parametri e l'input `x`. In questo caso, invece di un singolo batch `x`, si passa un intero `dataset`.
 [06:53] Il `dataset` può essere pensato come un dizionario contenente due campi: `image` (i dati di input) e `label` (le etichette). Raggruppare tutto in un'unica variabile `dataset` semplifica la gestione dei dati.
-[07:04] Una volta ottenuti i `logits`, le metriche vengono calcolate chiamando `compute_metrics`. A questa funzione vengono passati i `logits` e le etichette, che vengono estratte dal dizionario `dataset` con `dataset['label']`.
-[07:12] La funzione `eval_model` restituisce la *loss* e l'*accuracy* calcolate sull'intero dataset fornito, utilizzando i parametri correnti del modello.
-## Funzione `train_epoch`
-[07:17] L'ultima funzione principale da implementare è quella per il ciclo di addestramento su una singola epoca, `train_epoch`.
-[07:21] Questa funzione riceve lo `state` corrente (che contiene i parametri), il dataset di addestramento, la dimensione del batch (`batch_size`), il numero dell'epoca corrente e una chiave per la generazione di numeri casuali (`rng_key`). L'obiettivo è eseguire un'epoca completa di aggiornamenti dei parametri.
+[07:04] Una volta ottenuti i `logits`, le metriche vengono calcolate chiamando `compute\_metrics`. A questa funzione vengono passati i `logits` e le etichette, che vengono estratte dal dizionario `dataset` con `dataset['label']`.
+[07:12] La funzione `eval\_model` restituisce la *loss* e l'*accuracy* calcolate sull'intero dataset fornito, utilizzando i parametri correnti del modello.
+## Funzione `train\_epoch`
+[07:17] L'ultima funzione principale da implementare è quella per il ciclo di addestramento su una singola epoca, `train\_epoch`.
+[07:21] Questa funzione riceve lo `state` corrente (che contiene i parametri), il dataset di addestramento, la dimensione del batch (`batch\_size`), il numero dell'epoca corrente e una chiave per la generazione di numeri casuali (`rng\_key`). L'obiettivo è eseguire un'epoca completa di aggiornamenti dei parametri.
 [07:31] Per prima cosa, si determina la dimensione totale del dataset di addestramento, contando il numero di campioni presenti.
-`train_dataset_size = train_dataset['image'].shape[0]`
+`train\_dataset\_size = train\_dataset['image'].shape[0]`
 [07:36] Successivamente, si calcola il numero di passi (o iterazioni) da eseguire in un'epoca. Questo è dato dal numero totale di campioni diviso per la dimensione del batch.
-`steps_per_epoch = train_dataset_size // batch_size`
+`steps\_per\_epoch = train\_dataset\_size // batch\_size`
 [07:46] Come nelle implementazioni precedenti, è necessario mescolare i dati ad ogni epoca. Per fare ciò, si generano delle permutazioni degli indici dei dati. Si utilizza `jax.random.permutation`.
 [07:51] A questa funzione si passano la chiave per la generazione di numeri casuali e la dimensione del dataset. Il risultato è un array di indici (da 0 al numero di campioni) permutati casualmente. Questo array definisce l'ordine in cui i mini-batch verranno estratti.
-[08:09] Si itera quindi per un numero di volte pari a `steps_per_epoch`. Ad ogni iterazione `i`, si estrae un sottoinsieme di indici dall'array delle permutazioni. Questo sottoinsieme corrisponde al mini-batch corrente.
-`batch_indices = permutations[i * batch_size : (i + 1) * batch_size]`
-[08:21] A questo punto, si invoca la funzione `train_step` per eseguire un singolo passo di aggiornamento. Questa funzione restituisce lo `state` aggiornato e le metriche calcolate sul batch.
-[08:25] A `train_step` vengono passati lo `state` corrente e il batch di dati e etichette, selezionati dal dataset di addestramento usando gli indici del batch corrente.
-`x_batch = train_dataset['image'][batch_indices]`
-`y_batch = train_dataset['label'][batch_indices]`
-[08:33] Per monitorare l'andamento, le metriche calcolate per ogni batch vengono salvate. Si inizializza una lista vuota, `batch_metrics`, e ad ogni passo vi si aggiungono le metriche restituite da `train_step`.
+[08:09] Si itera quindi per un numero di volte pari a `steps\_per\_epoch`. Ad ogni iterazione `i`, si estrae un sottoinsieme di indici dall'array delle permutazioni. Questo sottoinsieme corrisponde al mini-batch corrente.
+`batch\_indices = permutations[i * batch\_size : (i + 1) * batch\_size]`
+[08:21] A questo punto, si invoca la funzione `train\_step` per eseguire un singolo passo di aggiornamento. Questa funzione restituisce lo `state` aggiornato e le metriche calcolate sul batch.
+[08:25] A `train\_step` vengono passati lo `state` corrente e il batch di dati e etichette, selezionati dal dataset di addestramento usando gli indici del batch corrente.
+`x\_batch = train\_dataset['image'][batch\_indices]`
+`y\_batch = train\_dataset['label'][batch\_indices]`
+[08:33] Per monitorare l'andamento, le metriche calcolate per ogni batch vengono salvate. Si inizializza una lista vuota, `batch\_metrics`, e ad ogni passo vi si aggiungono le metriche restituite da `train\_step`.
 # Capitolo 4: Ciclo di Addestramento e Analisi dei Risultati
 ## Correzione del Campionamento dei Dati
-[00:01] Per garantire un corretto addestramento, è necessario tenere conto della permutazione dei dati. Attualmente, l'intero dataset viene passato alla funzione senza un rimescolamento. È quindi fondamentale applicare la permutazione ai dati di input `x_data` e alle etichette `y_data`.
+[00:01] Per garantire un corretto addestramento, è necessario tenere conto della permutazione dei dati. Attualmente, l'intero dataset viene passato alla funzione senza un rimescolamento. È quindi fondamentale applicare la permutazione ai dati di input `x\_data` e alle etichette `y\_data`.
 [00:02] Poiché i campioni sono disposti lungo il primo asse della matrice, la permutazione può essere applicata direttamente a questo asse.
 ## Aggregazione delle Metriche di Addestramento
 [00:07] Al termine di ogni batch, vengono calcolati i valori di perdita (loss) e accuratezza (accuracy). Per ottenere una stima complessiva delle performance per l'intera epoca, è necessario aggregare queste metriche.
@@ -205,33 +205,33 @@ Poiché si tratta di immagini in scala di grigi, avremo un solo canale.
 [00:54] Per monitorare l'andamento dell'addestramento, è utile stampare i valori correnti delle metriche.
 [00:58] Si inizia stampando il numero dell'epoca corrente. Utilizzando una formattazione specifica come `04`, il numero verrà visualizzato occupando almeno quattro caratteri, con zeri iniziali per il padding (ad esempio, la prima epoca sarà `0001`). Questo garantisce che i numeri siano allineati in una colonna, migliorando la leggibilità dell'output.
 [01:08] Successivamente, si stampano i valori di perdita e accuratezza relativi al training.
-[01:11] La perdita (`training_epoch_metrics['loss']`) viene formattata in notazione esponenziale con quattro cifre significative (`0.4e`).
-[01:16] L'accuratezza (`training_epoch_metrics['accuracy']`) viene moltiplicata per 100 per esprimerla in formato percentuale e formattata come numero in virgola mobile con due cifre decimali.
+[01:11] La perdita (`training\_epoch\_metrics['loss']`) viene formattata in notazione esponenziale con quattro cifre significative (`0.4e`).
+[01:16] L'accuratezza (`training\_epoch\_metrics['accuracy']`) viene moltiplicata per 100 per esprimerla in formato percentuale e formattata come numero in virgola mobile con due cifre decimali.
 [01:22] Per poter stampare sulla stessa riga anche i dati di validazione, la funzione di stampa viene configurata per non terminare con un carattere di "a capo" (`\n`), ma con una stringa vuota. In questo modo, la stampa successiva continuerà sulla medesima riga.
 [01:29] Il passo successivo consisterà nel calcolare e stampare la funzione di perdita e l'accuratezza sui dati di validazione.
 ## Suddivisione del Dataset in Training e Validation
 [01:36] L'ultima fase prima del ciclo di addestramento vero e proprio consiste nel preparare i dati. Questo include la randomizzazione e la suddivisione del dataset in set di addestramento (train) e di validazione (validation).
 [01:41] Il set di validazione è cruciale per la scelta degli iperparametri, mentre il set di addestramento viene utilizzato per l'aggiornamento dei pesi del modello.
-[01:47] Per prima cosa, si determina il numero totale di campioni (`n_samples`) presenti nel dataset, ottenendolo dalla dimensione del primo asse di `x_data`.
-[01:50] Si genera una permutazione casuale degli indici da `0` a `n_samples - 1`. Questa operazione è fondamentale per eliminare eventuali idiosincrasie o ordinamenti preesistenti nel dataset, che potrebbero influenzare negativamente l'addestramento.
+[01:47] Per prima cosa, si determina il numero totale di campioni (`n\_samples`) presenti nel dataset, ottenendolo dalla dimensione del primo asse di `x\_data`.
+[01:50] Si genera una permutazione casuale degli indici da `0` a `n\_samples - 1`. Questa operazione è fondamentale per eliminare eventuali idiosincrasie o ordinamenti preesistenti nel dataset, che potrebbero influenzare negativamente l'addestramento.
 [01:55] Si definisce la percentuale di dati da destinare all'addestramento, fissata all'80%, una suddivisione comune (80/20). Il dataset di test è fornito in un file CSV separato, quindi la suddivisione corrente riguarda solo la creazione dei set di training e validazione a partire dal dataset principale.
-[02:03] Si calcola il numero di campioni di addestramento (`n_train_samples`) come l'80% del numero totale di campioni, arrotondando il risultato a un intero.
-[02:09] Il numero di campioni di validazione (`n_val_samples`) è dato dalla differenza tra il numero totale di campioni e il numero di campioni di addestramento.
-[02:14] Gli indici per il set di addestramento (`train_indexes`) sono i primi `n_train_samples` indici della permutazione casuale.
-[02:19] Gli indici per il set di validazione (`val_indexes`) sono i restanti indici della permutazione, a partire da `n_train_samples` fino alla fine.
+[02:03] Si calcola il numero di campioni di addestramento (`n\_train\_samples`) come l'80% del numero totale di campioni, arrotondando il risultato a un intero.
+[02:09] Il numero di campioni di validazione (`n\_val\_samples`) è dato dalla differenza tra il numero totale di campioni e il numero di campioni di addestramento.
+[02:14] Gli indici per il set di addestramento (`train\_indexes`) sono i primi `n\_train\_samples` indici della permutazione casuale.
+[02:19] Gli indici per il set di validazione (`val\_indexes`) sono i restanti indici della permutazione, a partire da `n\_train\_samples` fino alla fine.
 [02:22] Questa suddivisione è necessaria perché il dataset originale potrebbe avere una struttura non casuale, ad esempio con dati dello stesso utente raggruppati. La permutazione iniziale assicura che sia il set di training sia quello di validazione siano rappresentativi dell'intera distribuzione dei dati.
 [02:29] Il set di validazione verrà utilizzato per l'ottimizzazione degli iperparametri (hyper-parameter tuning).
 ## Conversione dei Dati in Array JAX
 [02:34] Una volta definiti gli indici, si procede alla creazione dei dataset veri e propri.
 [02:36] Attualmente, i dati sono array NumPy. Per sfruttare l'accelerazione hardware (GPU), è necessario convertirli in array JAX. JAX, a differenza di NumPy che opera solo su CPU, è in grado di eseguire calcoli su GPU.
 [02:43] La conversione in array JAX sposta automaticamente i dati sulla GPU. Durante questo processo, si specifica esplicitamente che il tipo di dato deve essere in virgola mobile (`floating point`), per assicurarsi che non vengano trattati come interi.
-[02:52] Vengono così creati due dataset: `train_ds` (training) e `val_ds` (validazione), entrambi pronti per essere utilizzati con JAX.
+[02:52] Vengono così creati due dataset: `train\_ds` (training) e `val\_ds` (validazione), entrambi pronti per essere utilizzati con JAX.
 ## Inizializzazione delle Variabili e degli Iperparametri
 [02:56] L'ultima fase è l'addestramento vero e proprio. Si inizializzano delle liste vuote per salvare le metriche di training e validazione ad ogni epoca.
 [02:59] Vengono definiti alcuni iperparametri fondamentali per l'addestramento:
-- `num_epochs`: il numero totale di epoche.
-- `batch_size`: la dimensione di ciascun batch.
-- `learning_rate`: il tasso di apprendimento per l'ottimizzatore.
+- `num\_epochs`: il numero totale di epoche.
+- `batch\_size`: la dimensione di ciascun batch.
+- `learning\_rate`: il tasso di apprendimento per l'ottimizzatore.
 ## Inizializzazione della Rete Neurale e dell'Ottimizzatore
 [03:04] I due componenti principali da inizializzare sono la rete neurale convoluzionale (CNN) e l'ottimizzatore.
 [03:06] A differenza delle implementazioni precedenti in cui i pesi della rete venivano inizializzati manually (ad esempio, con l'inizializzazione di Glorot uniforme), ora si utilizza una funzione automatica fornita dalla libreria Flax.
@@ -243,23 +243,23 @@ Poiché si tratta di immagini in scala di grigi, avremo un solo canale.
 [03:26] Il secondo ingrediente è l'ottimizzatore. Per convenzione, viene spesso chiamato `tx`.
 [03:31] Si utilizza l'ottimizzatore Adam dalla libreria Optax.
     - **Adam**: È un algoritmo di ottimizzazione che combina i concetti di "Momentum" e "RMSprop". Aggiunge un tasso di apprendimento adattivo per ciascun parametro, basato su una memoria scontata della magnitudine dei gradienti passati.
-[03:38] L'unico iperparametro obbligatorio da passare ad Adam in questa configurazione è il `learning_rate`.
+[03:38] L'unico iperparametro obbligatorio da passare ad Adam in questa configurazione è il `learning\_rate`.
 ## Creazione dello Stato di Addestramento (TrainState)
 [03:40] L'ultimo componente da preparare è lo stato di addestramento (`state`). Lo stato è un oggetto che contiene non solo i parametri del modello, ma anche tutte le informazioni necessarie all'ottimizzatore per eseguire gli aggiornamenti dei gradienti.
 [03:44] Ad esempio, se si utilizza un ottimizzatore con momentum, lo stato conterrà le variabili necessarie per memorizzare il valore del momentum tra un passo e l'altro.
 [03:48] Lo stato viene creato utilizzando la classe `TrainState` di Flax.
 [03:51] Il metodo `create` di `TrainState` richiede tre argomenti:
-1.  `apply_fn`: La funzione che applica il modello ai dati, che corrisponde a `cnn.apply`. Lo stato "cattura" questa funzione per poterla utilizzare durante l'addestramento e la valutazione.
+1.  `apply\_fn`: La funzione che applica il modello ai dati, che corrisponde a `cnn.apply`. Lo stato "cattura" questa funzione per poterla utilizzare durante l'addestramento e la valutazione.
 2.  `params`: I parametri della rete neurale inizializzati in precedenza.
 3.  `tx`: L'istanza dell'ottimizzatore (Adam).
 [04:02] Con tutti gli ingredienti pronti, si può procedere con il ciclo di addestramento sulle epoche.
 ## Esecuzione del Ciclo di Addestramento
 [04:05] La prima operazione all'interno del ciclo `for` sulle epoche è l'aggiornamento dello stato del generatore di numeri casuali (`RNG`).
 [04:07] Ad ogni epoca, si desidera una nuova permutazione dei dati. Per ottenere ciò, si utilizza la funzione `jax.random.split`, che divide l'RNG corrente, generando un nuovo stato per l'epoca corrente e aggiornando l'RNG principale per le epoche successive.
-[04:13] Successivamente, si esegue un'epoca di addestramento chiamando la funzione `train_epoch`. Questa funzione restituisce lo stato aggiornato (`state`) e le metriche di addestramento (`train_metrics`).
-[04:16] Alla funzione `train_epoch` vengono passati lo stato corrente, il dataset di addestramento, la dimensione del batch, il numero dell'epoca e il nuovo stato del generatore di numeri casuali.
+[04:13] Successivamente, si esegue un'epoca di addestramento chiamando la funzione `train\_epoch`. Questa funzione restituisce lo stato aggiornato (`state`) e le metriche di addestramento (`train\_metrics`).
+[04:16] Alla funzione `train\_epoch` vengono passati lo stato corrente, il dataset di addestramento, la dimensione del batch, il numero dell'epoca e il nuovo stato del generatore di numeri casuali.
 [04:21] Dopo l'addestramento, si calcolano le metriche sul dataset di validazione. Poiché la stampa precedente era stata configurata per non andare a capo, i risultati della validazione verranno stampati sulla stessa riga di quelli del training.
-[04:26] Si calcolano la perdita (`val_loss`) e l'accuratezza (`val_accuracy`) di validazione utilizzando la funzione `eval_model`, a cui vengono passati lo stato aggiornato e il dataset di validazione.
+[04:26] Si calcolano la perdita (`val\_loss`) e l'accuratezza (`val\_accuracy`) di validazione utilizzando la funzione `eval\_model`, a cui vengono passati lo stato aggiornato e il dataset di validazione.
 [04:31] Si stampano i risultati: la perdita di validazione viene formattata in notazione esponenziale con quattro cifre, mentre l'accuratezza di validazione viene mostrata come percentuale con due cifre decimali.
 [04:38] Infine, per poter generare dei grafici al termine dell'addestramento, i valori delle metriche di training e validazione vengono salvati in apposite liste.
 [04:42] Si aggiungono (`append`) la perdita e l'accuratezza di training alle rispettive liste.
@@ -287,7 +287,7 @@ Poiché si tratta di immagini in scala di grigi, avremo un solo canale.
 [00:32] L'architettura della rete neurale proposta è quindi una scelta già orientata verso un buon risultato. È importante notare che, con una scelta casuale degli iperparametri o un seme (seed) di inizializzazione sfortunato, si potrebbe ottenere un'accuratezza inferiore, ad esempio intorno al 95%. Gli iperparametri forniti sono stati selezionati sapendo che funzionano bene per questo compito.
 [00:44] Il test finale, che è una pratica standard, consiste nel valutare il modello sui dati di test, che non sono mai stati utilizzati durante l'addestramento o la validazione. In questo scenario, i dati di test sono già disponibili in un file separato.
 [00:53] La procedura di test inizia con il caricamento dei dati di test. Successivamente, si applica la codifica one-hot alle etichette per trasformarle in un formato adatto al modello e si crea il dataset di test. Infine, si calcolano l'accuratezza e le altre metriche di valutazione.
-[01:00] Per questa valutazione, si utilizzano le funzioni `compute_metrics` e `eval_model` definite in precedenza. A queste funzioni vengono passati lo stato del modello (che contiene i parametri addestrati) e l'iteratore del dataset di test.
+[01:00] Per questa valutazione, si utilizzano le funzioni `compute\_metrics` e `eval\_model` definite in precedenza. A queste funzioni vengono passati lo stato del modello (che contiene i parametri addestrati) e l'iteratore del dataset di test.
 [01:06] Le funzioni restituiscono la perdita di test (test loss) e l'accuratezza di test (test accuracy).
 [01:08] È possibile quindi stampare a schermo la perdita e l'accuratezza ottenute sul set di test, esprimendo quest'ultima in formato percentuale.
 ## Analisi dei Risultati del Test
@@ -328,7 +328,7 @@ Poiché si tratta di immagini in scala di grigi, avremo un solo canale.
 [03:27] Vediamo come implementare questo attacco in codice. La funzione di attacco riceverà come input i parametri del modello, l'immagine da attaccare, la sua etichetta corretta e il valore di `$\epsilon$`.
 [03:32] Il primo passo è definire una funzione per calcolare il gradiente della loss rispetto all'immagine. Utilizzando JAX, si può usare `jax.grad`.
 [03:37] È fondamentale specificare che la differenziazione deve avvenire rispetto al primo argomento della funzione di perdita, che in questo caso è l'immagine. Si può creare una funzione lambda che accetta l'immagine come unico argomento, mentre gli altri valori (parametri ed etichetta) vengono catturati dal contesto esterno.
-[03:46] La funzione di perdita utilizzata ha un output ausiliario (i logits), quindi è necessario specificare `has_aux=True` quando si calcola il gradiente.
+[03:46] La funzione di perdita utilizzata ha un output ausiliario (i logits), quindi è necessario specificare `has\_aux=True` quando si calcola il gradiente.
 [03:53] Una volta definita la funzione gradiente, la si applica all'immagine di input per calcolare i gradienti effettivi.
 [04:00] La funzione `grad` restituirà i gradienti e l'output ausiliario (i logits), che in questa fase non sono necessari. Il calcolo viene eseguito sull'immagine corrente che si desidera modificare.
 [04:09] L'immagine modificata, o "avversaria", si ottiene sommando all'immagine originale la perturbazione calcolata:
@@ -344,7 +344,7 @@ x_{\text{avversario}} = x_{\text{originale}} + \epsilon \cdot \text{sign}(\text{
 [04:53] La procedura per testare l'attacco è la seguente: si seleziona un'immagine (`X`) e la sua etichetta (`Y`) dal dataset di test.
 [05:00] Si calcola la previsione del modello sull'immagine originale. Si utilizza la funzione `cnn.apply` passando i parametri del modello (contenuti nello stato) e l'immagine di input.
 [05:08] La previsione originale viene ottenuta calcolando l'argmax dei logits di output. Questo risultato viene stampato a schermo.
-[05:16] Successivamente, si genera l'immagine avversaria (`adversarial_X`) chiamando la funzione di attacco `fgsm_attack` con i parametri del modello, l'immagine, l'etichetta e `$\epsilon$`.
+[05:16] Successivamente, si genera l'immagine avversaria (`adversarial\_X`) chiamando la funzione di attacco `fgsm\_attack` con i parametri del modello, l'immagine, l'etichetta e `$\epsilon$`.
 [05:27] Si calcola quindi la previsione del modello sulla nuova immagine avversaria, e anche questa viene stampata.
 [05:37] Infine, si visualizzano l'immagine originale e quella modificata fianco a fianco, con le rispettive previsioni del modello come titoli.
 [06:08] I risultati possono variare leggermente a seconda dell'hardware (CPU vs GPU) o di piccole differenze nell'implementazione, che portano a parametri del modello leggermente diversi dopo l'addestramento.
@@ -365,7 +365,7 @@ x_{\text{avversario}} = x_{\text{originale}} + \epsilon \cdot \text{sign}(\text{
 [08:16] È stato detto che una rete neurale convoluzionale apprende dei kernel per estrarre feature specifiche dalle immagini. Un modo per comprendere cosa il modello ha imparato è visualizzare l'output del primo strato convoluzionale.
 [08:24] Questo permette di avere un'idea di quali caratteristiche dell'immagine vengono utilizzate dal modello dopo il primo livello di elaborazione e può fornire intuizioni euristiche sul suo funzionamento.
 ## Implementazione della Funzione di Visualizzazione
-[08:33] Si definisce una funzione, `get_first_layer_output`, che prende in input i parametri del modello e un'immagine.
+[08:33] Si definisce una funzione, `get\_first\_layer\_output`, che prende in input i parametri del modello e un'immagine.
 [08:39] All'interno di questa funzione, si ricostruisce il primo strato convoluzionale, che era stato definito con 32 feature e un kernel di dimensione 3x3.
 [08:49] L'output di questo strato si ottiene applicando lo strato all'immagine di input. La sintassi è simile a quella usata per un'intera rete neurale; si può pensare a questo come a una rete con un solo strato.
 [08:56] Alla funzione `apply` devono essere passati i parametri. Tuttavia, non si passano tutti i parametri del modello, ma solo quelli relativi al primo strato convoluzionale.
@@ -373,7 +373,7 @@ x_{\text{avversario}} = x_{\text{originale}} + \epsilon \cdot \text{sign}(\text{
 [09:10] Ogni strato della rete è indicizzato da una stringa (il suo nome), e al suo interno si trova la struttura dei parametri specifici di quello strato.
 [09:18] Pertanto, si estraggono e si passano solo i parametri del primo strato convoluzionale. La funzione restituirà l'output di questo strato.
 [09:23] Per eseguire la visualizzazione, si seleziona un'immagine dal dataset di test (ad esempio, la prima, con indice 0).
-[09:28] Si chiama la funzione `get_first_layer_output` passando i parametri del modello e l'immagine selezionata.
+[09:28] Si chiama la funzione `get\_first\_layer\_output` passando i parametri del modello e l'immagine selezionata.
 [09:35] L'output di questo strato avrà una dimensione corrispondente a 32 "immagini" o canali, poiché ogni canale rappresenta una diversa feature estratta dall'immagine originale.
 [09:42] Ogni canale è il risultato dell'applicazione di un diverso kernel convoluzionale all'immagine di input. Si può quindi iterare su questi 32 canali e visualizzare ciascuno di essi come un'immagine in scala di grigi.
 ## Analisi dei Filtri Appresi
