@@ -34,7 +34,7 @@
 ## Regressione: impostazione del notebook e obiettivi
 [10:00] Su WeBip, cartella “lab03”, è disponibile il notebook 1 “least square regression, kernel regression”. Si consiglia di aprire Colab e caricare il notebook per implementare il codice.
 [10:20] Il primo compito è eseguire una regressione ai minimi quadrati usando la pseudo-inversa di Moore–Penrose, calcolata tramite SVD. Si implementa la pseudo-inversa basata sulla SVD.
-[10:40] Si può scegliere tra SVD “full” ($\text{full\_matrices}=\text{True}$) e SVD “thin” ($\text{full\_matrices}=\text{False}$). Si confronta il risultato con la funzione standard che calcola la pseudo-inversa, verificando una differenza dell’ordine di $10^{-15}$.
+[10:40] Si può scegliere tra SVD “full” ($\text{full\_matrices} = \text{True}$) e SVD “thin” ($\text{full\_matrices}=\text{False}$). Si confronta il risultato con la funzione standard che calcola la pseudo-inversa, verificando una differenza dell’ordine di $10^{-15}$.
 [11:00] Si eseguono misure dei tempi di esecuzione, confrontando la pseudo-inversa standard con la versione via SVD, in particolare l’implementazione ottimizzata. La valutazione temporale aiuta a capire l’efficienza delle scelte implementative.
 [11:20] Il codice richiesto è conciso: poche linee basate sulla formula matematica della pseudo-inversa. Si dedica tempo all’implementazione.
 ## Implementazione della pseudo-inversa via SVD
