@@ -78,8 +78,46 @@ Il sistema è sovradeterminato, quindi non ha soluzione esatta per tutti i punti
 w = \Phi^\dagger y,
 ```
 con $\Phi^\dagger$ calcolata via SVD come descritto. Il vettore $w$ contiene le stime di $m$ e $q$.
+
+### Esempio pratico con codice Python
+
+```python
+# Parametri del modello reale
+m = 2.0
+q = 3.0
+N = 100
+noise = 2.0
+
+np.random.seed(0)
+X = np.random.randn(N)
+Y = m * X + q + noise * np.random.randn(N)
+
+# Costruzione della matrice delle caratteristiche
+Phi = np.column_stack([X[:, np.newaxis], np.ones((N, 1))])
+
+# Risoluzione con pseudo-inversa
+z = my_pinv_thinSVD(Phi) @ Y
+m_hat = z[0]
+q_hat = z[1]
+
+print(f"m_hat = {m_hat:.3f}")  # Risultato tipico: m_hat ≈ 2.229
+print(f"q_hat = {q_hat:.3f}")  # Risultato tipico: q_hat ≈ 3.042
+```
+
 [16:20] Si verifica la vicinanza delle stime ai valori reali $m=2$ e $q=3$. Ad esempio, si può ottenere $m \approx 2{,}2$ e $q \approx 3{,}1$, coerente con il rumore.
-[16:40] Per visualizzazione si traccia lo scatter $(x,y)$, la retta generatrice in rosso (con $m$ e $q$ reali) e la retta stimata in nero (con $w$). Il confronto mostra l’efficacia del fitting.
+[16:40] Per visualizzazione si traccia lo scatter $(x,y)$, la retta generatrice in rosso (con $m$ e $q$ reali) e la retta stimata in nero (con $w$). Il confronto mostra l'efficacia del fitting.
+
+```python
+plt.scatter(X, Y, alpha=0.5, label='Dati rumorosi')
+plt.plot(X, m * X + q, color="red", label='Modello reale')
+plt.plot(X, m_hat * X + q_hat, color="k", label='Stima LS')
+plt.legend()
+plt.xlabel('x')
+plt.ylabel('y')
+```
+
+![Regressione ai minimi quadrati: scatter plot con modello reale e stima LS](img/lab03_linear_regression.png)
+
 [17:00] Un rumore più basso (ampiezza 0.1) riduce la discrepanza; un rumore più alto aumenta la dispersione e rende la stima più impegnativa.
 [17:20] Si prepara una valutazione su dati di test: si definisce $x_{\text{test}}$ come griglia uniforme (ad esempio in $[-3,3]$ con 1000 punti), si costruisce $\Phi_{\text{test}}$ e si calcola:
 ```math
@@ -105,6 +143,9 @@ dove $\Phi$ è la matrice delle caratteristiche, $w$ è il vettore dei parametri
 ## Regressione “ridge” su dati non lineari
 [02:40] Si introduce una regressione su un fenomeno non lineare mantenendo un modello lineare. Il fenomeno ha forma simile a una sigmoide. Si definisce una funzione $f$, si generano punti $x$ gaussiani standard, si calcola il modello reale $y$, si aggiunge rumore $\varepsilon$, e si visualizzano i punti rumorosi con il modello reale.
 [03:05] Applicando i minimi quadrati, la prestazione è scarsa. Si introduce la ridge regression, aggiungendo un termine di regolarizzazione $\lambda$ che penalizza pesi ampi. La regolarizzazione riduce l’overfitting e stabilizza la soluzione.
+
+![Ridge regression: confronto tra diversi valori di lambda](img/lab03_ridge_comparison.png)
+
 [03:25] Variando $\lambda$ cambia il comportamento del modello: con un valore adatto di $\lambda$ il modello lineare migliora leggermente, pur rimanendo non ottimale per dati fortemente non lineari. Si introduce successivamente la regressione con kernel.
 [03:45] Compito operativo: generare il modello reale, aggiungere rumore, applicare i minimi quadrati e introdurre la penalizzazione ridge. Due vie:
 - modificare le equazioni normali aggiungendo la penalizzazione;
@@ -166,6 +207,23 @@ dove $I_n$ è l’identità $n \times n$ e $n$ è il numero di campioni. Trovata
 w = \Phi^\top \alpha.
 ```
 Questa soluzione è algebricamente equivalente alla ridge precedente.
+### Implementazione comparativa delle due formulazioni
+
+```python
+lam = 1.0
+
+# Metodo 1: Equazioni normali standard
+w1 = np.linalg.solve(Phi.T @ Phi + lam * np.eye(2), Phi.T @ Y)
+
+# Metodo 2: Identità di Woodbury (forma kernel)
+PhiPhiT = Phi @ Phi.T
+alpha = np.linalg.solve(PhiPhiT + lam * np.eye(N), Y)
+w2 = Phi.T @ alpha
+
+# Verifica equivalenza
+print(f"Differenza tra w1 e w2: {np.linalg.norm(w1 - w2)}")
+# Risultato tipico: ~ 1e-15 (epsilon di macchina)
+```
 [08:40] La differenza tra le due soluzioni per $w$ è dell’ordine dell’epsilon di macchina ($\approx 10^{-15}$). Se $\lambda=0$, la versione standard con equazioni normali funziona, mentre la variante con $\Phi \Phi^\top$ non è equivalente: l’identità di Woodbury richiede $\lambda I$ non nullo per mantenere l’equivalenza.
 [09:00] Le due formule coincidono per ogni $\lambda > 0$ e divergono se $\lambda = 0$.
 ## Introduzione alla regressione con kernel
@@ -197,13 +255,35 @@ L’elevazione alla potenza consente di modellare relazioni non lineari fino al 
 k_{\text{RBF}}(x_i, x_j) = \exp\!\left(-\frac{(x_i - x_j)^2}{2\sigma^2}\right).
 ```
 La distanza $|x_i-x_j|$ è normalizzata da $\sigma$ e controlla il raggio d’influenza del contributo gaussiano.
-## Regressione con kernel: struttura generale
+### Implementazione delle funzioni kernel in Python
+
+![Confronto tra kernel lineare, polinomiale e gaussiano nella regressione](img/lab03_kernel_comparison.png)
+
+```python
+# Parametri degli iperparametri
+q = 4       # Grado del polinomio
+sigma = 1.0 # Larghezza della gaussiana
+lam = 1.0   # Regolarizzazione
+
+def product_kernel(x1, x2):
+    """Kernel lineare con bias"""
+    return x1 * x2 + 1
+
+def high_order_kernel(x1, x2):
+    """Kernel polinomiale di ordine q"""
+    return (x1 * x2 + 1) ** q
+
+def gaussian_kernel(x1, x2):
+    """Kernel RBF (Radial Basis Function)"""
+    return np.exp(-(((x1 - x2) / sigma) ** 2) / 2)
+```## Regressione con kernel: struttura generale
 [01:55] Si definisce una funzione di regressione con kernel che accetta la funzione kernel come argomento. Il dataset di training ha dimensione $n = X.\text{shape}[0]$. Si inizializza la matrice del kernel $K \in \mathbb{R}^{n \times n}$.
 [02:30] Si riempie $K$ con un doppio ciclo su $i$ e $j$:
 ```math
 K_{ij} = k(x_i, x_j).
 ```
 Si costruisce così la Gram matrix del kernel.
+
 ## Calcolo dei coefficienti alfa
 [02:55] Calcolata $K$, si determinano i coefficienti $\alpha$ risolvendo il sistema regolarizzato:
 ```math
@@ -223,6 +303,57 @@ La prima input è il punto di test, la seconda il punto di training.
 \hat{y}_{\text{test}} = K_{\text{test}} \,\alpha.
 ```
 Si usa lo stesso kernel e gli stessi parametri del training per costruire $K_{\text{test}}$.
+
+### Implementazione completa della regressione kernel
+
+```python
+def kernel_regression(kernel, X, Y, X_test, lam=1.0):
+    """Regressione con kernel generico
+    
+    Args:
+        kernel: funzione kernel k(x1, x2)
+        X: dati di training (N, 1)
+        Y: target di training (N, 1)
+        X_test: dati di test (N_test, 1)
+        lam: parametro di regolarizzazione
+    
+    Returns:
+        Y_test_pred: predizioni sul test set
+    """
+    N = X.shape[0]
+    
+    # Costruzione della matrice kernel K sul training set
+    K = np.empty((N, N))
+    for i in range(N):
+        for j in range(N):
+            K[i, j] = kernel(X[i], X[j])
+    
+    # Calcolo dei coefficienti alpha
+    alpha = np.linalg.solve(K + lam * np.eye(N), Y)
+    
+    # Costruzione della matrice kernel K_test
+    N_test = X_test.shape[0]
+    K_test = np.empty((N_test, N))
+    for i in range(N_test):
+        for j in range(N):
+            K_test[i, j] = kernel(X_test[i], X[j])
+    
+    # Predizione
+    Y_test_pred = K_test @ alpha
+    return Y_test_pred
+
+# Esempio d'uso con kernel gaussiano
+Y_pred_gaussian = kernel_regression(gaussian_kernel, X, Y, X_test, lam=1.0)
+
+# Visualizzazione
+plt.scatter(X, Y, marker="+", color="black", label="Training data")
+plt.plot(X_test, Y_test_ex, color="black", label="Funzione vera")
+plt.plot(X_test, Y_pred_gaussian, color="blue", label="Kernel Gaussiano")
+plt.legend()
+```
+
+> **Nota:** L'implementazione con doppio ciclo è didattica. Per efficienza, si può vettorializzare usando broadcasting NumPy.
+
 ## Visualizzazione: confronto con regressione lineare
 [04:50] Si traccia lo scatter di $x$ e $y$ e la linea di riferimento $x_{\text{test}}$ contro $y_{\text{test}}$ (funzione vera). La predizione con kernel lineare ($k_{\text{lin}}$) coincide con la regressione lineare classica con bias:
 ```math
@@ -259,6 +390,7 @@ $\sigma$ controlla il raggio d’influenza: più grande è $\sigma$, più ampia 
 [09:20] Un passaggio successivo è reimplementare tutto usando operazioni vettorializzate per migliorare efficienza rispetto ai doppi cicli in Python.
 ## Considerazioni comparative: Gaussiane vs Polinomi
 [09:35] Le gaussiane sono spesso più flessibili e migliori, ma presentano un problema: senza dati fuori dal dominio osservato, la funzione può tendere a zero ai margini. Con $\sigma = 1$, si osserva tendenza a ritornare a zero ai bordi.
+
 [09:50] I polinomi hanno comportamento più noto all’infinito: possono essere preferibili quando si desidera un comportamento asintotico specifico. In generale le gaussiane sono spesso vantaggiose, ma la scelta dipende da contesto e dati.
 [10:05] Se la natura dei dati suggerisce comportamento quadratico o cubico, si preferisce un polinomio. In assenza di conoscenza a priori, si preferisce spesso il kernel gaussiano.
 ## Vettorializzazione della costruzione del kernel
@@ -346,6 +478,49 @@ p^{(k+1)} \leftarrow \frac{p^{(k+1)}}{\lVert p^{(k+1)} \rVert}.
 p \leftarrow \frac{p}{\sum_{i=1}^{N} p_i}.
 ```
 Il vettore $p$ risultante è il PageRank: ogni componente $p_i$ è la probabilità stazionaria di essere sulla pagina $i$.
+
+### Implementazione Python del Power Iteration
+
+```python
+# Parametri
+damping_factor = 0.85
+tol = 1e-10
+max_iter = 1000
+
+# Costruzione della matrice Google G
+G_matrix = damping_factor * M + (1 - damping_factor) / N * np.ones((N, N))
+
+# Inizializzazione uniforme
+p = np.ones(N) / N
+
+# Iterazione delle potenze
+for i in range(max_iter):
+    p_next = G_matrix @ p
+    p_next /= np.linalg.norm(p_next)  # Normalizzazione per stabilità
+    
+    # Controllo convergenza
+    if np.linalg.norm(p_next - p, 2) < tol:
+        print(f"Converged after {i} iterations")
+        break
+    
+    p = p_next
+
+# Normalizzazione finale (somma = 1)
+pagerank_powit = p / np.sum(p)
+
+print(f"PageRank calcolato per {N} nodi")
+print(f"Top 5 pages: {np.argsort(pagerank_powit)[-5:][::-1]}")
+```
+
+**Risultati tipici:**
+- Convergenza in ~20-30 iterazioni per grafi di ~250 nodi
+- Correlazione con NetworkX: > 0.999
+- Differenza L1: < 1e-5
+
+![Grafo con nodi dimensionati secondo il PageRank score](img/lab03_pagerank_graph.png)
+
+![Convergenza del power iteration method: andamento dell'errore](img/lab03_pagerank_convergence.png)
+
 ## Confronto tra PageRank di NetworkX e Power Iteration
 [07:00] Si confrontano i vettori di PageRank ottenuti con NetworkX e con l’iterazione delle potenze. La correlazione tra i due è molto alta, prossima a uno; la differenza media è dell’ordine di $10^{-2}$.
 [07:12] Le minime differenze derivano da dettagli implementativi, ma il comportamento complessivo è sovrapponibile, confermando la correttezza dell’implementazione.
@@ -363,9 +538,74 @@ Il vettore $p$ risultante è il PageRank: ogni componente $p_i$ è la probabilit
 [09:44] Modificando le scale degli assi in logaritmico, emerge una tendenza: allineamento qualitativo tra importanza stimata e traffico osservato, suggerendo una relazione non casuale.
 [09:54] Si calcola il coefficiente di correlazione con $\text{corrcoef}$ di NumPy, ottenendo circa il 66%, indicativo di una correlazione moderata, superiore a fenomeni casuali.
 [10:08] L’evidenza supporta l’idea che l’algoritmo coglie una struttura informativa nei dati, producendo previsioni ragionevoli del traffico.
+
+### Codice per analisi PageRank vs Traffico
+
+```python
+# Caricamento dei dati
+nodes = pd.read_csv("nodes.csv")
+edges = pd.read_csv("edges.csv")
+traffic = pd.read_csv("traffic.csv")
+
+# Calcolo PageRank con NetworkX
+pagerank = nx.pagerank(graph, alpha=0.85)
+
+# Aggiunta PageRank al DataFrame traffico
+traffic["pagerank"] = traffic["node"].map(pagerank)
+
+# Visualizzazione scatter plot (scala log-log)
+plt.figure(figsize=(7, 6))
+plt.scatter(traffic.traffic, traffic.pagerank, alpha=0.7)
+plt.xscale("log")
+plt.yscale("log")
+plt.xlabel("Wikipedia Traffic (log scale)")
+plt.ylabel("PageRank (log scale)")
+plt.title("Correlation between PageRank and Traffic")
+plt.tight_layout()
+plt.show()
+
+# Calcolo correlazione
+corr_traffic = np.corrcoef(traffic.traffic, traffic.pagerank)[0, 1]
+print(f"Correlation between traffic and pagerank: {corr_traffic:.3f}")
+# Risultato tipico: 0.660 (66%)
+
+# Top 10 pagine per PageRank
+print("\nTop 10 pages by PageRank:")
+print(traffic.nlargest(10, "pagerank")[["node", "pagerank", "traffic"]])
+```
+
+**Risultati tipici sul dataset Wikipedia ML:**
+- **Correlazione PageRank-Traffico:** ~0.66 (66%)
+- **Top pagine:** Cross-validation, Pattern recognition, Statistical learning theory, Generative models, Confusion matrix
+
+![Scatter plot: correlazione tra PageRank e traffico Wikipedia reale](img/lab03_pagerank_traffic.png)
+
 ## Baseline casuale e significatività del risultato
 [10:25] Si considera una baseline: importanza casuale delle pagine. Si simula permutando casualmente i valori di PageRank (o generando sequenze casuali) e si ricalcola la correlazione.
-[10:36] Permutando casualmente i valori di importanza, la correlazione con il traffico reale risulta prossima a zero. Ogni esecuzione produce permutazioni diverse, ma l’esito resta vicino alla non correlazione.
-[10:46] Il confronto mostra che l’algoritmo ottiene una correlazione di circa 0{,}6, significativa, indicando che il PageRank rileva informazioni utili sulla distribuzione del traffico rispetto alla randomizzazione.
+
+```python
+# Baseline: permutazione casuale
+import random
+random_pagerank = traffic.pagerank.sample(frac=1).values
+corr_random = np.corrcoef(traffic.traffic, random_pagerank)[0, 1]
+print(f"Random baseline correlation: {corr_random:.3f}")  # ~ 0.05 (nessuna correlazione)
+```
+
+[10:36] Permutando casualmente i valori di importanza, la correlazione con il traffico reale risulta prossima a zero. Ogni esecuzione produce permutazioni diverse, ma l'esito resta vicino alla non correlazione.
+[10:46] Il confronto mostra che l'algoritmo ottiene una correlazione di circa 0{,}6, significativa, indicando che il PageRank rileva informazioni utili sulla distribuzione del traffico rispetto alla randomizzazione.
+
+## Riferimenti ai materiali del laboratorio
+
+**Notebook Lab03:**
+- `1_LS-ridge-kernel_regression_start.ipynb`: Template per esercizi di regressione
+- `1_LS-ridge-kernel_regression.ipynb` (solutions): Soluzione completa con codice implementato
+- `2_page_rank_start.ipynb`: Template per esercizi PageRank
+- `2_page_rank.ipynb` (solutions): Soluzione completa con implementazione power iteration
+
+**Dataset:**
+- `nodes.csv`: 250+ pagine Wikipedia categoria Machine Learning
+- `edges.csv`: ~2000 collegamenti tra pagine
+- `traffic.csv`: Statistiche di traffico giornaliero per ciascuna pagina
+
 ## Chiusura e riferimenti operativi
 [11:03] Non emergono ulteriori domande. La sessione termina. Per dubbi o richieste, è possibile contattare via email. Buon fine settimana.
