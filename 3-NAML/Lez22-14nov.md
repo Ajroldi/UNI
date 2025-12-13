@@ -1,496 +1,328 @@
-# Chapter 1: Correcting the Error from the Previous Lesson
-## [00:00:00] Introduction and Today's Agenda
-Ok, good afternoon everyone. What's the plan for today? I'll start by spending 10 minutes showing you a problem we encountered at the end of the last lab. During the live coding session, I couldn't get the same result as the solution and had to copy and paste a piece of code. Once I got home, I reviewed the code and realized the mistake I made is something that could happen to you as well. In fact, in past years I've seen students make the same mistake, and I myself struggled to find this bug. For this reason, I want to show you what was happening and why.
-I believe it's very useful to understand the reason for this behavior and how to prevent it when writing code. After these five minutes, we will start the rest of the lab by implementing an artificial neural network from scratch. I think it will be a very interesting experience because we will see every single step, starting from zero up to the complete implementation of the network. The first application will be learning the XOR function, a very simple but non-trivial problem, as its structure cannot be learned by a simple linear model.
-If we have time, I will also show you how to implement a neural network for a non-linear classification problem. Specifically, we will generate points belonging to two concentric circles, one small and one larger, and the goal will be to classify which of the two circles a point belongs to. It's a problem whose results can be visualized very well, but it is by no means trivial.
-## Chapter 1: Error Correction from the Previous Lesson
-### [00:01:28] Context of the Error: The Loss Function
-Let's start with correcting the error from last time. I haven't uploaded the updated notebook; I'll show you the results directly, as it's a small modification to the previous one. The point where I got stuck was the implementation of the loss function. Specifically, I had implemented this function incorrectly, having to slightly modify a term to get the correct result.
-The loss function is composed of:
-1.  A regularization part: `λ * w²`
-2.  The mean of the *hinge loss* function: `1/n * Σ(...)`
-The problem was in this specific term: `1 - yᵢ * (wᵀxᵢ + b)`.
-Written by itself, the problematic term was this: `yᵢ * (wᵀxᵢ + b)`.
-Let's analyze the components:
--   `x`: a single vector of samples.
--   `w`: the model parameters, which are the concatenation of the weights `w` and the bias `b`.
--   `y`: a scalar value.
-For each sample `i`, the operation to be performed is:
-1.  Calculate the dot product between the sample `xᵢ` and the first part of the parameters (`w`).
-2.  Add the bias `b` (a scalar).
-3.  Multiply the whole thing by `yᵢ` (a scalar).
-4.  The result is a scalar `ζᵢ` for each sample `i`.
-### [00:02:38] Vectorized Implementation and the Broadcasting Problem
-As usual, we perform this operation in *batch* mode, meaning with a single expression that operates on all samples at once. Instead of a single sample `xᵢ`, we use a matrix `X`, where each row is a sample. Instead of a single `yᵢ`, we use a vector `y`.
-To isolate the problem, I extracted only the relevant part of the code. I imported NumPy, set a seed for reproducibility, and defined 10 samples with 2 features each. I then generated a matrix `X`, a vector of labels `y`, and the parameters `params` randomly.
--   **Matrix `X`**: Has 10 rows (samples) and 2 columns (features, `x1` and `x2`).
--   **Vector `y`**: A 1D vector with 10 elements.
--   **Parameters `params`**: A vector with 3 components, where the first two are the weights `W` and the third is the bias `b`.
-The **correct implementation** is as follows:
-1.  Take the matrix `X` and calculate the product with the first two parameters (`W`).
-2.  Add the bias (`b`).
-3.  Calculate the maximum between `1` and the previous result.
-4.  Multiply this vector, element-wise, by the vector `y`.
-The correct mean value of this operation is `0.44`.
-The mistake I made last time was adding a `reshape(-1, 1)` to this intermediate term, which I called `decision`.
-```python
-# Error: transforming the vector into a column vector
-decision = decision.reshape(-1, 1) 
-```
-At this point, `decision` is no longer a 1D vector, but a 2D **column vector**. From a mathematical point of view, this makes sense: we have a matrix `X` and we multiply each of its rows by a column vector `W`.
-However, by doing this, the result becomes `0.3`. Why? The problem arises when we multiply `decision` (now a column vector with shape `(10, 1)`) by `y` (a 1D vector with shape `(10,)`).
-NumPy, seeing two objects with different dimensions (one 2D and one 1D), applies **broadcasting**. Instead of performing an element-wise product, it performs an *outer product*. If we have a column vector `a` and a row vector `b`, broadcasting builds a matrix where the element `(i, j)` is the product `aᵢ * bⱼ`.
-The problem is that the shapes of the two objects are different:
--   `decision.shape` is `(10, 1)` (2D object).
--   `y.shape` is `(10,)` (1D object).
-NumPy interprets this operation as broadcasting, generating a `10x10` matrix instead of a vector of 10 elements. Since we ultimately calculate the mean (`mean()`), which operates on all elements, we still get a scalar. The function seems to work, but it's calculating a completely different operation.
-**Moral of the story:** Be very careful with this type of operation. Always keep in mind whether you are working with 1D or 2D objects, because implicit broadcasting can occur and cause hard-to-find errors. Becoming good at quickly identifying these problems is crucial when using NumPy at an advanced level.
-Any questions? Good, let's move on to the notebook.
-# Chapter 2: Implementing a Neural Network from Scratch
-## [00:07:28] Objective: Learning the XOR Function
-The notebook is available on WēBIP. Open Google Colab and upload it. As I mentioned, the goal is to build a neural network from scratch that learns the XOR function.
-To fully leverage the power of JAX, remember to change the runtime to "GPU". Let's start by connecting and importing the necessary libraries: NumPy, JAX, and Matplotlib.
-The dataset we want to learn is very small, consisting of only four samples. For this reason, we will implement a *full gradient descent*, as it makes no sense to use mini-batches on such a small dataset. The inputs have two features (two bits) and the output is a single value (the result of the XOR function).
-### [00:08:20] Network Architecture and Hyperparameters
-We want to build the following neural network:
--   **Input**: 2 neurons.
--   **Hidden layers**:
-    1.  First layer with 4 neurons.
-    2.  Second layer with 3 neurons.
--   **Output**: 1 neuron.
-The output represents the probability of the result being true or false, so we will constrain its value between 0 and 1 using the sigmoid function.
-First, we define the **hyperparameters**, which are the parameters that define the network's architecture but are not the weights and biases that will be learned. In this case, we define the number and size of the layers: `[2, 4, 3, 1]`.
-### [00:09:18] Initializing the Parameters
-Our first task is to create the initial state of the parameters. The neural network is a function `f(x, θ)` that takes an input vector `x` and depends on the parameters `θ`. These parameters `θ` are a list of weights (`W`, matrices) and biases (`b`, vectors).
-Our goal is to find the optimal function `f` that, given an input `x`, correctly predicts the output `y`. We want to minimize a **loss function** `L(f(x, θ), y)`, which measures the distance between the network's prediction and the true value.
-To do this, we will use **gradient descent**, calculating the gradient of the loss function with respect to the parameters `θ`. Gradient descent is an iterative algorithm that, starting from an initial point `θ₀`, converges towards the point that minimizes the function. We must therefore provide this starting point.
-We start by setting the seed for reproducibility. We will use NumPy for simplicity and then convert everything to JAX format.
-We need to define the weights and biases for each layer:
-1.  **First layer (from 2 to 4 neurons)**:
-    -   `W1`: a weight matrix. Its size will be `(4, 2)`. The operation of a layer is `activation(W * x + b)`. If `x` is a column vector, `W` must have a number of columns equal to the dimension of `x` and a number of rows equal to the dimension of the layer's output.
-    -   `b1`: a bias vector with a dimension equal to the layer's output, so `(4,)`.
-    We will initialize the weights with random values drawn from a normal distribution and the biases to zero. More advanced initialization techniques exist that can speed up training, but for now, this choice is sufficient.
-2.  **Second layer (from 4 to 3 neurons)**:
-    -   `W2`: matrix of size `(3, 4)`.
-    -   `b2`: vector of size `(3,)`.
-3.  **Third layer (from 3 to 1 neuron)**:
-    -   `W3`: matrix of size `(1, 3)`.
-    -   `b3`: vector of size `(1,)`.
-Finally, we group all the parameters into a single list `params = [W1, b1, W2, b2, W3, b3]` and convert it to a JAX-compatible format.
-### [00:13:50] Exercise: Implement the Neural Network Function
-Now it's your turn. The first task is to implement the neural network function. This function, which we will call `artificial_neural_network`, accepts two arguments:
--   `x`: the input matrix.
--   `params`: the list of weights and biases we just created.
-The function must return the network's prediction.
--   For the hidden layers, use the **hyperbolic tangent** (`jmp.tanh` in JAX) as the activation function.
--   For the last layer (output), use the **sigmoid function**.
-The sigmoid function can be defined from the hyperbolic tangent. Since `tanh` returns values between -1 and 1, the formula `(tanh(z) + 1) / 2` shifts the interval to [0, 2] and then scales it to [0, 1].
-The idea is to pass the input through each layer, applying the transformation: `new_output = activation(W * previous_output + b)`. You need to repeat this process for the three layers of our network.
-I'll give you five minutes to implement this function. I'll be here to help you.
-# Chapter 3: Setting up the Forward Pass
-## [00:14:35] Conventions and Data Preparation
-By convention, when working with neural networks, the input matrix `x` is organized so that each column represents a sample and each row represents a feature. This allows the matrix-vector multiplication `W * x` to be performed in a standard way, as seen in the theoretical lessons.
-However, our input data (`inputs`) is structured the other way around: each row is a sample. To align with the standard convention, the first operation to perform is to transpose the input matrix.
-**Step-by-step procedure:**
-1.  **Unpack Parameters:** Initially, the network parameters (weights `W` and biases `b`) are grouped into a single `params` structure. For clarity, we separate them into individual variables (`W1`, `b1`, `W2`, `b2`, etc.).
-2.  **Transpose Input:** We call our input matrix `x` and transpose it (`x.T`) to conform to the "one sample per column" convention.
-```python
-# Example code for preparation
-W1, b1, W2, b2, W3, b3 = params # Unpacking
-x = inputs.T # Transposition
-```
-## [00:15:20] Handling Biases and Broadcasting
-When we add the bias vector `b1` to the output of the `W1 * x` multiplication, we must ensure that the addition happens column-wise, as each column represents a different sample.
-NumPy's **broadcasting** mechanism, if not handled correctly, might add the biases row-wise. To verify this, we can temporarily initialize `b1` with increasing values (e.g., `[0, 1, 2, 3]`) and observe the result. If the sum occurs by row, it is incorrect.
-**Solution:**
-To ensure correct column-wise addition, the bias vectors must be defined as **column vectors** (matrices of size `n x 1`). This is achieved by specifying their shape during initialization.
-```python
-# Correcting the shape of the biases
-# Instead of a 1D vector, we use a 2D matrix (column vector)
-b1 = np.zeros((n, 1))
-```
-This way, broadcasting will work as expected, adding the correct bias to each sample.
-# Chapter 4: Implementing the Neural Network
-## [00:16:23] Calculating the Layers (Forward Pass)
-Once the input and parameters are set up correctly, we can calculate the output of each layer of the network. This process is known as the **forward pass**.
-1.  **First Layer (Layer 2):**
-    *   Calculate the matrix product between the first layer's weights (`W1`) and the transposed input (`x`).
-    *   Add the bias vector (`b1`).
-    *   Apply a non-linear activation function, in this case, the **hyperbolic tangent (`tanh`)**, to allow the network to learn complex relationships.
-    ```python
-    # Z1 = W1 @ x + b1
-    # layer_2 = np.tanh(Z1)
-    ```
-2.  **Second Layer (Layer 3):**
-    *   Repeat the same process using the output of the previous layer (`layer_2`) as input.
-    ```python
-    # Z2 = W2 @ layer_2 + b2
-    # layer_3 = np.tanh(Z2)
-    ```
-3.  **Output Layer (Layer 4):**
-    *   The last layer must produce a probability, so a value between 0 and 1. The `tanh` function produces values between -1 and 1.
-    *   To transform the `tanh` output into a [0, 1] interval, a simple algebraic transformation that emulates the **sigmoid function** can be used: `(tanh(z) + 1) / 2`.
-    *   First, calculate the linear output (`W3 @ layer_3 + b3`), then apply `tanh`, and finally scale the result.
-    ```python
-    # Z3 = W3 @ layer_3 + b3
-    # A3 = np.tanh(Z3)
-    # layer_4 = (A3 + 1) / 2
-    ```
-## [00:17:55] Finalizing the Output and Creating the Function
-The final output (`layer_4`) will be a matrix where each column represents the prediction for a sample. To return to the initial convention of the input data (one sample per row), it is necessary to **transpose the final output matrix**.
-At this point, the code developed in the notebook cell can be encapsulated into a reusable function, which we will call `ANN` (Artificial Neural Network).
-**Function Structure:**
-*   **Input:** The data matrix `X` (with samples on rows) and the parameters `params`.
-*   **Internal Logic:** Executes all steps of the forward pass, including the initial transposition of the input.
-*   **Output:** Returns the final prediction matrix, transposed to have samples on the rows.
-```python
-def ANN(X, params):
-    # ... parameter unpacking and layer calculations ...
-    # The transposition of X happens inside
-    return layer_4.T # Final transposition
-```
-This approach, although it requires transpositions, keeps the `W * x` multiplication logic consistent with the theory and allows for step-by-step verification of the array shapes, leveraging the interactivity of notebooks.
-# Chapter 5: Training the Network
-## [00:20:15] Evaluating Initial Performance
-Using randomly initialized parameters, the neural network produces incorrect predictions. For example, for the XOR problem:
-*   Input `[0, 0]`: should give `0`, but might give `1` (incorrect).
-*   Input `[0, 1]`: should give `1`, but might give `0` (incorrect).
-The goal of training is to modify the parameters (`W1`, `b1`, etc.) so that the network's predictions become correct. This process is achieved through the **Gradient Descent** algorithm.
-## [00:20:50] Defining the Loss Function
-To guide the training, we need a **loss function**, which is a metric that quantifies how wrong the network's predictions are compared to the real values (targets). The goal of gradient descent is to minimize this function.
-Two common loss functions are proposed:
-1.  **Mean Squared Error (MSE):**
-    *   **Formula:** It is the average of the squared difference between the prediction (`y_pred`) and the true value (`y_true`).
-    *   **Use:** It is a generic loss function, widely used in regression problems. To implement it, you calculate the prediction using the `ANN` function and then compute the mean squared error with respect to the targets.
-2.  **Cross-Entropy Loss:**
-    *   **Formula:** `- (y_true * log(y_pred) + (1 - y_true) * log(1 - y_pred))`
-    *   **Use:** It is the standard choice for binary classification problems, where the output is a probability.
-    *   **Practical Advantage:** This loss function heavily penalizes incorrect predictions made with high confidence. For example, if the correct value is `1` and the network predicts `0.01` (very sure of itself, but wrong), the `log(0.01)` term becomes a very large negative number. With the minus sign in front, the loss becomes a very large positive value, pushing the network to correct the error more decisively than MSE.
-The next step is to implement these two loss functions to then use them in the network's training loop.
-# Chapter 6: Implementing Cost Functions
-## [00:21:35] Cost Function: Mean Squared Error (MSE)
-Let's start by implementing the cost function based on Mean Squared Error (MSE). The approach is gradual: first, we write the code in a cell to test it, then we encapsulate it into a reusable function.
-1.  **Calculate Prediction**: The first step is to get the prediction from the neural network. This is done by applying the `ANN` (Artificial Neural Network) function to the inputs `x` and the current model parameters.
-    ```python
-    # x corresponds to 'inputs'
-    prediction = ANN(x, parameters)
-    ```
-2.  **Calculate Error**: Next, we calculate the error as the difference between the prediction and the target values (the real labels, `y`, which correspond to `outputs`). It's important to verify that `prediction` and `y` have the same shape to perform the subtraction without errors.
-    ```python
-    # The error is the difference between prediction and real value
-    error = prediction - y
-    ```
-3.  **Calculate MSE**: The mean squared error is obtained by squaring each element of the error and calculating its mean. The result is a single scalar value, representing the model's "loss".
-    ```python
-    # We square and calculate the mean
-    loss_mse = jnp.mean(error**2)
-    ```
-The final function, which we will call `quadratic_loss`, will accept `x`, `y`, and the model `parameters` as arguments, returning the loss value.
-## [00:22:40] Cost Function: Cross-Entropy
-For classification problems, cross-entropy is often a better choice than MSE. Let's implement it directly as a function.
-1.  **Calculate Prediction**: As before, the starting point is the network's prediction.
-    ```python
-    prediction = ANN(x, parameters)
-    ```
-2.  **Implement the Formula**: The formula for binary cross-entropy is:
-    `-[y * log(prediction) + (1 - y) * log(1 - prediction)]`
-    This formula has an interesting property: since `y` can only be 0 or 1, only one of the two terms in the sum is active at a time.
-    *   If `y = 1`, the second term becomes zero, and only `log(prediction)` remains.
-    *   If `y = 0`, the first term becomes zero, and only `log(1 - prediction)` remains.
-    We implement this logic using JAX functions:
-    ```python
-    # Calculate the two terms of the formula
-    term1 = y * jnp.log(prediction)
-    term2 = (1 - y) * jnp.log(1 - prediction)
-    ```
-3.  **Sum and Negative Sign**: We sum the contributions from all examples in the batch and add a negative sign. The loss function measures a discrepancy, so higher values indicate a greater error.
-    ```python
-    # Sum the results and invert the sign
-    loss_cross_entropy = -jnp.sum(term1 + term2)
-    ```
-    **Note**: Instead of the sum (`jnp.sum`), the mean (`jnp.mean`) could be used. Using the mean makes the loss independent of the batch size, which is generally better practice.
-# Chapter 7: Gradient Calculation and Training
-## [00:24:03] Calculating Gradients with JAX
-To train the network with the gradient descent method, we need to calculate the gradients of the cost functions with respect to the model parameters.
-1.  **JIT Compilation**: To optimize performance, we use JAX's "Just-In-Time" (JIT) compilation on our cost functions.
-    ```python
-    loss_mse_jit = jax.jit(quadratic_loss)
-    loss_cross_entropy_jit = jax.jit(cross_entropy_loss)
-    ```
-2.  **`jax.grad` Function**: JAX provides the `jax.grad` function to automatically calculate the gradient of a function. However, we need to specify with respect to which argument to calculate the gradient. Our cost functions (`quadratic_loss` and `cross_entropy_loss`) accept three arguments: `(x, y, params)`. We are interested in the gradient with respect to `params`, which is the third argument (index 2).
-    ```python
-    # We specify argnums=2 to calculate the gradient with respect to the third argument
-    grad_mse_jit = jax.jit(jax.grad(quadratic_loss, argnums=2))
-    grad_cross_entropy_jit = jax.jit(jax.grad(cross_entropy_loss, argnums=2))
-    ```
-    Omitting `argnums=2` would cause an error, as JAX would default to calculating the gradient with respect to the first argument (`x`), which is not what we want to optimize.
-## [00:25:35] Implementing Gradient Descent
-Now we have all the tools to implement the training algorithm. In this simplified example, we will use a "full-batch" approach, where the entire dataset is used in each iteration, without splitting it into mini-batches.
-The pseudo-code for the training loop is as follows:
-```python
-# For a defined number of epochs (full iterations over the dataset)
-for epoch in range(number_of_epochs):
-    # 1. Calculate the gradient of the loss with respect to the parameters
-    gradient = calculate_gradient(x_train, y_train, parameters)
-    # 2. Update each parameter of the model
-    # For each component (weight matrix W or bias vector b)
-    for parameter, grad_parameter in zip(parameters, gradient):
-        # Move in the opposite direction of the gradient
-        parameter -= learning_rate * grad_parameter
-    # 3. Save the current loss value to monitor training
-    save_current_loss()
-# 4. Visualize the loss trend over time
-plot_loss_vs_epochs()
-```
-The parameter update is done by subtracting the gradient (multiplied by a step, the `learning_rate`), because the gradient points in the direction of the steepest ascent of the cost function, while we want to minimize it.
-## [00:28:00] Practical Code for the Training Loop
-Let's see how to translate the pseudo-code into working code.
-1.  **Initialization**: We define the number of epochs, the `learning_rate`, and lists to store the history of the loss values.
-    ```python
-    learning_rate = 0.1
-    number_of_epochs = 2000
-    history_mse = []
-    history_cross_entropy = []
-    ```
-2.  **Training Loop**:
-    ```python
-    # Choose the gradient function to use (e.g., MSE)
-    gradient_function = grad_mse_jit
-    for epoch in range(number_of_epochs):
-        # Calculate the gradient on the entire dataset
-        grads = gradient_function(inputs, outputs, params)
-        # Update the parameters
-        # grads has the same structure as params (a list of arrays)
-        for i in range(len(params)):
-            params[i] -= learning_rate * grads[i]
-        # Calculate and save the losses (both MSE and Cross-Entropy)
-        # We can monitor both metrics, even if we only use one for the update
-        loss_m = loss_mse_jit(inputs, outputs, params)
-        loss_c = loss_cross_entropy_jit(inputs, outputs, params)
-        history_mse.append(loss_m)
-        history_cross_entropy.append(loss_c)
-    ```
-## [00:30:50] Analysis of Results
-After training, we visualize the trend of the cost functions.
-*   **Loss Plot**: A plot of the loss versus epochs shows us if the training is converging. Ideally, the curve should drop rapidly at the beginning and then stabilize at a low value. Using a logarithmic scale on the Y-axis (`plt.yscale('log')`) can help to better visualize the descent when the values become very small.
-*   **Comparison between MSE and Cross-Entropy**: An interesting experiment is to train the network using cross-entropy as the cost function and observe the trend of MSE. Often, optimizing cross-entropy leads to an even more marked reduction in MSE compared to optimizing MSE directly. This happens because cross-entropy severely penalizes incorrect predictions made with high confidence, pushing the model to learn more effectively. This is one of the main reasons why cross-entropy is the standard choice for classification problems.
-*   **Verification of Final Predictions**: After training, we can use the model to make predictions on the input and verify that the returned probabilities are close to the expected values (e.g., >0.98 for class 1 and <0.02 for class 0).
-# Chapter 8: Model Evaluation
-## [00:34:03] Calculating Accuracy
-Accuracy measures the percentage of correct predictions. To calculate it, we first need to convert the continuous probabilities produced by the model (e.g., 0.98) into discrete labels (0 or 1).
-1.  **Decision Threshold**: A common threshold is 0.5. If the predicted probability is greater than 0.5, we classify it as 1; otherwise, as 0.
-    ```python
-    predictions_prob = ANN(inputs, params)
-    predictions_classes = predictions_prob > 0.5  # Returns an array of True/False
-    ```
-2.  **Calculating Accuracy**: We compare the predicted classes with the real labels (`y`). Accuracy is the number of correct predictions divided by the total number of samples.
-    ```python
-    accuracy = jnp.mean(predictions_classes == y)
-    # If all predictions are correct, the accuracy will be 1.0 (100%)
-    ```
-## [00:34:55] Confusion Matrix
-For a more detailed evaluation, especially in problems with imbalanced classes, the **confusion matrix** is a fundamental tool. It shows not only how many predictions are correct, but also what kind of errors the model makes.
-The matrix organizes predictions into:
-*   **True Positives (TP)**: Correctly classified as positive.
-*   **True Negatives (TN)**: Correctly classified as negative.
-*   **False Positives (FP)**: Incorrectly classified as positive.
-*   **False Negatives (FN)**: Incorrectly classified as negative.
-We can easily calculate it using the `scikit-learn` library.
-```python
-from sklearn.metrics import confusion_matrix
-cm = confusion_matrix(y_true=outputs, y_pred=predictions_classes)
-print(cm)
-```
-An ideal confusion matrix for a two-class problem will have values only on the main diagonal (TN top-left, TP bottom-right) and zeros elsewhere, indicating that there were no classification errors.
-# Chapter 9: Towards a More Realistic Use Case
-## [00:36:00] Introduction to a New Dataset
-Let's move on to a more complex problem. We will use the "make_circles" dataset from `scikit-learn`, which consists of two concentric circles. The goal is to classify points based on whether they belong to the inner or outer circle.
-Features of this new scenario:
-1.  **2-Dimensional Input**: The input `X` has two columns (the x and y coordinates of each point).
-2.  **1-Dimensional Output**: The output `Y` is 0 or 1, depending on the circle of belonging.
-3.  **Train/Test Split**: The dataset is split into a training set (80%) and a test set (20%). This is crucial for evaluating whether the model generalizes well to data it has never seen before.
-4.  **Visualization**: The data is visualized with a scatter plot, using different colors for the two classes and different markers for the training and test points.
-## [00:37:25] Generalizing the Code
-To tackle more complex problems, it is useful to make our code more flexible and modular, instead of writing everything "by hand" for a specific architecture.
-The goals are:
-1.  **`initLayerParameters(key, n_in, n_out)`**: A function that initializes the weights and biases for a single layer, given the input and output dimensions.
-2.  **`initializeMLPParameters(key, layer_sizes)`**: A function that, given a list of dimensions for each layer (e.g., `[2, 10, 10, 1]`), automatically creates the complete list of parameters for the entire neural network (a Multi-Layer Perceptron, MLP).
-3.  **`forward(params, x)`**: A function that performs the forward pass through the network. Instead of manually writing the calculation for each layer, it will use a `for` loop to sequentially apply each layer of weights and activation function.
-4.  **Mini-Batch Gradient Descent**: Instead of using the entire dataset at each step, we will implement mini-batch gradient descent. This requires an `update` function that calculates the gradient and updates the parameters using only a small subset of data (the mini-batch). This approach is more computationally efficient and often leads to faster and more stable convergence.
-This generalization process consists of taking the concepts already implemented and encapsulating them into more abstract and reusable functions, preparing the ground for building more sophisticated deep learning models.
-# Chapter 10: Neural Network Parameter Initialization
-## [00:38:25] Introduction and Initial Setup
-In this section, we will solve the exercise together step-by-step, introducing some tricks to make the code more general and flexible.
-Let's start with the function that initializes the parameters of a single layer.
-```python
-def init_layer_params(key, in_dimension, out_dimension):
-```
-This function receives a JAX key for random number generation, the input dimension (`in_dimension`), and the output dimension (`out_dimension`).
-## [00:38:45] Dimension Convention and Weight Initialization
-Now, we will change the convention from before to show an alternative approach. Previously, samples were arranged in the columns of the matrices. Now, we will arrange them in the rows. Being flexible with these conventions is important because you never know which approach you will find in existing code.
-With this new convention, the dimensions of the weight matrix `W` must be reversed.
-```python
-# Before: out_dimension, in_dimension
-# Now: in_dimension, out_dimension
-w = jax.random.normal(key, shape=(in_dimension, out_dimension))
-```
-This is because the number of columns of the input matrix `x` must match the number of rows of the weight matrix `w`.
-The bias `b` is initialized to zero, and its dimension will be `out_dimension`.
-```python
-b = jnp.zeros((out_dimension,))
-```
-We don't use `(out_dimension, 1)` because broadcasting (the automatic adjustment of dimensions) now happens on the rows, no longer on the columns. Finally, the function returns the weights `w` and the bias `b`.
-## [00:39:42] Initializing the Entire Network (MLP)
-Now let's create the function to initialize the parameters of the entire neural network (Multi-Layer Perceptron, MLP).
-```python
-def init_mlp_params(key, layer_sizes):
-```
-This function needs a JAX key and a list `layer_sizes` that defines the dimensions of each layer (e.g., `[2, 4, 1]` for a network with a 2-neuron input, a 4-neuron hidden layer, and a 1-neuron output).
-We need to generate a different random key for each layer to ensure that weights and biases are initialized independently.
-```python
-keys = jax.random.split(key, num=len(layer_sizes) - 1)
-```
-The number of keys needed is `len(layer_sizes) - 1`, because if we have `N` layers, we will have `N-1` pairs of weights and biases (one for each transition between layers).
-Next, we iterate to create the parameters for each layer:
-```python
-params = []
-for i in range(len(layer_sizes) - 1):
-    params.append(
-        init_layer_params(
-            keys[i],
-            layer_sizes[i],      # Input dimension of the current layer
-            layer_sizes[i+1]     # Output dimension of the current layer
-        )
-    )
-```
-## [00:40:53] Practical Initialization Example
-Let's verify the structure of the generated parameters with an example. Suppose we have `layer_sizes = [2, 4, 1]`.
-- **First layer:** The weight matrix will have dimensions (2, 4) (input 2, output 4) and the bias will have dimension 4.
-- **Second layer:** The weight matrix will have dimensions (4, 1) (input 4, output 1) and the bias will have dimension 1.
-This confirms that our initialization logic is correct.
-# Chapter 11: Forward and Cost Functions
-## [00:41:45] Activation and Forward Propagation Function
-Let's define the sigmoid activation function, which we will use for the output layer.
-```python
-def sigmoid(x):
-    # Equivalent to jnp.tanh(x) / 2, but we use the standard definition
-    return 1 / (1 + jnp.exp(-x))
-```
-Now let's implement the `forward` function, which calculates the network's output. This is the part where you need to pay close attention to the dimensions.
-```python
-def forward(params, x):
-```
-The function receives the network parameters and the input `x`. For each layer, except the last one, we perform the following operation:
-1.  Multiply the input `x` by the weight matrix `w`.
-2.  Add the bias `b`.
-3.  Apply the `tanh` activation function.
-We can use an elegant syntax to iterate over the parameters, directly unpacking the weights and biases from each tuple in the `params` list.
-```python
-# Loop over all layers except the last one
-for w, b in params[:-1]:
-    x = jnp.tanh(x @ w + b) # We use @ for matrix multiplication
-```
-For the last layer, we apply the sigmoid function, as we are dealing with a binary classification problem.
-```python
-# Last layer
-final_w, final_b = params[-1]
-output = sigmoid(x @ final_w + final_b)
-return output
-```
-**Key points:**
-- The broadcasting of the bias `b` (a vector) occurs correctly on the rows.
-- The multiplication `x @ w` follows the convention where each row of `x` is a sample.
-## [00:44:17] Cost Function (Binary Cross-Entropy)
-Let's implement the cost function, "binary cross-entropy," which measures the network's error.
-```python
-def binary_cross_entropy(params, x, y):
-    predictions = forward(params, x)
-    loss = -jnp.mean(y * jnp.log(predictions) + (1 - y) * jnp.log(1 - predictions))
-    return loss
-```
-The formula is the same as seen before and does not change with the new dimension convention.
-# Chapter 12: Network Training
-## [00:44:47] Updating Parameters with `tree_map`
-The parameter update function (`update`) calculates the gradients and modifies the weights and biases to reduce the error.
-```python
-@jax.jit
-def update(params, x, y, learning_rate):
-```
-We use the `@jax.jit` decorator to compile the function "just-in-time," optimizing its execution.
-First, we calculate the gradients of the cost function with respect to the parameters.
-```python
-grad_fn = jax.grad(binary_cross_entropy)
-grads = grad_fn(params, x, y)
-```
-Now, instead of using nested `for` loops to update every single weight and bias, we introduce a more powerful and general tool: `jax.tree_util.tree_map`.
-```python
-from jax import tree_util
-updated_params = tree_util.tree_map(
-    lambda p, g: p - learning_rate * g,
-    params,
-    grads
-)
-return updated_params
-```
-**How does `tree_map` work?**
-- It applies a function (in this case, a `lambda` function) to every "leaf" of one or more tree-like data structures (like lists of tuples or dictionaries).
-- `params` and `grads` are our tree structures. They have the same shape (a list of tuples).
-- The `lambda p, g: p - learning_rate * g` function defines the update operation: it takes a parameter `p` and its corresponding gradient `g` and calculates the new parameter value.
-- `tree_map` handles navigating the `params` and `grads` structures and applying this operation element by element, maintaining the correspondence.
-This approach is much cleaner and more scalable than manual loops, especially for complex network architectures with parameters organized in nested dictionaries.
-## [00:48:03] Training Loop
-Now we can put everything together to train the network.
-1.  **Setting Hyperparameters:**
-    -   `layer_sizes`: `[2, 16, 1]` (2-dimensional input, 16-neuron hidden layer, 1-dimensional output).
-    -   `learning_rate`: 0.01.
-    -   `epochs`: 5000.
-    -   `batch_size`: 64.
-2.  **Main Loop (Epochs):**
-    For each epoch, we shuffle the dataset to prevent the network from learning the order of the data.
-    ```python
-    # Generate a new key for the permutation
-    key, subkey = jax.random.split(key)
-    permutation = jax.random.permutation(subkey, x_train.shape[0])
-    # Shuffle the data
-    x_shuffled = x_train[permutation]
-    y_shuffled = y_train[permutation]
-    ```
-3.  **Inner Loop (Mini-batch):**
-    We iterate through the shuffled dataset, extracting small "mini-batches" of data.
-    ```python
-    num_batches = x_train.shape[0] // batch_size
-    for i in range(num_batches):
-        start = i * batch_size
-        end = start + batch_size
-        x_batch = x_shuffled[start:end]
-        y_batch = y_shuffled[start:end]
-        # Update parameters using the mini-batch
-        params = update(params, x_batch, y_batch, learning_rate)
-    ```
-4.  **Monitoring Loss:**
-    Periodically (e.g., every 100 epochs), we calculate and print the loss on the test dataset to monitor the training progress.
-## [00:50:55] Model Evaluation
-Once training is complete, we evaluate the model's performance on the test dataset.
-1.  **Calculating Predictions:**
-    The network's predictions are probabilities. We convert them to binary classes (True/False or 1/0) using a threshold of 0.5.
-    ```python
-    predictions_prob = forward(params, x_test)
-    predictions_class = predictions_prob > 0.5
-    ```
-2.  **Calculating Accuracy:**
-    Accuracy is the mean of the correct predictions.
-    ```python
-    accuracy = jnp.mean(predictions_class == y_test)
-    print(f"Accuracy: {accuracy}")
-    ```
-    In our case, we achieve an accuracy of 98%, with only one classification error on the test set.
-3.  **Confusion Matrix:**
-    The confusion matrix gives us a more detailed view of the errors, showing how many samples of a class were classified correctly and how many were misclassified.
-## [00:52:23] Visualizing the Results
-Finally, we visualize the results.
-- The training and test data are shown as points (circles and crosses).
-- The colored background (pink and light blue) represents the **decision boundary** of the neural network. To obtain it, we create a very dense grid of points covering the entire space (`meshgrid`) and evaluate the network's output for each point. The color indicates the class predicted by the network in that region of space.
-The visualization clearly shows how the network has learned to separate the two classes.
-## [00:53:20] Conclusion
-[Speaker 1] Ok, otherwise my time is up, so I wish you a good weekend and see you next week. Bye.
-[Speaker 2] I'm about to stop the recording.
+# Capitolo 1: Introduzione e Correzione di Errori Precedenti
+## Panoramica della Lezione
+[00:00] Il piano per la lezione di oggi prevede due parti principali. Inizieremo dedicando circa dieci minuti all'analisi di un problema riscontrato alla fine del laboratorio precedente. Durante una sessione di codifica dal vivo, si è verificata una difficoltà nel replicare il risultato della soluzione proposta, che ha richiesto di copiare e incollare una porzione di codice. Dopo un'analisi successiva, è stato identificato un errore che potrebbe verificarsi comunemente. Si tratta di un bug difficile da individuare, ed è quindi utile esaminare cosa è successo e perché.
+[00:20] Comprendere la causa di questo errore e come prevenirlo è un'ottima opportunità di apprendimento. Successivamente, dedicheremo il resto del tempo all'implementazione da zero di una rete neurale artificiale. Questo processo permetterà di osservare ogni singolo passo, partendo dalle basi fino alla costruzione completa della rete. La prima applicazione sarà l'apprendimento della funzione XOR, un problema semplice ma non banale, poiché la sua struttura non può essere appresa da un modello lineare semplice.
+[00:48] Se il tempo a disposizione lo consentirà, verrà mostrato anche come implementare una rete neurale per un problema di classificazione non lineare. In particolare, verranno generati punti appartenenti a due cerchi concentrici, uno più piccolo e uno più grande. L'obiettivo sarà classificare i punti in base alla loro appartenenza a uno dei due cerchi. Questo è un problema i cui risultati possono essere visualizzati in modo molto efficace, pur non essendo banale dal punto di vista della soluzione.
+## Analisi dell'Errore nella Funzione di Perdita (Hinge Loss)
+[01:13] Iniziamo analizzando l'errore commesso nella lezione precedente. Il notebook relativo non è stato caricato, poiché si tratta di una piccola modifica a quello già esistente. Il problema si è verificato durante l'implementazione della funzione di perdita (*loss function*). Per ottenere il risultato corretto, è stato necessario modificare un termine specifico che era stato implementato in modo errato.
+[01:35] L'errore risiedeva nella parte di regolarizzazione della funzione di perdita, in particolare nel termine che calcola la media della funzione *hinge loss*. La formula include un termine di regolarizzazione $ \lambda w^2 $ e la media $ \frac{1}{n} $ della *hinge loss*. Il problema specifico si trovava nel calcolo di questo termine.
+[01:51] Analizzando il termine problematico, si osserva che per ogni singolo campione $ i $, si calcola uno scalare $ \zeta_i $. In questa espressione, $ x $ è un vettore che rappresenta un campione, mentre $ w $ e $ b $ (il bias) sono i parametri del modello, concatenati in un unico vettore.
+[02:07] L'operazione da eseguire per ogni campione $ i $ consiste nel calcolare il prodotto scalare tra il campione $ x_i $ e la parte $ w $ dei parametri, aggiungere il bias $ b $ (che è uno scalare) e moltiplicare il tutto per l'etichetta $ y_i $ (anch'essa uno scalare). Il risultato è lo scalare $ \zeta_i $.
+## Vettorizzazione e il Problema del Broadcasting
+[02:24] Come di consueto, queste operazioni vengono eseguite in modalità *batched*, ovvero tramite un'unica espressione che opera su tutti i campioni contemporaneamente. Invece di un singolo vettore $ x_i $, si utilizza una matrice $ X $, dove ogni riga corrisponde a un campione. Allo stesso modo, si usa un vettore $ y $ che contiene tutte le etichette $ y_i $.
+[02:41] Per isolare il problema, importiamo NumPy e impostiamo un seme per la riproducibilità. Definiamo un piccolo set di dati con 10 campioni e 2 feature. Vengono generati una matrice $ X $, un vettore di etichette $ y $ e un vettore di parametri `params` in modo casuale, solo per avere dei valori concreti su cui lavorare.
+[03:02] La matrice `x` ha 10 righe (i campioni) e 2 colonne (le feature $ x_1 $ e $ x_2 $), come previsto per un problema di classificazione bidimensionale.
+[03:17] Il vettore `y` contiene 10 componenti. Anche se in un problema di classificazione reale le etichette potrebbero essere 0 e 1, ciò che conta qui è la sua forma: un vettore monodimensionale con 10 elementi. Infine, `params` è un vettore con 3 componenti: le prime due costituiscono la parte $ W $ e l'ultima è il bias $ b $. L'obiettivo è moltiplicare ogni riga di $ X $ per la parte $ W $ dei parametri e aggiungere il bias.
+[03:41] L'implementazione corretta prevede di prendere la matrice $ X $, calcolare il prodotto con i primi due parametri (la parte $ W $) e sommare il bias. Successivamente, si calcola il massimo tra questo risultato e $ 1 - y $, e infine si moltiplica ogni elemento di questo vettore (chiamato `decision`) per il corrispondente elemento di $ y $. Il valore medio corretto di questa operazione è 0.44.
+[04:06] Il punto cruciale, dove si è verificato l'errore, riguarda la forma del vettore `decision`. Nell'implementazione corretta, `decision` è un vettore con 10 componenti, risultato di questa parte del calcolo. L'errore commesso nella lezione precedente è stato aggiungere un'operazione di `reshape(-1, 1)`.
+[04:21] Con questa modifica, `decision` non è più un vettore monodimensionale, ma diventa un vettore colonna. Dal punto di vista matematico, questa scelta può sembrare più coerente: avendo una matrice $ X $ con molte righe e due colonne, ha senso pensare ai parametri come a un vettore colonna per eseguire un prodotto matrice-vettore.
+[04:42] Tuttavia, questa modifica porta a un risultato errato: 0.3. La causa risiede nel comportamento di NumPy. Il vettore `decision` ora ha una forma (*shape*) di (10, 1), rendendolo un oggetto bidimensionale. Il problema sorge quando lo si moltiplica per `y`.
+[05:00] Il vettore `y` è monodimensionale. Quando NumPy tenta di moltiplicare un vettore colonna (bidimensionale) per un vettore riga (monodimensionale), attiva un meccanismo chiamato *broadcasting*. Invece di eseguire un prodotto elemento per elemento, il broadcasting espande le dimensioni dei due vettori per renderle compatibili.
+[05:16] Il broadcasting, in questo caso, costruisce una matrice in cui ogni elemento $(i, j)$ è il prodotto dell'elemento $i$-esimo del primo vettore e dell'elemento $j$-esimo del secondo. Questo corrisponde a un prodotto esterno (*outer product*).
+[05:30] Il problema nasce perché i due oggetti, `decision` e `y`, hanno dimensioni diverse. Se stampiamo le loro forme (`shape`), vediamo che `y.shape` è `(10,)`, indicando un oggetto 1D, mentre la forma dell'altro oggetto è `(10, 1)`, che indica un oggetto 2D.
+[05:49] NumPy interpreta questa differenza come una richiesta implicita di broadcasting. Di conseguenza, l'operazione eseguita non è quella desiderata. Poiché alla fine viene chiamata la funzione `mean()`, che calcola la media di tutti gli elementi dell'oggetto risultante (in questo caso, una matrice), si ottiene comunque un singolo valore scalare. La funzione sembra quindi funzionare come una funzione di perdita, ma l'operazione sottostante è completamente diversa.
+[06:07] È fondamentale prestare molta attenzione alla distinzione tra oggetti monodimensionali e bidimensionali, poiché il broadcasting implicito può avvenire inaspettatamente. Questo tipo di problema è comune nell'uso quotidiano di librerie come NumPy, e la capacità di individuare rapidamente questi bug è un'abilità importante.
+[06:29] Se non ci sono domande, possiamo procedere con il notebook della lezione odierna.
+# Capitolo 2: Implementazione di una Rete Neurale da Zero per la Funzione XOR
+## Obiettivo: Apprendere la Funzione XOR
+[06:40] Il notebook è disponibile su Wibip. Dopo averlo aperto in Google Colab e caricato, l'obiettivo è costruire da zero una rete neurale in grado di apprendere la funzione XOR.
+[06:58] Per sfruttare appieno la potenza di JAX, è necessario modificare il runtime per utilizzare la GPU. Iniziamo con la connessione e l'importazione delle librerie necessarie, principalmente NumPy, JAX e Matplotlib per la visualizzazione. L'obiettivo è apprendere la funzione XOR.
+[07:18] Il dataset per questo problema è molto piccolo, composto da soli quattro campioni. Per questo motivo, implementeremo un *full gradient descent*, ovvero un algoritmo di discesa del gradiente che utilizza l'intero dataset a ogni passo. L'uso di mini-batch non avrebbe senso con un dataset così ridotto. Gli input hanno due feature (i due bit di input della XOR) e l'output è un singolo valore che rappresenta il risultato della funzione logica.
+[07:42] La rete neurale che intendiamo costruire ha la seguente architettura: due neuroni di input, seguiti da due strati nascosti (*hidden layers*), uno con quattro neuroni e l'altro con tre. Infine, lo strato di output ha un singolo neurone. L'output della rete rappresenta una probabilità o una verosimiglianza che il risultato sia vero o falso, quindi il suo valore deve essere compreso tra 0 e 1.
+[08:09] Per garantire che l'output sia confinato in questo intervallo, utilizzeremo la funzione sigmoide.
+## Definizione degli Iperparametri e Inizializzazione dei Parametri
+[08:15] Il primo passo consiste nel definire gli iperparametri.
+- **Definizione di Iperparametri**: Sono i parametri che non vengono appresi direttamente durante l'addestramento della rete (come pesi e bias), ma che ne definiscono l'architettura e il processo di training.
+In questo caso, definiamo il numero di strati nascosti e la loro dimensione. Le dimensioni dei vari strati (input, hidden, output) sono definite dalla lista `[2, 4, 3, 1]`.
+[08:35] Il nostro primo compito è inizializzare lo stato dei parametri della rete.
+[08:45] La rete neurale è una funzione $ f(x, \theta) $, dove $ x $ è l'input (un vettore 2D) e $ \theta $ rappresenta i parametri del modello. Questi parametri $ \theta $ sono costituiti da una lista di pesi $ W $ (matrici) e bias $ b $ (vettori) per ogni strato.
+[09:06] L'obiettivo è trovare la funzione $ f $ ottimale che, dato un input $ x_i $, predica correttamente l'output $ y_i $. Il nostro dataset è una lista di coppie $ (x_i, y_i) $, con $ i $ che va da 1 a 4.
+[09:21] Per raggiungere questo obiettivo, minimizzeremo una funzione di perdita (*loss function*), che misura la distanza tra la predizione della rete $ f(x_i, \theta) $ e il valore reale $ y_i $.
+[09:37] La minimizzazione avviene modificando i parametri $ \theta $. Per farlo, utilizzeremo l'algoritmo della discesa del gradiente (*gradient descent*), che richiede il calcolo del gradiente della funzione di perdita rispetto a $ \theta $. La discesa del gradiente è un processo iterativo che, partendo da un punto iniziale $ \theta_0 $, converge verso un punto che minimizza la funzione.
+[10:00] Pertanto, il nostro primo compito pratico è definire un punto di partenza $ \theta_0 $ per i parametri. Questo sarà il punto iniziale per l'algoritmo di discesa del gradiente.
+[10:13] Iniziamo impostando un seme per la riproducibilità, utilizzando NumPy per semplicità, per poi convertire tutto in formato JAX. Il primo passo è creare la matrice dei pesi $ W_1 $.
+[10:29] I pesi verranno inizializzati campionando da una distribuzione normale standard. Esistono tecniche di inizializzazione più avanzate, studiate empiricamente, che possono accelerare la convergenza del training. La scelta del punto iniziale è cruciale per la velocità e l'efficacia dell'addestramento. Per ora, useremo una semplice inizializzazione con numeri casuali da una distribuzione normale.
+[10:52] Dobbiamo definire una matrice che trasformi un input 2D in un output 4D, poiché il primo strato nascosto ha 4 neuroni. La matrice $ W_1 $ avrà quindi dimensioni `(n2, n1)`, ovvero (4, 2).
+[11:08] L'operazione eseguita da uno strato della rete è una trasformazione affine seguita da una funzione di attivazione non lineare. La formula generale per uno strato è: $ \sigma(W \cdot x + b) $, dove $ \sigma $ è la funzione di attivazione.
+[11:24] Per quanto riguarda le dimensioni, se organizziamo i campioni di input $ x $ come colonne di una matrice, la moltiplicazione avviene tra la matrice dei pesi $ W_1 $ e la matrice degli input.
+[11:38] L'output di questa operazione avrà un numero di righe pari a quello di $ W_1 $ (4) e un numero di colonne pari al numero di campioni. Questa è la dimensione corretta per l'output del primo strato. Il vettore dei bias $ B_1 $ avrà una dimensione pari alla dimensione di output dello strato, quindi 4.
+[12:00] I bias vengono inizializzati a zero. È fondamentale avere sempre chiare le dimensioni delle matrici e dei vettori per garantire che le moltiplicazioni siano coerenti. Sebbene questa non sia l'unica convenzione possibile (ad esempio, si potrebbe usare $ X \cdot W^T $), è quella che adotteremo in questa implementazione.
+[12:28] Procediamo definendo i pesi e i bias per gli altri strati in modo analogo.
+- $ W_2 $: avrà dimensioni `(n3, n2)`, ovvero (3, 4).
+- $ B_2 $: avrà dimensione `(n3,)`, ovvero (3,).
+- $ W_3 $: avrà dimensioni `(n4, n3)`, ovvero (1, 3).
+- $ B_3 $: avrà dimensione `(n4,)`, ovvero (1,).
+[12:47] Tutti i parametri ($ W_1, B_1, W_2, B_2, W_3, B_3 $) vengono raggruppati in una lista e convertiti in formato JAX.
+[12:58] Questo approccio dovrebbe essere chiaro. Ora, il prossimo passo è l'implementazione della funzione della rete neurale.
+## Implementazione della Funzione della Rete Neurale
+[13:04] La funzione da implementare, che rappresenta la rete neurale, accetta come input la matrice dei dati $ x $ e la lista dei parametri `params` (pesi e bias). Deve restituire la predizione della rete.
+[13:21] Come funzione di attivazione per gli strati nascosti, si utilizzerà la tangente iperbolica, disponibile in JAX come `jmp.tanh`. Per lo strato di output, si userà la funzione sigmoide.
+- **Funzione Sigmoide**: È una funzione che mappa qualsiasi valore reale nell'intervallo (0, 1). Può essere derivata dalla tangente iperbolica (`tanh`) con la formula: $ \text{sigmoid}(x) = \frac{\tanh(x) + 1}{2} $. Poiché `tanh` restituisce valori tra -1 e 1, aggiungendo 1 si ottiene un intervallo tra 0 e 2; dividendo per 2, si normalizza l'output tra 0 e 1.
+[13:49] L'obiettivo è implementare una funzione che, dati i pesi, i bias e l'input, calcoli la predizione finale. Questo richiede di far passare l'input attraverso ogni strato della rete, applicando la trasformazione `W * input + b` e la funzione di attivazione `tanh`.
+[14:06] L'output di ogni strato diventa l'input per quello successivo. Questa operazione va ripetuta per i tre strati che compongono la nostra rete. Verranno concessi cinque minuti per completare questa implementazione.
+[14:28] (Pausa per l'esercizio)
+# Capitolo 3: Implementazione del Forward Pass e Gestione delle Dimensioni
+## Impostazione della Convenzione per la Moltiplicazione Matriciale
+[00:00] La scelta della convenzione per le operazioni matriciali è una questione di preferenza. Si potrebbe mantenere una convenzione coerente, ma ciò richiederebbe di trasporre tutti gli elementi e gestire le matrici in modo diverso. Ad esempio, per calcolare il prodotto, si dovrebbe scrivere `x` per la matrice prodotto per `w`. Questa notazione è leggermente diversa da quella solitamente presentata nei corsi, dove non viene trattata come esempio standard.
+[00:07] Per evitare di modificare la convenzione del prodotto matriciale, si considera `w` come la matrice per il prodotto. Tuttavia, questa scelta può portare a delle discontinuità nel codice. Per chiarire il processo, analizzeremo la soluzione passo dopo passo. Invece di definire immediatamente una funzione, costruiremo la logica all'interno di una cella di codice per comprendere meglio ogni passaggio e solo successivamente la trasformeremo in una funzione.
+[00:15] L'input del nostro modello è una matrice in cui ogni riga rappresenta un campione diverso. Questa convenzione differisce da quella che useremo internamente per i layer della rete. Pertanto, il primo passo consiste nell'adattare i dati per il primo layer.
+## Unpacking dei Parametri e Preparazione dei Dati
+[00:22] Iniziamo con l'estrarre i parametri, che sono stati raggruppati in un unico oggetto `params`. Per maggiore chiarezza, è preferibile averli separati. Li "spacchettiamo" assegnandoli a variabili singole.
+[00:28] Nel primo layer, dobbiamo eseguire la moltiplicazione matriciale tra `W1` e la matrice di input. Per seguire la convenzione desiderata, chiamiamo l'input `x` e procediamo con la sua trasposizione. Questo approccio semplificherà la successiva trasformazione del codice in una funzione.
+[00:36] La nostra matrice `x` trasposta (`x_transpose`) avrà quattro righe, una per ciascuna feature, e quattro colonne, una per ciascun campione. Successivamente, aggiungiamo il vettore dei bias `b1`. Questa operazione viene eseguita colonna per colonna.
+## Gestione del Broadcasting per i Vettori di Bias
+[00:43] È fondamentale verificare che l'operazione di broadcasting, ovvero l'estensione automatica delle dimensioni di un array per renderlo compatibile con un altro, avvenga correttamente. Dobbiamo assicurarci che il vettore `b1` venga sommato a ciascuna colonna della matrice. Per verificarlo, inizializziamo temporaneamente `b1` con una sequenza di numeri (es. 1, 2, 3, 4) invece che con zeri.
+[00:52] Osservando il risultato, notiamo che la somma viene eseguita riga per riga, il che è errato per il nostro scopo. Per correggere questo comportamento, dobbiamo sommare colonna per colonna. Questo si ottiene modificando la forma del vettore di bias tramite un'operazione di `reshape`.
+[00:57] Se trasformiamo `b1` in un vettore colonna, il broadcasting funzionerà come desiderato. Utilizzando `reshape(-1, 1)`, forziamo l'array a diventare una matrice con una sola colonna. Ora la somma avviene correttamente colonna per colonna, come si può vedere dal fatto che la prima colonna della matrice risultante è [0, 1, 2, 3].
+[01:05] Per evitare di dover eseguire il `reshape` all'interno del calcolo del layer, modifichiamo direttamente l'inizializzazione dei parametri. Torniamo alla cella di definizione dei parametri, ripristiniamo i valori di `b1` a zero e definiamo tutti i vettori di bias come vettori colonna.
+[01:10] Secondo la nostra convenzione, i bias non sono più vettori monodimensionali (1D), ma matrici bidimensionali (2D) con una sola colonna. Questa struttura garantisce che il broadcasting avvenga correttamente durante la somma.
+## Calcolo dell'Output dei Layer Intermedi
+[01:16] L'output del primo calcolo lineare, che chiameremo `layer2` (poiché il primo è il layer di input), deve essere processato da una funzione di attivazione. Senza di essa, una composizione di strati lineari si ridurrebbe a un'unica trasformazione lineare, limitando la capacità espressiva della rete. Applichiamo quindi la funzione di attivazione tangente iperbolica (`tanh`).
+[01:23] Il secondo layer segue la stessa logica del primo. L'operazione è `w2 * layer2 + b2`.
+[01:27] Successivamente, calcoliamo l'output del terzo layer, che chiamiamo `layer4` (seguendo una numerazione progressiva). Questo è dato dall'applicazione della tangente iperbolica al risultato di `w3 * layer3 + b3`.
+## Normalizzazione dell'Output Finale
+[01:30] Per l'ultimo layer, desideriamo un output che rappresenti una probabilità, quindi i suoi valori devono essere compresi nell'intervallo `[0, 1]`. La funzione di attivazione `tanh` produce valori nell'intervallo `[-1, 1]`.
+[01:36] Per mappare questo intervallo a `[0, 1]`, eseguiamo una semplice trasformazione. Prima sommiamo 1 all'output del layer, `layer4 + 1`, ottenendo valori nell'intervallo `[0, 2]`. Successivamente, dividiamo il risultato per 2. In questo modo, l'output finale sarà correttamente normalizzato tra 0 e 1.
+[01:43] La trasformazione `(tanh(z) + 1) / 2` è equivalente alla funzione sigmoide. Per il layer finale, non usiamo la `tanh` direttamente, ma questa sua variante per ottenere l'output desiderato. L'ultima riga di codice nella cella serve semplicemente a visualizzare il valore della variabile finale.
+[01:51] Se si verificano errori relativi alle dimensioni (`shape`), è probabile che la cella di definizione dei parametri non sia stata eseguita nuovamente dopo le modifiche. Definendo i bias come vettori colonna (con `shape` `(n, 1)`) e rieseguendo il codice, l'output del `layer4` sarà un vettore riga bidimensionale, come indicato dalle doppie parentesi quadre.
+## Coerenza della Convenzione di Input e Output
+[02:00] Questa convenzione, con i campioni disposti sulle colonne, differisce da quella che abbiamo stabilito per l'input, dove ogni riga rappresenta un campione. Per rendere l'output coerente con l'input, applichiamo una trasposizione finale. In questo modo, sia la matrice di input che quella di output seguono la stessa convenzione.
+[02:07] La convenzione interna ai layer della rete neurale prevede che ogni campione sia rappresentato da una colonna. Per questo motivo, abbiamo trasposto l'input all'inizio del processo.
+[02:11] Per scrivere ogni layer come una moltiplicazione matrice-matrice del tipo `W * X`, esistono due approcci:
+1.  Utilizzare la convenzione in cui i campioni sono disposti sulle colonne di `X`.
+2.  Invertire l'ordine della moltiplicazione e trasporre le matrici. Invece di `W * X`, si calcolerebbe `X * W_transpose`.
+[02:19] Non è possibile mantenere la convenzione con i campioni sulle righe di `X` e contemporaneamente usare la formula `W * X` senza trasporre `X`. La notazione `X * W_transpose` è matematicamente valida ma meno comune nei contesti didattici. Per questo motivo, si è preferito utilizzare la convenzione `W * X` con la trasposizione dell'input. Matematicamente, `(A * B)^T = B^T * A^T`.
+[02:26] L'aspetto cruciale nell'implementazione di reti neurali è mantenere la coerenza con la convenzione scelta e assicurarsi di seguirla in ogni passaggio. L'ambiente dei notebook è particolarmente utile in questo, poiché permette di ispezionare l'output e la forma (`shape`) di ogni oggetto ad ogni passo.
+## Trasformazione del Codice in Funzione
+[02:33] Il codice sviluppato nella cella può essere facilmente trasformato in una funzione. Definiamo una funzione `artificial_neural_network` che accetta come argomenti la matrice di input `X` e i parametri `params`. La funzione restituirà l'output finale, `layer4`.
+[02:39] Per verificare la correttezza della funzione, la invochiamo con gli input e i parametri definiti in precedenza e stampiamo la predizione. Questo processo mostra come, tenendo traccia della forma di ogni oggetto, sia semplice incapsulare una logica complessa all'interno di una funzione riutilizzabile.
+## Chiarimenti sulla Gestione degli Input
+[02:47] La trasformazione dell'input all'interno del ciclo di visualizzazione è stata fatta solo a scopo dimostrativo. La convenzione standard prevede che alla rete venga sempre passata una matrice, dove ogni riga corrisponde a un campione.
+[02:52] L'input `[0, 0]` è un vettore 1D, ma poiché la nostra convenzione richiede matrici, viene eseguito un `reshape` per trasformarlo in una matrice `(1, 2)`. Questa operazione è necessaria per la visualizzazione che mostra l'operazione XOR tra i due valori.
+[02:59] Un modo alternativo per ottenere lo stesso risultato di visualizzazione consiste nell'iterare sui quattro campioni. Per ogni indice `i` da 0 a 3, si può estrarre la riga `i`-esima dalla matrice di input e associarla alla predizione `i`-esima.
+[03:08] Le due sintassi producono lo stesso risultato. Nel primo caso, si itera su ogni riga della matrice di input, la si estrae, la si rimodella come matrice e la si passa alla funzione. Nel secondo caso, si itera sugli indici dei campioni, si estraggono i valori dalla matrice di input e li si associa alla predizione corrispondente.
+[03:15] L'aspetto fondamentale è che l'input della funzione `ANN` deve sempre rispettare la convenzione stabilita, ovvero una matrice in cui ogni riga rappresenta un campione.
+# Capitolo 4: Addestramento della Rete Neurale
+## Valutazione delle Prestazioni Iniziali
+[03:20] Con i parametri iniziali scelti casualmente, le prestazioni della rete neurale sono molto scarse. Analizzando le predizioni, si nota che sono quasi sempre errate.
+-   Input `[0, 0]`: XOR dovrebbe essere `0`, la predizione è `0` (corretto).
+-   Input `[0, 1]`: XOR dovrebbe essere `1`, la predizione è `0` (errato).
+-   Input `[1, 0]`: XOR dovrebbe essere `1`, la predizione è `1` (corretto).
+-   Input `[1, 1]`: XOR dovrebbe essere `0`, la predizione è `1` (errato).
+[03:28] Inizialmente, la rete si comporta in modo casuale. Per migliorare le sue prestazioni, è necessario modificare i parametri in modo che le predizioni diventino corrette.
+## Introduzione al Gradient Descent e alle Funzioni di Costo
+[03:36] Il metodo utilizzato per ottimizzare i parametri è il **Gradient Descent** (discesa del gradiente). L'obiettivo è modificare i parametri per migliorare le predizioni della rete.
+[03:40] Per fare ciò, dobbiamo definire una **funzione di costo** (o *loss function*), ovvero una funzione che misura l'errore della rete e che vogliamo minimizzare. Implementeremo il Gradient Descent su questa funzione. Vengono proposte due diverse funzioni di costo.
+## Funzione di Costo Quadratica (Mean Squared Error)
+[03:48] La prima funzione di costo è la `loss_quadratic`. Dati l'input `x`, il target `y` (il valore corretto) e i parametri della rete, questa funzione calcola l'**errore quadratico medio** (*Mean Squared Error*, MSE) tra la predizione e il valore reale.
+$$
+L_{MSE} = \frac{1}{N} \sum_{i=1}^{N} (y_{pred, i} - y_{true, i})^2
+$$
+Questa è la funzione di costo standard, già utilizzata in altre occasioni. Per implementarla, si utilizza la funzione `artificial_neural_network` per ottenere la predizione e si calcola l'MSE rispetto al target `y`.
+## Funzione di Costo Cross-Entropy
+[03:58] La seconda funzione di costo è la **Cross-Entropy** (entropia incrociata). Poiché il nostro è un compito di classificazione e gli output sono interpretati come probabilità, l'uso della cross-entropy è più appropriato.
+[04:04] La ragione matematica è che la cross-entropy è una misura della distanza tra distribuzioni di probabilità. Dal punto di vista pratico, questa funzione di costo è efficace perché penalizza pesantemente le predizioni errate fatte con alta confidenza.
+[04:10] Consideriamo un esempio: supponiamo che il valore corretto `yi` sia `1`. Se la rete predice con alta confidenza un valore errato, ad esempio `0.01`, la funzione di costo reagisce in modo significativo. La formula della cross-entropy per la classificazione binaria è:
+$$
+L_{CE} = - \frac{1}{N} \sum_{i=1}^{N} [y_i \log(\hat{y}_i) + (1 - y_i) \log(1 - \hat{y}_i)]
+$$
+-   Se `yi = 1`, il secondo termine `(1 - yi)` si annulla. Rimane `yi * log(y_hat_i)`, che diventa `log(0.01)`.
+-   Il logaritmo di un numero molto vicino a zero (come `0.01`) è un numero negativo molto grande.
+[04:20] Il logaritmo di `0.01` è un valore molto negativo. A causa del segno meno davanti alla sommatoria nella formula della cross-entropy, il contributo alla loss diventa un numero positivo molto grande.
+[04:28] Questo valore è molto più grande di quello che si otterrebbe con l'errore quadratico medio, penalizzando così in modo severo le predizioni sbagliate e sicure. Questa è la ragione pratica per cui la cross-entropy funziona bene in compiti di classificazione.
+[04:34] L'implementazione di queste funzioni è relativamente semplice. Si calcola la predizione `y_hat` usando la funzione `ANN` e poi si applica la formula corrispondente. Verranno concessi cinque minuti per implementare sia la funzione di costo basata sull'errore quadratico medio sia quella basata sulla cross-entropy.
+# Capitolo 5: Implementazione delle Funzioni di Perdita e Calcolo dei Gradienti
+## Errore Quadratico Medio (MSE)
+[00:00] Iniziamo con l'implementazione dell'errore quadratico medio (Mean Squared Error, MSE). Il processo verrà sviluppato passo dopo passo all'interno di una cella di codice per verificarne il funzionamento, per poi essere incapsulato in una funzione. Il primo passo consiste nel calcolare la predizione della rete neurale. La predizione si ottiene applicando la funzione della rete, `ANN`, ai dati di input `x` e ai parametri correnti del modello.
+[00:11] La variabile `x` corrisponde agli `inputs`. Una volta calcolata la predizione, è possibile visualizzarla. Successivamente, si calcola l'errore quadratico medio tra le predizioni e i valori target. I valori target, denominati `outputs`, vengono assegnati a una variabile `y` per chiarezza.
+[00:24] Confrontando le dimensioni (`shape`) della predizione e di `y`, si può notare che sono identiche. Questa corrispondenza dimensionale è fondamentale per poter eseguire operazioni aritmetiche tra di esse, come la sottrazione `predizione - y`, che rappresenta l'errore. L'errore viene quindi elevato al quadrato e, infine, se ne calcola la media utilizzando la funzione `jmp.mean`. Il risultato è un singolo valore scalare che rappresenta l'errore quadratico medio.
+[00:41] L'errore quadratico medio è definito come la media delle differenze al quadrato tra il valore target `y` e la predizione. La funzione che implementa questo calcolo accetta come argomenti `x`, `y` e i parametri del modello (`params`).
+[00:52] Per riassumere, la funzione MSE prima calcola la predizione utilizzando la rete neurale, poi calcola l'errore come differenza tra la predizione e il target `y`, eleva al quadrato questo errore e infine ne calcola la media. Il risultato è un valore scalare, la funzione di perdita (loss function), che può essere minimizzato durante l'addestramento.
+## Entropia Incrociata (Cross-Entropy)
+[01:03] L'implementazione della funzione di perdita basata sull'entropia incrociata (cross-entropy) segue un approccio simile. Anche in questo caso, il punto di partenza è il calcolo della predizione, che si ottiene applicando la rete neurale `ann` agli input `x` e ai parametri `params`.
+[01:10] La formula dell'entropia incrociata per la classificazione binaria è:
+$$
+L(\theta) = - \sum_i [y_i \log(p(x_i; \theta)) + (1 - y_i) \log(1 - p(x_i; \theta))]
+$$
+dove $p(x_i; \theta)$ è la predizione della rete. L'implementazione in codice traduce questa formula come segue: `y * jmp.log(predizione) + (1 - y) * jmp.log(1 - predizione)`.
+[01:20] È importante osservare che, per ogni campione, solo uno dei due termini della somma è attivo. Poiché `y` può assumere solo i valori 0 o 1, se `y` è 1, il secondo termine si annulla e rimane solo il primo; se `y` è 0, si annulla il primo termine e rimane solo il secondo.
+[01:36] Successivamente, si applica la somma (`jmp.sum`) su tutti i campioni per calcolare la similarità tra le distribuzioni di probabilità. Poiché la funzione di perdita deve misurare una discrepanza (un errore), si antepone un segno negativo al risultato della somma, ottenendo così l'implementazione completa della formula dell'entropia incrociata.
+## Definizione delle Funzioni Gradiente
+[01:48] In questo contesto, l'uso della media (`mean`) al posto della somma (`sum`) nella funzione di perdita è preferibile. Sebbene in questo specifico caso non cambi molto, poiché la dimensione del campione è costante, l'uso della media rende la funzione di perdita robusta a eventuali variazioni della dimensione del batch (batch size).
+[01:57] Il passo successivo consiste nel calcolare i gradienti delle funzioni di perdita. Per ottimizzare le prestazioni, si utilizza la compilazione just-in-time (JIT) di JAX. Si definiscono quindi le versioni JIT sia della funzione di perdita quadratica (`loss_quadratic`) sia di quella basata sull'entropia incrociata.
+[02:10] Il calcolo del gradiente richiede particolare attenzione. Si definisce una funzione `grad_msc_jit` utilizzando `jacks.jit(jacks.grad(loss_quadratic))`. Tuttavia, questa implementazione è errata.
+[02:21] L'errore risiede nel fatto che la funzione `jacks.grad` calcola di default il gradiente rispetto al primo argomento della funzione. La nostra funzione di perdita, `loss_quadratic(x, y, params)`, ha tre argomenti, e noi siamo interessati al gradiente rispetto al terzo, ovvero `params`. Per specificare ciò, si utilizza l'argomento `argnums` nella chiamata a `jacks.grad`.
+[02:34] L'argomento `argnums` può essere un intero o una sequenza di interi. In questo caso, si imposta `argnums=2` per indicare che il gradiente deve essere calcolato rispetto al terzo argomento (indicizzato con 2).
+[02:45] La stessa procedura viene applicata per calcolare il gradiente della funzione di perdita basata sull'entropia incrociata.
+## Addestramento della Rete Neurale con Discesa del Gradiente
+[02:54] A questo punto, si dispone di tutti gli elementi necessari per addestrare la rete neurale. Il caso in esame è semplificato: il set di addestramento (training set) e il set di test (test set) coincidono, e non si utilizzano mini-batch, ma si esegue l'addestramento su batch completi (full batch).
+[03:07] L'addestramento avviene implementando l'algoritmo della discesa del gradiente (gradient descent), utilizzando una delle due funzioni di perdita definite (MSE o entropia incrociata).
+[03:14] Lo pseudo-codice per il ciclo di addestramento è il seguente: si itera per un numero totale di epoche. In ogni epoca, essendo un approccio full-batch, si calcola il gradiente sull'intero dataset.
+[03:23] Successivamente, per ogni componente dei parametri del modello (matrici di pesi e vettori di bias), si aggiorna il suo valore muovendosi nella direzione opposta a quella del gradiente, con un passo di aggiornamento (step size) pari al tasso di apprendimento (learning rate).
+[03:34] Alla fine di ogni epoca, si salva il valore corrente della funzione di perdita per monitorarne l'andamento. Infine, si visualizza (plot) l'evoluzione della perdita nel tempo. Il gradiente viene calcolato per ogni parametro, ovvero per ogni matrice di pesi `W` e ogni bias `B`.
+[03:49] L'aggiornamento dei parametri avviene quindi sottraendo il gradiente moltiplicato per il learning rate. Dopo l'aggiornamento, si calcola e si salva il valore corrente di entrambe le funzioni di perdita (MSE e entropia incrociata) per monitorare il processo. Infine, si verifica che la perdita sia effettivamente diminuita. Se l'implementazione è corretta, la rete dovrebbe imparare a classificare correttamente tutti gli esempi, dato che il dataset è molto semplice.
+# Capitolo 6: Implementazione del Ciclo di Addestramento e Analisi dei Risultati
+## Debug e Sviluppo del Codice
+[04:26] Per implementare la soluzione, si parte dallo pseudo-codice e si procede passo dopo passo. Inizialmente, il ciclo di addestramento viene eseguito per una sola epoca (`for epoch in range(1)`) per finalità di debug, assicurandosi che ogni parte del codice funzioni correttamente prima di aumentare il numero di iterazioni.
+[04:43] Si sceglie di utilizzare l'errore quadratico medio come funzione per il calcolo del gradiente, assegnando `GradMC_JIT` a una variabile `gradient_function`. Il gradiente viene quindi calcolato chiamando questa funzione con gli stessi argomenti della funzione di perdita: `inputs`, `outputs` (corrispondenti a `x` e `y`) e i `params`.
+[05:00] Per ispezionare il risultato, si stampa il gradiente calcolato (`grad`). L'output è un oggetto (una lista di array) che ha la stessa struttura e le stesse dimensioni dei parametri del modello. I parametri sono una lista contenente matrici di pesi e vettori di bias.
+[05:11] Analogamente, `grad` è una lista di array che contiene i gradienti della funzione di perdita calcolati rispetto a ciascun parametro corrispondente. Esiste una corrispondenza uno-a-uno tra ogni parametro e il suo gradiente.
+[05:26] L'aggiornamento dei parametri può essere eseguito esplicitamente con un ciclo. Si itera sulla lista dei parametri (`for i in range(len(params))`). Ogni elemento `params[i]` è un oggetto JAX (matrice o vettore).
+[05:35] L'aggiornamento avviene sottraendo al parametro corrente il gradiente corrispondente `grads[i]` moltiplicato per il `learning_rate`. Il learning rate viene definito in precedenza, ad esempio con un valore di 0.1.
+[05:54] Dopo l'aggiornamento dei parametri, si calcola il valore di entrambe le funzioni di perdita (MSE e entropia incrociata) e si memorizza il loro andamento in due liste, `history_mnc` e `history_cross_entropy`.
+[06:05] È importante notare che, sebbene si possano monitorare più metriche di perdita, l'aggiornamento dei parametri può essere basato solo su un gradiente alla volta, poiché i gradienti calcolati da funzioni di perdita diverse punteranno in direzioni differenti.
+[06:18] Eseguendo il codice, si può procedere a visualizzare l'andamento delle perdite nel tempo utilizzando `plt.plot`.
+## Analisi dei Risultati dell'Addestramento
+[06:27] Aumentando il numero di epoche a 2000 (un iperparametro del modello), si può osservare l'evoluzione dell'addestramento. Il monitoraggio di più metriche, anche se non usate per l'aggiornamento, è utile. Ad esempio, l'entropia incrociata funge sempre da metrica valida: un suo valore elevato può indicare un problema, anche se l'ottimizzazione è basata su un'altra funzione di perdita.
+[06:42] Inoltre, confrontare diverse funzioni di perdita permette di valutare l'impatto di eventuali modifiche. In scenari reali, si potrebbe modificare una funzione di perdita (ad esempio, regolandone alcuni parametri interni) e monitorare l'effetto su metriche di benchmark standard, come l'entropia incrociata, per verificare se la modifica porta a un miglioramento generale.
+[07:01] Nel grafico risultante, la curva blu rappresenta l'errore quadratico medio (MSE), mentre quella arancione rappresenta l'entropia incrociata. Entrambe le perdite scendono sotto il valore di 0.1.
+[07:12] Per analizzare meglio l'andamento, è utile visualizzare il grafico della perdita con una scala logaritmica sull'asse y (`plt.yscale('log')`).
+[07:21] Con la scala logaritmica, si osserva che l'errore quadratico medio scende al di sotto di 0.001, indicando un buon andamento dell'addestramento. Anche l'entropia incrociata scende sotto 0.1, confermando che la rete neurale sta apprendendo correttamente.
+[07:36] Il test finale consiste nel verificare le predizioni della rete sulle coppie input-output. Dato l'andamento della perdita, è molto probabile che i risultati siano corretti.
+[07:44] Infatti, per input che dovrebbero dare output 0, la rete predice una probabilità molto bassa (es. 0.01), mentre per input che dovrebbero dare 1, la probabilità predetta è molto alta (es. 0.98).
+## Confronto tra Funzioni di Perdita e Valutazione del Modello
+[08:00] Si procede ora a modificare l'esperimento utilizzando l'entropia incrociata come funzione di perdita per il calcolo del gradiente, al posto dell'errore quadratico medio (MSE).
+[08:08] Eseguendo nuovamente l'addestramento, si osserva un risultato interessante: sebbene si stia ottimizzando l'entropia incrociata, il valore finale dell'MSE è molto più basso rispetto a prima.
+[08:16] L'MSE scende al di sotto di $10^{-5}$. Confrontando con l'addestramento precedente, dove dopo lo stesso numero di epoche l'MSE era appena sotto $10^{-3}$, ora si raggiunge un valore ben al di sotto di $10^{-6}$.
+[08:26] Questo dimostra che, per questo problema di classificazione, l'entropia incrociata è più efficace dell'MSE nel ridurre l'MSE stesso. Questo è uno dei motivi pratici per cui l'entropia incrociata è la scelta standard per i problemi di classificazione.
+[08:37] La ragione di questa superiorità risiede nel fatto che l'entropia incrociata penalizza molto severamente le predizioni errate fatte con alta confidenza. Da un punto di vista matematico, è strettamente legata al concetto di "vicinanza" tra distribuzioni di probabilità.
+[08:47] Per verificare ulteriormente questo comportamento, si riesegue l'intero processo dall'inizio, reinizializzando i parametri.
+[08:55] Anche partendo da un valore di perdita iniziale molto più alto, l'addestramento con l'entropia incrociata converge a un valore di MSE estremamente basso, confermando la sua efficacia.
+## Calcolo dell'Accuratezza e della Matrice di Confusione
+[09:10] Il passo finale è calcolare l'accuratezza (accuracy) del modello. Per fare ciò, le probabilità continue prodotte dalla rete devono essere convertite in predizioni binarie (0 o 1).
+[09:17] Si calcolano le predizioni finali applicando una soglia di 0.5: se la probabilità predetta è maggiore di 0.5, la classe predetta è 1 (True), altrimenti è 0 (False).
+[09:29] Confrontando le predizioni binarie (`pred`) con i valori target reali (`y`), si osserva che sono sempre uguali. L'accuratezza, calcolata come il numero di predizioni corrette diviso per il numero totale di campioni, risulta quindi del 100%.
+[09:44] Nei problemi di classificazione, un altro strumento di valutazione molto utile è la matrice di confusione. Questa matrice mostra il numero di veri positivi, veri negativi, falsi positivi e falsi negativi.
+[09:56] Per calcolarla, si può utilizzare la funzione `confusion_matrix` dalla libreria Scikit-learn, evitando di scrivere codice verboso.
+[10:04] Alla funzione si passano i valori reali (`y`) e le predizioni binarie.
+[10:10] La matrice di confusione risultante mostra valori non nulli solo sulla diagonale principale e zeri sulla anti-diagonale. Questo indica che tutte le predizioni sono corrette e il modello ha una performance perfetta su questo dataset.
+# Capitolo 7: Generalizzazione a un Problema di Classificazione Non Lineare
+## Introduzione a un Nuovo Dataset
+[10:24] Il passo successivo consiste nel rendere il problema più complesso e realistico. Sebbene non sia ancora uno scenario di utilizzo del tutto realistico, si aggiungono gradualmente elementi di complessità.
+[10:34] Si utilizza un dataset generato da Scikit-learn noto come "make_circles". Questo dataset è composto da due cerchi concentrici: uno più piccolo al centro e uno più grande che lo circonda.
+[10:44] Si tratta di un problema di classificazione binaria in cui l'obiettivo è distinguere i punti appartenenti al cerchio interno da quelli appartenenti all'anello esterno. L'input per la rete neurale sarà costituito dalle coordinate (x, y) di ogni punto, mentre l'output sarà 0 o 1 a seconda dell'anello di appartenenza.
+[10:57] Il codice per generare i dati è già fornito. Vengono generate le coordinate X e Y, assicurandosi che abbiano le dimensioni corrette.
+[11:04] Successivamente, si utilizza la funzione `train_test_split` per suddividere il dataset in un 80% per l'addestramento e un 20% per il test. Questa suddivisione rende lo scenario più realistico. I dati vengono poi visualizzati: un grafico a dispersione (`scatter plot`) mostra i punti, colorati in base alla loro classe (Y). I punti di test sono contrassegnati con una 'X', mentre quelli di addestramento con un cerchio.
+[11:20] Le variabili fondamentali sono quattro matrici: `X_train`, `Y_train`, `X_test`, `Y_test`. Ogni riga rappresenta un campione; le matrici X hanno due colonne (le coordinate), mentre le matrici Y hanno una colonna (la classe).
+## Struttura del Nuovo Compito di Programmazione
+[11:27] Il compito consiste nell'implementare nuovamente tutti gli ingredienti necessari, ma in modo più generale e scalabile. Invece di definire manualmente un numero fisso di strati, come fatto in precedenza, si vuole creare una struttura più flessibile.
+[11:38] L'obiettivo è evitare di scrivere codice ripetitivo per ogni strato (layer1, layer2, ...), utilizzando invece un ciclo `for`. Per fare ciò, si definiscono delle funzioni di supporto.
+[11:47] La prima funzione, `initLayerParameters`, riceve una chiave casuale di JAX, la dimensione di input e la dimensione di output di un singolo strato, e restituisce una coppia di pesi e bias per quello strato.
+[11:56] La seconda funzione, `initializeMLPParameters`, riceve una chiave e una lista contenente le dimensioni di ogni strato della rete. Questa funzione genera automaticamente la lista completa dei parametri (pesi e bias) per l'intera rete neurale multistrato (MLP).
+[12:07] L'idea è che la lista `layer_sizes` possa avere qualsiasi lunghezza e contenere qualsiasi dimensione, e la funzione creerà dinamicamente i parametri corrispondenti. L'architettura della rete rimane simile a quella precedente, con funzioni di attivazione a tangente iperbolica (`tanh`) negli strati intermedi e una sigmoide nell'ultimo strato.
+[12:20] La funzione di predizione, ora chiamata `forward`, riceve i parametri e l'input `x` e restituisce la predizione. La differenza principale rispetto a prima è che, invece di scrivere ogni strato manualmente, si utilizzerà un ciclo `for` per propagare l'output di uno strato come input del successivo.
+[12:30] Si utilizzerà nuovamente la funzione di perdita basata sull'entropia incrociata, che può essere copiata dall'implementazione precedente. Infine, si implementerà la discesa del gradiente con mini-batch, anziché full-batch.
+[12:38] Il dataset è più grande (300 punti), quindi si definisce una funzione `update` che aggiorna i parametri utilizzando solo un mini-batch di dati (`x` e `y`) estratto dal dataset completo. L'estrazione del mini-batch avverrà in un secondo momento; per ora, l'obiettivo è creare una funzione di aggiornamento che incapsuli questa logica.
+[12:56] Sebbene sembri un compito esteso, è molto simile a quanto già fatto, ma con un approccio più generalizzato. L'obiettivo è prendere il codice precedente e renderlo più flessibile e scalabile.
+# Capitolo 8: Implementazione di una Rete Neurale Generalizzata con JAX
+## Introduzione alla Soluzione Guidata
+[00:01] In questa sezione, verrà illustrata la soluzione passo dopo passo, con l'obiettivo di procedere lentamente e mostrare alcuni accorgimenti per rendere il codice più generale. L'approccio seguito è pensato per essere didattico e dettagliato.
+## Inizializzazione dei Parametri della Rete
+[00:08] Si inizia definendo la funzione per inizializzare i parametri di un singolo strato (`layer`). La funzione, denominata `init_layer_params`, accetta tre argomenti: una chiave (`key`) di JAX per la generazione di numeri casuali, la dimensione di input (`in_dimension`) e la dimensione di output (`out_dimension`).
+[00:16] All'interno della funzione, il primo passo è inizializzare la matrice dei pesi `w`. Per questa operazione si utilizza la funzione `jax.random.normal`, che genera numeri casuali da una distribuzione normale. Per il momento, una distribuzione normale o uniforme è considerata adeguata.
+[00:23] La forma (`shape`) della matrice dei pesi viene definita seguendo una convenzione specifica. In precedenza, si era discussa una convenzione in cui i campioni (`samples`) erano disposti sulle colonne.
+[00:32] Ora, si adotta una convenzione alternativa in cui i campioni sono disposti sulle righe. Essere flessibili rispetto a queste convenzioni è una competenza importante nella programmazione, poiché non si può sapere a priori quale approccio si incontrerà in un codice esistente.
+[00:44] Adottando la convenzione con i campioni per riga, è necessario scambiare le dimensioni della matrice dei pesi `w`. La forma sarà quindi `(in_dimension, out_dimension)`.
+[00:52] Questa scelta è motivata dalla regola della moltiplicazione tra matrici: il numero di colonne della matrice di input `x` deve essere uguale al numero di righe della matrice dei pesi `w`.
+[00:57] Il vettore dei bias `b` viene inizializzato a zero utilizzando la funzione `jnp.zeros`. La sua dimensione deve corrispondere alla dimensione di output (`out_dimension`).
+[01:02] La forma del vettore dei bias sarà `(out_dimension,)`. Non è `(out_dimension, 1)` perché, con la nuova convenzione, il *broadcasting* (l'adattamento automatico delle dimensioni durante le operazioni) non avviene più sulle colonne, ma sulle righe.
+[01:08] Infine, la funzione restituisce i pesi `w` e i bias `b`. La corretta gestione delle dimensioni sarà cruciale nella funzione di `forward propagation`.
+[01:14] Successivamente, si definisce la funzione `init_mlp_params` per inizializzare i parametri di un intero Multi-Layer Perceptron (MLP). Questa funzione accetta una chiave (`key`) di JAX e una lista `layer_sizes` che specifica il numero di neuroni per ogni strato, inclusi quello di input e di output.
+[01:20] Per garantire che ogni strato abbia pesi e bias inizializzati in modo indipendente, è necessario generare una chiave casuale diversa per ciascuno di essi. Questo si ottiene con `jax.random.split(key, num_keys)`.
+[01:27] Il numero di chiavi necessarie (`num_keys`) è pari al numero di strati della rete, che corrisponde a `len(layer_sizes) - 1`.
+[01:33] Ad esempio, se `layer_sizes` è una lista di 4 elementi (es. `[input, hidden1, hidden2, output]`), la rete avrà 3 strati di connessioni (input -> hidden1, hidden1 -> hidden2, hidden2 -> output), e quindi richiederà 3 coppie di pesi e bias.
+[01:43] Il motivo di `len(layer_sizes) - 1` diventa evidente nel ciclo `for` che segue.
+[01:47] Si inizializza una lista vuota `params` che conterrà i parametri di tutti gli strati.
+[01:50] Si itera su un range che va da 0 a `len(layer_sizes) - 2`. All'interno del ciclo, per ogni strato `i`, si chiama la funzione `init_layer_params` passandole la chiave specifica per quello strato (`keys[i]`), la dimensione di input `layer_sizes[i]` e la dimensione di output `layer_sizes[i+1]`.
+[02:00] In questo modo, si scorrono tutti gli strati tranne l'ultimo. La dimensione di input di uno strato corrisponde alla dimensione di output dello strato precedente.
+[02:06] Ad esempio, con `layer_sizes = [2, 4, 1]`, il primo strato avrà dimensione di input 2 e output 4, mentre il secondo strato avrà input 4 e output 1.
+[02:11] Viene mostrato un esempio pratico. Si definisce una struttura di rete con `layer_sizes = [2, 4, 1]`, che corrisponde a uno strato di input con 2 neuroni, uno strato nascosto con 4 neuroni e uno strato di output con 1 neurone.
+[02:20] La chiave per la generazione casuale deve essere creata tramite il generatore di chiavi di JAX, non può essere un semplice numero.
+[02:25] Esaminando i parametri generati (`params`), si osserva la struttura: una prima matrice di pesi con forma `(2, 4)`, un vettore di bias di dimensione 4, una seconda matrice di pesi con forma `(4, 1)` e un bias finale di dimensione 1.
+[02:38] Questa struttura è coerente con le dimensioni definite e conferma il corretto funzionamento della funzione di inizializzazione.
+## Implementazione della Propagazione in Avanti (Forward Propagation)
+[02:48] Viene definita la funzione di attivazione sigmoide. Si può implementare in due modi equivalenti: utilizzando la relazione con la tangente iperbolica `jnp.tanh(x) / 2` o la sua definizione standard `1 / (1 + jnp.exp(-x))`.
+[02:57] Entrambe le implementazioni producono lo stesso risultato.
+[02:59] La funzione `forward` è il cuore della propagazione in avanti, dove è richiesta particolare attenzione alle dimensioni delle matrici.
+[03:04] L'obiettivo è calcolare l'output della rete a partire da un input `x_train` e dai parametri `params`.
+[03:08] Per un singolo strato, l'operazione consiste in una moltiplicazione matrice-matrice tra l'input e i pesi, seguita dalla somma del bias.
+[03:12] I parametri di uno strato sono memorizzati in una tupla. Ad esempio, `params[0]` contiene la tupla `(pesi, bias)` del primo strato. I pesi sono il primo elemento (`params[0][0]`) e i bias il secondo (`params[0][1]`).
+[03:17] Il prodotto matrice-matrice si esegue con `x_train @ params[0][0]`.
+[03:22] Successivamente, si somma il vettore dei bias `params[0][1]`. Il broadcasting di JAX gestisce correttamente la somma tra la matrice risultante e il vettore dei bias, dato che le dimensioni sono compatibili.
+[03:28] Per generalizzare il processo a una rete con più strati, si definisce la funzione `forward(params, x)`.
+[03:31] Si utilizza una sintassi Python per ciclare sui parametri di tutti gli strati, tranne l'ultimo: `for w, b in params[:-1]:`.
+[03:35] Questa sintassi permette di "spacchettare" direttamente la tupla `(w, b)` contenuta in ogni elemento della lista `params`. Il ciclo si ferma prima dell'ultimo strato perché quest'ultimo richiede una funzione di attivazione diversa (la sigmoide, per problemi di classificazione binaria).
+[03:46] All'interno del ciclo, l'output dello strato corrente viene calcolato e riassegnato alla variabile `x`: `x = jnp.tanh(x @ w + b)`.
+[03:53] La funzione di attivazione per gli strati nascosti è la tangente iperbolica (`tanh`).
+[03:56] Dopo il ciclo, si gestisce l'ultimo strato. I pesi `W` e i bias `B` dell'ultimo strato vengono estratti da `params[-1]`.
+[03:59] L'output finale della rete è calcolato applicando la funzione sigmoide: `return sigmoid(x @ W + B)`.
+[04:03] Punti chiave di questa implementazione: il broadcasting dei bias `B` avviene per riga e la moltiplicazione `x @ W` segue la convenzione in cui ogni riga di `x` è un campione.
+[04:10] La gestione delle dimensioni è una delle parti più delicate e una fonte comune di errori.
+## Funzione di Perdita e Aggiornamento dei Parametri
+[04:15] Si implementa la funzione di perdita, chiamata `binary_cross_entropy`, che accetta i parametri `params`, l'input `X` e le etichette reali `Y`.
+[04:19] Per prima cosa, si calcolano le predizioni `y_pred` della rete tramite la funzione `forward(params, X)`.
+[04:22] La formula della binary cross-entropy viene implementata calcolando la media su tutti i campioni:
+$$
+\text{loss} = - \frac{1}{N} \sum_{i=1}^{N} [y_i \log(\hat{y}_i) + (1 - y_i) \log(1 - \hat{y}_i)]
+$$
+Il codice corrispondente è `jnp.mean(-(Y * jnp.log(y_pred) + (1 - Y) * jnp.log(1 - y_pred)))`.
+[04:35] L'ultimo componente fondamentale è la funzione `update`, che aggiorna i parametri della rete.
+[04:39] Questa funzione riceve i parametri correnti `params`, un minibatch di dati (`x`, `y`) e il `learning_rate`.
+[04:43] Si utilizza il decoratore `@jax.jit` per compilare la funzione *just-in-time*, ottimizzandone l'esecuzione.
+[04:48] Per calcolare i gradienti, si usa `jax.grad`, che crea una funzione gradiente a partire dalla funzione di perdita. Poiché i parametri sono il primo argomento della `binary_cross_entropy`, non sono necessarie modifiche.
+[04:54] I gradienti vengono calcolati valutando la funzione gradiente sui parametri e sul minibatch correnti: `grads = grad_fn(params, x, y)`.
+[05:00] Un approccio per aggiornare i parametri sarebbe iterare su ogni peso e bias con un doppio ciclo `for`.
+[05:10] Tuttavia, questo approccio non è ideale. Man mano che le architetture delle reti neurali diventano più complesse (es. Reti Convoluzionali, Transformer), i parametri sono organizzati in strutture dati complesse come dizionari annidati.
+[05:19] Scrivere cicli `for` annidati per far corrispondere parametri e gradienti diventa macchinoso e soggetto a errori.
+[05:25] JAX offre una soluzione più elegante e generale: la funzione `tree_map` dal sottomodulo `jax.tree_util`.
+[05:29] Un "albero" (`tree`) in questo contesto si riferisce alla struttura dati annidata che contiene i parametri (liste di tuple, dizionari, ecc.).
+[05:37] La funzione `tree_map` permette di applicare una funzione a ogni "foglia" (elemento finale) di uno o più alberi contemporaneamente.
+[05:41] La sintassi è la seguente: `updated_params = jax.tree_util.tree_map(lambda p, g: p - learning_rate * g, params, grads)`.
+[05:48] Questa singola riga sostituisce l'intero doppio ciclo `for`. `tree_map` applica la funzione `lambda` a ogni coppia di elementi corrispondenti `(p, g)` presi dagli alberi `params` e `grads`. La funzione `lambda p, g: p - learning_rate * g` definisce la regola di aggiornamento del gradient descent.
+[06:01] `p` rappresenta un parametro (un tensore di pesi o un vettore di bias) e `g` il suo gradiente corrispondente.
+[06:10] Gli ultimi due argomenti di `tree_map` sono le strutture dati su cui operare (`params` e `grads`).
+[06:18] Questo approccio è estremamente potente perché si adatta a qualsiasi struttura dati, a condizione che `params` e `grads` abbiano la stessa struttura "ad albero".
+[06:23] Ad esempio, se si utilizzano metodi di ottimizzazione più avanzati, la logica di aggiornamento può essere modificata all'interno della funzione `lambda` senza cambiare il resto del codice.
+[06:38] La funzione `tree_map` restituisce una nuova struttura dati con i parametri aggiornati, che viene quindi ritornata dalla funzione `update`.
+[06:44] L'uso di `tree_map` è una pratica standard e consigliata per scrivere codice JAX robusto e scalabile, specialmente con architetture complesse.
+# Capitolo 9: Addestramento, Valutazione e Visualizzazione del Modello Generalizzato
+## Impostazione degli Iperparametri e Inizializzazione
+[07:05] Si procede con la fase di addestramento. Vengono definiti gli iperparametri: `layer_sizes` = `[2, 16, 1]` (input a 2 dimensioni, uno strato nascosto da 16 neuroni, output a 1 dimensione), `learning_rate` = `0.01`, `epochs` = `5000`, `batch_size` = `64`.
+[07:15] Questi valori sono forniti come iperparametri che garantiscono buoni risultati per questo specifico problema. In un caso reale, la loro ricerca (tuning) è una parte fondamentale del processo.
+[07:21] I parametri della rete vengono inizializzati usando la funzione `init_mlp_params`.
+## Gestione dei Minibatch e Permutazione dei Dati
+[07:24] L'addestramento avviene tramite minibatch. Per prima cosa, si calcola il numero di batch per epoca: `num_batches = x_train.shape[0] // batch_size`.
+[07:34] Si entra nel ciclo di addestramento principale, che itera per il numero di epoche specificato.
+[07:38] All'inizio di ogni epoca, è fondamentale mescolare (`shuffle`) il dataset di addestramento per evitare che la rete impari l'ordine dei dati e per migliorare la convergenza.
+[07:42] Per fare ciò, si genera una nuova chiave casuale ad ogni epoca.
+[07:44] Successivamente, si crea una permutazione degli indici del dataset di addestramento: `permutation = jax.random.permutation(key, x_train.shape[0])`.
+[07:51] `permutation` è un array contenente gli indici da 0 al numero di campioni, disposti in ordine casuale.
+[08:03] Si utilizzano questi indici per riordinare sia i dati di input (`x_train`) che le etichette (`y_train`), creando `x_shuffled` e `y_shuffled`.
+## Ciclo sui Minibatch e Aggiornamento dei Parametri
+[08:14] Ora che il dataset è mescolato, si può iterare sui minibatch.
+[08:17] Si avvia un ciclo interno che itera `num_batches` volte. In ogni iterazione `i`, si calcolano gli indici di inizio (`start = i * batch_size`) e fine (`end = start + batch_size`) del minibatch corrente.
+[08:24] Ad esempio, per `i=0`, il batch va da 0 a 64. Per `i=1`, da 64 a 128, e così via.
+[08:32] Si estraggono i dati del minibatch (`x_batch`, `y_batch`) dagli array `x_shuffled` e `y_shuffled` usando lo slicing.
+[08:45] Con il minibatch pronto, si chiama la funzione `update` per aggiornare i parametri della rete.
+[08:50] Alla funzione `update` vengono passati i parametri correnti, `x_batch`, `y_batch` e il `learning_rate`.
+## Monitoraggio della Perdita
+[08:55] Per monitorare l'andamento dell'addestramento, si calcola e si stampa la funzione di perdita a intervalli regolari (es. ogni 100 epoche).
+[09:00] È importante notare che la perdita viene calcolata sull'intero dataset di test (`x_test`, `y_test`), non sul minibatch di addestramento. Questo fornisce una stima più stabile e imparziale delle prestazioni del modello su dati mai visti.
+[09:10] Il codice esegue l'addestramento e si osserva che il valore della funzione di perdita diminuisce progressivamente, indicando che la rete sta imparando.
+## Calcolo delle Predizioni e dell'Accuratezza
+[09:22] Una volta terminato l'addestramento, si valutano le prestazioni del modello sul dataset di test.
+[09:24] Le predizioni (`predictions`) vengono ottenute eseguendo la `forward propagation` con i parametri addestrati e i dati di test (`x_test`).
+[09:28] L'output della rete è una probabilità (un valore tra 0 e 1). Per ottenere una classificazione binaria (vero/falso o 1/0), si applica una soglia di 0.5. Le predizioni diventano `True` se la probabilità è maggiore di 0.5, altrimenti `False`.
+[09:32] L'accuratezza (`accuracy`) viene calcolata come la media dei casi in cui le predizioni binarie corrispondono alle etichette reali (`y_test`). Questo funziona perché `(predictions == y_test)` produce un array di `True` (1) e `False` (0), e la media di questo array è la frazione di predizioni corrette.
+## Matrice di Confusione
+[09:42] Si stampa l'accuratezza e si calcola la matrice di confusione per analizzare più in dettaglio gli errori.
+[09:45] La matrice di confusione viene calcolata passando le etichette reali del test (`y_test`) e le predizioni del modello.
+[09:49] Nel caso specifico, si ottiene un'accuratezza del 98% sul dataset di test. La matrice di confusione mostra che c'è stato un solo errore di classificazione.
+[09:55] Gli elementi sulla diagonale principale rappresentano le predizioni corrette: 34 campioni della prima classe classificati correttamente e 25 della seconda.
+[09:59] L'elemento fuori diagonale indica un campione classificato erroneamente.
+## Visualizzazione del Confine Decisionale
+[10:03] Infine, i risultati vengono visualizzati graficamente. Il grafico mostra i dati di addestramento (cerchi), i dati di test (croci) e il confine decisionale appreso dalla rete neurale.
+[10:08] Per tracciare il confine decisionale, si crea una griglia di punti molto fitta (`meshgrid`) che copre l'intero spazio bidimensionale.
+[10:15] La rete neurale viene valutata su ogni punto di questa griglia.
+[10:18] A ogni punto viene assegnato un colore (rosa o azzurro) in base alla classe predetta dalla rete.
+[10:21] Il risultato è una mappa a colori che mostra come la rete suddivide lo spazio. Il confine tra le due regioni colorate è il confine decisionale. Si può osservare che la rete ha imparato una separazione non lineare per distinguere le due classi.

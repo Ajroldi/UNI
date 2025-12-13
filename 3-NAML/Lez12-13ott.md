@@ -45,11 +45,11 @@ $$
 dove $N$ è il numero di campioni.
 [09:00] Il problema della ridge regression è formulato come la ricerca di un vettore di pesi $\mathbf{w}$ che minimizzi la seguente funzione di costo:
 $$
-\min_{\mathbf{w}} || \Phi \mathbf{w} - \mathbf{y} ||_2^2 + \lambda || \mathbf{w} ||_2^2
+\min_{\mathbf{w}} \| \Phi \mathbf{w} - \mathbf{y} \|_2^2 + \lambda \| \mathbf{w} \|_2^2
 $$
 dove:
 - $\mathbf{y}$ è il vettore degli output (etichette o valori).
-- Il secondo termine, $\lambda || \mathbf{w} ||_2^2$, è la regolarizzazione che penalizza pesi con norma elevata per prevenire l'overfitting.
+- Il secondo termine, $\lambda \| \mathbf{w} \|_2^2$, è la regolarizzazione che penalizza pesi con norma elevata per prevenire l'overfitting.
 [09:30] La differenza principale rispetto alla formulazione classica è la dimensione della matrice dei dati. Originariamente, la matrice $X$ aveva dimensioni $N \times p$ (N campioni, p caratteristiche). Ora, la matrice $\Phi$ ha dimensioni $N \times D$, con $D > p$.
 [09:45] La risoluzione di questo problema di minimizzazione presenta delle sfide. In primo luogo, la dimensione $D$ dello spazio arricchito può essere molto grande. Nell'esempio precedente, si è passati da $\mathbb{R}^2$ a $\mathbb{R}^6$, ma l'aumento può essere molto più drastico.
 [10:15] Questo comporta due problemi principali:
@@ -76,10 +76,13 @@ Il requisito fondamentale è che la funzione $K$ sia costruita in modo da non ri
     - Se $c>0$, vengono inclusi anche termini di ordine inferiore, come le costanti.
 [13:45] 2.  **Kernel Gaussiano (o RBF - Radial Basis Function)**: È uno dei kernel più utilizzati ed è dato da:
     $$
-    K(\mathbf{x}, \mathbf{z}) = \exp\left(-\frac{||\mathbf{x} - \mathbf{z}||^2}{2\sigma^2}\right)
+    K(\mathbf{x}, \mathbf{z}) = \exp\left(-\frac{\|\mathbf{x} - \mathbf{z}\|^2}{2\sigma^2}\right)
     $$
     dove $\sigma$ è un parametro che controlla la larghezza del kernel.
 [14:15] L'obiettivo è quindi passare dalla risoluzione del problema con la matrice esplicita $\Phi^T \Phi$ a una soluzione che sfrutti unicamente la funzione kernel.
+
+![Esempi di funzioni kernel (polinomiale, gaussiano/RBF)](img/KM1_page_02.png)
+
 ## Capitolo 3: Il Teorema del Rappresentatore e la Soluzione del Problema
 ### Il Teorema del Rappresentatore
 [14:30] Il fondamento teorico che giustifica il metodo Kernel è un risultato noto come **Teorema del Rappresentatore**. Qui ne viene presentata una versione semplificata, sufficiente per comprenderne l'idea di base.
@@ -109,16 +112,19 @@ $$
 \langle \mathbf{w}, \phi(\mathbf{x}_i) \rangle = \langle \mathbf{w}_{||}, \phi(\mathbf{x}_i) \rangle
 $$
 Questo significa che il termine di errore dipende solo dalla componente parallela $\mathbf{w}_{||}$.
-[18:15] Analizziamo ora il termine di regolarizzazione, $||\mathbf{w}||^2$. Sfruttando l'ortogonalità tra $\mathbf{w}_{||}$ e $\mathbf{w}_{\perp}$ (Teorema di Pitagora):
+[18:15] Analizziamo ora il termine di regolarizzazione, $\|\mathbf{w}\|^2$. Sfruttando l'ortogonalità tra $\mathbf{w}_{||}$ e $\mathbf{w}_{\perp}$ (Teorema di Pitagora):
 $$
-||\mathbf{w}||^2 = ||\mathbf{w}_{||} + \mathbf{w}_{\perp}||^2 = ||\mathbf{w}_{||}||^2 + ||\mathbf{w}_{\perp}||^2
+\|\mathbf{w}\|^2 = \|\mathbf{w}_{||} + \mathbf{w}_{\perp}\|^2 = \|\mathbf{w}_{||}\|^2 + \|\mathbf{w}_{\perp}\|^2
 $$
 [18:30] Mettendo insieme i risultati, la funzione da minimizzare diventa:
 $$
-\min_{\mathbf{w}_{||}, \mathbf{w}_{\perp}} \left( || \Phi \mathbf{w}_{||} - \mathbf{y} ||_2^2 + \lambda (||\mathbf{w}_{||}||^2 + ||\mathbf{w}_{\perp}||^2) \right)
+\min_{\mathbf{w}_{||}, \mathbf{w}_{\perp}} \left( \| \Phi \mathbf{w}_{||} - \mathbf{y} \|_2^2 + \lambda (\|\mathbf{w}_{||}\|^2 + \|\mathbf{w}_{\perp}\|^2) \right)
 $$
-[18:45] Per minimizzare questa espressione, dato che il termine $||\mathbf{w}_{\perp}||^2$ è non negativo e non influenza il termine di errore, la scelta ottimale è porlo a zero, ovvero $\mathbf{w}_{\perp} = \mathbf{0}$.
+[18:45] Per minimizzare questa espressione, dato che il termine $\|\mathbf{w}_{\perp}\|^2$ è non negativo e non influenza il termine di errore, la scelta ottimale è porlo a zero, ovvero $\mathbf{w}_{\perp} = \mathbf{0}$.
 [19:00] Di conseguenza, la soluzione ottima $\mathbf{w}^*$ deve appartenere interamente allo spazio generato dai vettori delle caratteristiche di addestramento. Può quindi essere rappresentata come una combinazione lineare di tali vettori.
+
+![Teorema del Rappresentatore: dimostrazione geometrica](img/KM1_page_03.png)
+
 ### Applicazione del Teorema e Soluzione del Problema
 [19:30] Il messaggio chiave del Teorema del Rappresentatore è che la soluzione di un problema di regressione regolarizzato può essere scritta come una combinazione lineare dei vettori di caratteristiche dei dati di addestramento.
 [20:00] Sapendo che la soluzione ottima $\mathbf{w}^*$ è data da $\Phi^T \boldsymbol{\alpha}$, possiamo sostituire questa espressione nel problema di minimizzazione originale.
@@ -200,6 +206,9 @@ $$
 $$
 che è esattamente l'espressione del kernel.
 [28:00] Questo dimostra che la funzione kernel $K(x, z) = (xz+1)^2$ corrisponde implicitamente alla mappa delle caratteristiche $\phi(x) = (x^2, \sqrt{2}x, 1)$.
+
+![Esempio kernel polinomiale: calcolo esplicito della matrice K](img/KM1_page_04.png)
+
 [28:15] Il punto fondamentale è che, scegliendo una funzione kernel appropriata, non è necessario definire esplicitamente la mappa $\phi$, arricchire i vettori e poi calcolare il prodotto scalare. Tutto è racchiuso nella scelta della funzione kernel.
 ## Capitolo 4: Applicazioni dei Metodi Kernel e Introduzione al PageRank
 ### Applicazioni del Teorema del Rappresentatore
@@ -240,6 +249,9 @@ $$
 -   $A_{13} = 1$: c'è un link dalla pagina 3 alla pagina 1.
 -   $A_{14} = 1$: c'è un link dalla pagina 4 alla pagina 1.
 Lo stesso procedimento si applica per le altre righe della matrice, che cattura così tutte le connessioni della rete.
+
+![PageRank: costruzione della matrice di adiacenza e transizione](img/PR1_page_02.png)
+
 [03:30] Il passo successivo è la normalizzazione della matrice di adiacenza. A partire da $A$, si costruisce una nuova matrice $M$ normalizzando ogni colonna in modo che la somma dei suoi elementi sia pari a 1.
 [03:40] La matrice normalizzata $M$ avrà quindi colonne la cui somma è 1. Ad esempio, se una colonna di $A$ ha due '1', gli elementi corrispondenti in $M$ diventeranno $1/2$. Se una colonna ha un solo '1', l'elemento corrispondente in $M$ sarà 1.
 [03:50] Qual è il significato di questa matrice di adiacenza normalizzata, $M$?
@@ -275,6 +287,9 @@ $$
 -   L'autovettore corrispondente a $\lambda = 1$ è unico (a meno di un fattore di scala).
 -   Inoltre, questo autovettore può essere scelto in modo da avere componenti strettamente positive, il che permette di interpretarle come probabilità.
 [06:00] Nell'implementazione reale dell'algoritmo di Google, la matrice utilizzata non è esattamente la semplice matrice di transizione presentata, ma l'idea di base rimane la stessa.
+
+![Teorema di Perron-Frobenius: proprietà delle matrici stocastiche](img/PR1_page_03.png)
+
 [06:07] Sapendo che la coppia autovalore-autovettore ha le proprietà desiderate (l'autovalore è il più grande e l'autovettore è unico e positivo), ha senso cercare proprio questo autovettore $\pi$.
 ## Capitolo 6: Calcolo dell'Autovettore Dominante e Completamento di Matrici
 ### Calcolo dell'Autovettore: il Metodo delle Potenze
@@ -328,6 +343,9 @@ Il vettore $x_k$ converge quindi alla direzione dell'autovettore associato all'a
 [08:45] Ovviamente, ogni utente non ha valutato tutti i film disponibili, ma solo un piccolo sottoinsieme.
 [08:52] La situazione è analoga a quella di avere una matrice con alcuni valori noti (le valutazioni date) e molte posizioni vuote (valori sconosciuti). Ad esempio, potremmo non sapere se a un utente "Einstein" piacerebbe il film "Il Padrino".
 [09:02] L'obiettivo è riuscire a inserire una valutazione significativa in queste caselle vuote. In sintesi, il problema consiste nel predire le valutazioni mancanti.
+
+![Matrix Completion: problema Netflix e applicazioni](img/KM1_page_05.png)
+
 [09:10] Un altro esempio di applicazione è il problema dell'**inpainting** di immagini. Si ha un'immagine con una porzione mancante e si vuole riempire quest'area con contenuti coerenti con ciò che la circonda.
 ### L'Ipotesi di Basso Rango
 [09:25] L'idea fondamentale per risolvere questo problema è la seguente: data la matrice $X$ di dimensioni $n \times d$ (con $n$ utenti e $d$ film), si cerca di trovare una sua approssimazione o fattorizzazione.

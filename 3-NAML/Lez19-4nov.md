@@ -1,2251 +1,582 @@
-# Lezione 19 - Ottimizzazione per Deep Learning
-**Data:** 4 Novembre
-**Argomenti:** Convergenza Gradient Descent, Line Search, Ottimizzazione Vincolata, Stochastic Gradient Descent
-
----
-
-## PARTE 1: ANALISI DI CONVERGENZA DEL GRADIENT DESCENT
-
-### 1.1 Introduzione e Setup del Problema
-
-00:00:02 
-Okay, quindi possiamo ripartire dal punto dove siamo arrivati ieri. Solo come promemoria, la prima idea era **limitare l'errore tra i valori funzionali**.
-
-**Obiettivo**: Siamo interessati a valutare qual è un limite (bound) per questa quantità:
-$$f(x_t) - f(x^*)$$
-
-Dove:
-- $x_t$ = iterazione corrente
-- $x^*$ = soluzione ottima
-- $f$ = funzione obiettivo da minimizzare
-
-### 1.2 Risultato Base dalla Convessità
-
-00:00:34 
-E assumendo **solo la convessità**, siamo stati in grado di arrivare a questa conclusione. Okay, questa formula è il punto di partenza per in realtà questa e questa. Sono i **due punti di partenza** per i seguenti risultati che vedremo.
-
-**Strategia**: Questi risultati sono ottenuti aggiungendo **ulteriori ipotesi** sulla funzione che vogliamo minimizzare:
-1. Convessità (base)
-2. + Lipschitz continuità del gradiente
-3. + L-smoothness
-4. + Strong convexity
-
----
-
-## PARTE 2: CASO LIPSCHITZ CONVESSO
-
-### 2.1 Ipotesi e Setup
-
-00:01:16 
-Quindi iniziamo con il primo risultato. In particolare, qui, stiamo assumendo che abbiamo:
-
-#### Ipotesi 1: Limitatezza del Gradiente (Lipschitz)
-$$||\nabla f(x)|| \leq B \quad \forall x$$
-
-La funzione ha **gradiente limitato** - la norma del gradiente è limitata da una costante $B$.
-
-#### Ipotesi 2: Guess Iniziale Limitato
-
-00:01:48 
-Abbiamo anche un'ipotesi aggiuntiva sull'ipotesi iniziale:
-$$||x_0 - x^*|| \leq R$$
-
-Stiamo assumendo che l'ipotesi iniziale $x_0$ non sia troppo lontana dalla vera soluzione $x^*$, o almeno sia limitata, di nuovo, da una costante $R$ (capitale).
-
-### 2.2 Teorema: Convergenza con Learning Rate Ottimale
-
-In questa ipotesi, se scegliamo un **tasso di apprendimento** (learning rate) o passo adatto dato da:
-
-$$\gamma^* = \frac{R}{B\sqrt{T}}$$
-
-Dove:
-- $T$ = numero di iterazioni (capitale T)
-- $R$ = bound sulla distanza iniziale
-- $B$ = bound sul gradiente
-
-00:02:24 
-Capitale T è il numero di iterazioni che eseguiremo del metodo della discesa del gradiente. Allora abbiamo questa stima per la differenza tra le iterate:
-
-$$||x_{best} - x^*|| = O\left(\frac{RB}{\sqrt{T}}\right)$$
-
-### 2.3 Velocità di Convergenza
-
-È chiaro che se questo è vero, allora essenzialmente la finale, se vogliamo, valutazione della funzione meno la valutazione nella vera soluzione è dell'ordine di $\frac{1}{\sqrt{T}}$.
-
-00:03:14 
-Quindi, se vogliamo avere una soluzione che abbiamo chiamato $x_{best}$ qui, soddisfacente una **tolleranza** $\epsilon$:
-
-$$f(x_{best}) - f(x^*) \leq \epsilon$$
-
-Allora possiamo, sfruttando queste relazioni quindi vogliamo avere la differenza tra i due valori funzionali fino a un'accuratezza o tolleranza epsilon allora possiamo sfruttando.
-
-00:03:47 
-questa relazione o questa se volete potete **stimare il numero di iterazioni**:
-
-$$T = O\left(\frac{R^2 B^2}{\epsilon^2}\right)$$
-
-**Interpretazione**: Quindi significa che rispetto alla tolleranza che volete raggiungere, avete una **velocità di convergenza** dell'ordine di:
-
-$$\boxed{O\left(\frac{1}{\epsilon^2}\right)}$$
-
-00:04:21 
-**Esempio pratico**: Il che significa che se volete, per esempio, una tolleranza dell'ordine di $\epsilon = 10^{-2}$, allora dovete eseguire, almeno teoricamente, un numero di iterazioni:
-
-$$T \approx \frac{R^2 B^2}{(10^{-2})^2} = 10^4 \cdot R^2 B^2$$
-
-che può essere piuttosto grande!
-
-### 2.4 Dimostrazione (Sketch)
-
-Okay, quindi qual è l'idea della dimostrazione di questo risultato?
-
-00:05:11 
-**Strategia**: Questa è abbastanza semplice. Se partite dal risultato dell'**analisi di base** (BA1), e aggiungete le ipotesi aggiuntive:
-
-1. ✓ Gradiente limitato: $||\nabla f|| \leq B$
-2. ✓ Guess iniziale limitato: $||x_0 - x^*|| \leq R$
-
-Abbiamo che questo termine, il primo termine, può essere limitato usando queste ipotesi e il secondo può essere limitato usando il limite sull'ipotesi iniziale.
-
-00:05:46 
-Quindi abbiamo questa condizione e in realtà $B$ è una costante. Quindi qui abbiamo solo:
-
-$$Q(\gamma) = \frac{\gamma B^2 T}{2} + \frac{R^2}{2\gamma}$$
-
-#### Ottimizzazione del Learning Rate
-
-Ora, se guardate il teorema, stiamo affermando che c'è un **valore ottimale** per il tasso di apprendimento/dimensione del passo. Quindi qual è l'idea?
-
-00:06:18 
-L'idea è considerare questa funzione $Q(\gamma)$, e vogliamo **minimizzare rispetto a $\gamma$** quella funzione:
-
-$$\frac{dQ}{d\gamma} = \frac{B^2 T}{2} - \frac{R^2}{2\gamma^2} = 0$$
-
-Calcolando la derivata di quello, il lato destro di questa disuguaglianza rispetto a $\gamma$, e la stiamo impostando a zero, in modo da poter ottenere:
-
-$$\gamma^* = \frac{R}{B\sqrt{T}}$$
-
-E se sostituite indietro nel lato destro, quello che avete è esattamente il risultato che avete qui.
-
-00:06:56 
-**Riepilogo Risultato 1**:
-- ✓ Ipotesi: Convesso + Lipschitz
-- ✓ Learning rate ottimale: $\gamma^* = \frac{R}{B\sqrt{T}}$
-- ✓ Convergenza: $O\left(\frac{1}{\epsilon^2}\right)$
-- ⚠️ Questo è il primo risultato, che è importante tenerlo a mente
-
-Quindi. Questo è il primo risultato, che è, e questo è importante tenerlo a mente, dell'ordine di 1 su epsilon al quadrato, okay? Ovviamente, significa che l'errore è, l'errore medio diminuisce con un fattore che dipende dal quadrato, 1 su la radice quadrata di 2.
-
----
-
-## PARTE 3: CASO SMOOTH CONVESSO (L-SMOOTH)
-
-### 3.1 Condizione di L-Smoothness
-
-00:07:39 
-Cosa succede se aggiungiamo la condizione sulla **smoothness** della funzione?
-
-**Definizione L-Smooth**: Una funzione $f$ è **L-smooth** se:
-$$f(y) \leq f(x) + \nabla f(x)^T(y-x) + \frac{L}{2}||y-x||^2$$
-
-**Interpretazione**: Il gradiente non cambia troppo velocemente - è Lipschitz continuo.
-
-### 3.2 Scelta del Learning Rate
-
-Quindi, qui assumiamo che la funzione sia smooth e che il tasso di apprendimento sia:
-
-$$\gamma = \frac{1}{L}$$
-
-dove $L$ è la costante di smoothness.
-
-### 3.3 Proprietà di Sufficient Decrease
-
-00:08:17 
-Con questa scelta di $\gamma$, otteniamo la condizione di **sufficient decrease** (diminuzione sufficiente):
-
-$$f(x_{k+1}) \leq f(x_k) - \frac{1}{2L}||\nabla f(x_k)||^2$$
-
-Questa condizione è solitamente chiamata diminuzione sufficiente. Quindi, significa che se la funzione è L-smooth, allora scegliendo questo $\gamma = \frac{1}{L}$, avete la garanzia che i valori funzionali che state costruendo usando il metodo della discesa del gradiente stanno diminuendo.
-
-00:08:47 
-Quindi f è uguale a f meno qualcosa che è positivo. Quindi avete effettivamente una sequenza decrescente di valori funzionali. Qui la dimostrazione è di nuovo abbastanza semplice. Se partite con la definizione della L-smoothness.
-
-00:09:24 
-E sostituite in quella relazione la relazione ricorsiva che definisce la discesa del gradiente con il tasso di apprendimento 1 su L, che è esattamente questa. Questo non è altro che il metodo della discesa del gradiente usando il tasso di apprendimento 1 su L. Allora avete che potete sostituire questa quantità nella precedente, quindi in particolare qui.
-
-00:10:03 
-Ora qui avete il gradiente trasposto per il gradiente, che è la norma del gradiente al quadrato, che è uguale a questo. Quindi qui avete meno 1 su L per il gradiente al quadrato più 1 su 2L gradiente al quadrato. E poi avete il gradiente trasposto per il gradiente al quadrato, che è la norma del gradiente al quadrato, che è la norma del gradiente al quadrato. E infine, avete il risultato, okay? Quindi è abbastanza facile ottenere la condizione di diminuzione sufficiente, okay?
-
-00:10:52 
-Ora passiamo al caso dove abbiamo una funzione che è effettivamente convessa e L-smooth. In questo caso, quindi il risultato precedente ci sta dicendo che, Per due iterazioni consecutive, abbiamo una sequenza decrescente.
-
-00:11:23 
-Qui, quello che vogliamo dimostrare è che quando eseguite capitale T iterazioni, la differenza tra i valori funzionali all'ultima iterazione meno i valori funzionali nella vera soluzione è limitata da una costante che dipende dal numero di iterazioni e dall'errore iniziale.
-
-00:11:55 
-Di nuovo, prima di dare un'occhiata alla dimostrazione, quello che possiamo notare è che ora, se... di nuovo assumiamo che l'ipotesi iniziale sia vicina alla vera soluzione o almeno sia limitata dalla costante r allora il risultato precedente può essere scritto come l r al quadrato su t su t.
-
-00:12:27 
-Quindi di nuovo se vogliamo raggiungere epsilon allora dovete eseguire un numero di iterazioni che è l r al quadrato su due epsilon. Quindi ora la differenza principale è che, è che la convergenza, quindi il numero di iterazioni, non è uno su epsilon al quadrato ma.
-
-00:12:58 
-uno su epsilon. Quindi aggiungendo ulteriori condizioni sulla funzione f, ovviamente stiamo ottenendo una migliore velocità di convergenza. Quindi qual è l'idea della dimostrazione? Di nuovo, partiamo dal risultato di base dove abbiamo solo usato gamma uguale a uno su.
-
-00:13:32 
-capitale L. Poi possiamo usare la condizione di diminuzione sufficiente. che può essere usata o interpretata anche come un limite sul gradiente. Quindi il gradiente è limitato dalla differenza tra due iterazioni consecutive. Quindi e quindi se partiamo da questa e sommiamo su tutte le iterazioni, abbiamo questa disuguaglianza.
-
-00:14:13 
-Quindi qui abbiamo la somma di tutti i gradienti e qui abbiamo la somma della differenza tra due iterazioni consecutive. Come al solito, l'idea è che qui abbiamo una somma telescopica, quindi in due termini consecutivi della somma, due valori funzionali si cancellano.
-
-00:14:43 
-Quindi, Il risultato finale della somma telescopica è solo la differenza tra l'ipotesi iniziale, il valore funzionale sull'ipotesi iniziale, meno il valore funzionale sull'ultima iterazione. E quindi mettendo tutto insieme, abbiamo questo limite sull'intersezione media del gradiente.
-
-00:15:17 
-Quindi possiamo considerare l'equazione originale, quella ottenuta dall'analisi di base, e possiamo inserire questo termine qui. Quindi ora... Là, e ora abbiamo questa disuguaglianza, che, ricordate che quello che vogliamo dimostrare è che questa condizione è vera, okay?
-
-00:15:59 
-Quindi, qui, essenzialmente, potete portare i valori funzionali sul lato sinistro. Di nuovo, qui avete una somma telescopica, e con il valore iniziale e finale là, che è dato limitato da L su 2 per l'errore sull'ipotesi iniziale.
-
-00:16:35 
-Poiché sappiamo che abbiamo la condizione di diminuzione sufficiente, quindi il valore funzionale in t più 1 è minore o uguale al valore funzionale in t, questo valore è il più piccolo tra tutti i valori che possiamo calcolare lungo la procedura. Quindi significa che possiamo dire che invece di prendere questa somma, possiamo trovare che questa somma è maggiore o uguale a capitale T per questo valore, che è il più piccolo.
-
-00:17:23 
-E quindi... Combinando i due risultati, abbiamo che la differenza tra la funzione e il valore nell'iterazione finale meno la funzione e il valore nella vera soluzione è limitata dall'errore iniziale, ovviamente su x.
-
-00:17:55 
-Ora, se ricordate ieri, abbiamo aggiunto un'ulteriore condizione, che era quella della convessità fortemente mu o convessità. Quindi ora assumiamo che la funzione sia L smooth e mu fortemente convessa.
-
-00:18:28 
-Quello che vogliamo ottenere qui sono due risultati, non solo sui valori funzionali, ma anche sulla distanza tra le iterate all'indice t più 1 e la vera soluzione. Quindi stiamo anche limitando i valori della soluzione, non solo dei valori funzionali.
-
-00:19:07 
-In qualche modo, questo numero, mu su l su mu, può essere interpretato come il numero di condizionamento del problema. E qui, se consideriamo questa espressione, ed eseguiamo essenzialmente la stessa operazione che abbiamo visto prima, quello che possiamo dimostrare è che il numero di passi richiesti per raggiungere una data tolleranza è ora dell'ordine di k,
-
-00:19:43 
-che è il numero di condizionamento, per il logaritmo di 1 su epsilon. Immagino che siate tutti familiari con il concetto di numero di condizionamento. Cos'è un numero di condizionamento in generale? Qual è il significato di un numero di condizionamento per un problema numerico? Quindi se avete un problema numerico qualsiasi, che può essere anche un problema f di x d uguale a zero,
-
-00:20:25 
-00:20:25 
-dove f è la relazione funzionale che collega i dati all'incognita. Okay, quindi questa è una rappresentazione totalmente astratta di qualsiasi problema che potete immaginare. Il numero di condizionamento è un numero che vi dice essenzialmente quanto è sensibile la soluzione.
-
-00:20:59 
-rispetto a variazioni sui dati. Okay. E questo è, per esempio, se ricordate, immagino che abbiate visto sicuramente questo concetto quando avete studiato i sistemi lineari per le matrici, potete definire un numero di condizionamento. Quindi anche per qualsiasi matrice quadrata A, il numero di condizionamento della matrice è dato dalla norma di A per la norma di A alla meno uno, dove la norma può essere qualsiasi norma matriciale.
-
-00:21:43 
-OK, questo numero è maggiore o uguale a uno, e di solito è adottato come misura della sensibilità alla perturbazione nei dati. soluzione medica del problema perché per esempio se state usando il metodo del gradiente o il metodo del gradiente coniugato il numero di iterazioni che dovete eseguire per.
-
-00:22:19 
-raggiungere una data tolleranza o se volete la costante che riduce l'errore ad ogni passo dell'iterazione dipende dal numero di condizionamento per il gradiente dipende dal numero di condizionamento per il gradiente coniugato dipende dalla radice quadrata del numero di condizionamento ma comunque, influenza anche la velocità di convergenza del metodo che è esattamente quello che abbiamo qui o qui.
-
-00:22:50 
-okay quindi è esattamente quello che stiamo trovando anche in questo caso quindi in generale quando trovate il termine numero di condizionamento, dovete sempre pensare alla sensibilità della soluzione rispetto alla perturbazione. La perturbazione può essere sui dati o anche, per esempio, in una matrice, quando avete un sistema lineare uguale a B,
-
-00:23:31 
-la perturbazione può essere sul lato destro, ma può essere anche perturbazione sulla matrice stessa. Quindi se perturbate leggermente un termine della matrice, qual è il risultato sulla soluzione? Forse avete visto che c'è un esempio famoso nel contesto delle matrici, che è la matrice di Hilbert, che è un esempio tipico di una matrice che è mal condizionata.
-
-00:24:04 
-Quindi significa che se modificate leggermente B, ottenete una soluzione che è totalmente diversa dalla precedente. Okay, quindi qual è l'idea della dimostrazione di questo risultato? Qui stiamo usando, prima di tutto, la prima relazione che abbiamo ottenuto nell'analisi di base.
-
-00:24:43 
-Ricordate che vi ho detto pochi minuti fa che... Dall'analisi di base dove stavamo per usare essenzialmente due risultati. Uno è il risultato riguardante il limite sulla media della differenza tra valori funzionali e il secondo è relativo al fatto che essenzialmente il gradiente, il prodotto scalare tra il gradiente e il vettore.
-
-00:25:17 
-che vi dà la differenza tra l'iterazione corrente e la vera soluzione. E questo è dato dall'espressione che avete là. Qui abbiamo sostituito. È solo scritto nella forma che useremo. E qui abbiamo solo riportato. La definizione di complessità forte.
-
-00:25:50 
-Nella condizione di convessità forte, che è questa, che è valida per qualsiasi coppia di punti, y e x, stiamo scegliendo x uguale all'iterazione corrente e y uguale alla vera soluzione. Quindi se sostituite questi due valori qui e riorganizzate la disuguaglianza, quello che ottenete è un limite di questo termine.
-
-00:26:25 
-Quindi potete trovare che questo gradiente per xd meno x star è maggiore o uguale a questa espressione, che coinvolge la costante mu che caratterizza la convessità forte mu della funzione. Quindi, ora sfrutteremo la prima relazione e questa. Quindi, BA1 e SC2.
-
-00:27:02 
-Quindi, se mettete insieme le due condizioni, avete la relazione nella parte superiore della slide che, riorganizzata, può essere usata per limitare questa quantità. che è l'ultimo termine okay quindi essenzialmente qui stiamo limitando l'errore all'iterazione t più uno.
-
-00:27:34 
-con qualcosa che dipende dall'errore all'iterazione precedente più qualcosa relativo al gradiente e ai valori funzionali la differenza tra i valori funzionali e l'iterazione precedente quindi ora chiamiamo questo termine gli ultimi due termini rumore rumore nel senso che è, qualcosa che sta uh uh perturbando questa quantità che è qualcosa che.
-
-00:28:06 
-ci si aspetta sia il termine buono in che senso, Questo è l'errore precedente. Questa è una costante che in generale è minore di uno. Quindi questo è un fattore che sta riducendo l'errore ogni volta. Quindi ora consideriamo questi due termini e vogliamo mostrare che il rumore anche per questi due termini è negativo.
-
-00:28:46 
-Quando la dimensione del passo, il tasso di apprendimento è dato da, come al solito, uno su L. Quindi sfruttiamo di nuovo la condizione di diminuzione sufficiente. Quindi abbiamo che la valutazione della funzione a t più uno è minore della precedente meno. costante. Sappiamo che x star è il minimo quindi significa che come abbiamo.
-
-00:29:19 
-notato prima questa condizione è soddisfatta quindi abbiamo che la condizione precedente può dovrebbe essere verificata anche quando invece di t più 1 stiamo scegliendo x star. Quindi abbiamo questa condizione f di x star meno f di x t è limitata da questa costante. Perché questo è utile? Perché abbiamo esattamente quel termine.
-
-00:29:55 
-qui. Quindi ora stiamo prendendo il risultato precedente, quello che abbiamo appena ottenuto, e lo stiamo mettendo qui. Gamma è uno su L, quindi stiamo mettendo gamma uno su L lo mettiamo qui, e quello che abbiamo è esattamente lo stesso termine che è uguale a.
-
-00:30:28 
-zero. Quindi il rumore, la somma dei due termini che abbiamo nella relazione precedente qui, questi due termini sono negativi. Quindi significa che questo è un termine che riduce l'errore ad ogni iterazione, e poiché questo è negativo, siamo in buona posizione. Quindi ora ricordate che il gioco vuole prima.
-
-00:31:07 
-dimostrare il risultato sulla distanza tra l'iterazione corrente e la vera soluzione. Quindi se consideriamo l'iterazione, questa relazione dove sappiamo che questo è negativo, possiamo trovare che in realtà x t più 1 meno x star.
-
-00:31:44 
-al quadrato è minore o uguale a questo termine e poi se sostituite gamma con 1 su L ottenete esattamente, questa relazione. Se applicate ricorsivamente questa relazione, ottenete che questo termine è, avete il termine uno meno mu su L alla potenza capitale T per l'ipotesi iniziale,
-
-00:32:18 
-l'errore dovuto all'ipotesi iniziale. Per la seconda parte, quindi in, vogliamo limitare i valori della funzione qui. Quello che stiamo usando è la caratterizzazione della L-smoothness, la definizione.
-
-00:32:57 
-Quindi notiamo che il gradiente quando valutato nel minimo della funzione è ovviamente zero, e se sostituite il risultato per questo termine che abbiamo ottenuto nel precedente, nel punto uno qui, quello che ottenete è esattamente il risultato finale. Quindi quello che avete ottenuto è che sia la distanza che i valori funzionali sono limitati dalla costante per l'iterazione precedente, o ovviamente anche in questo caso potete iterare come abbiamo fatto qui.
-
-00:33:52 
-potete arrivare all'ipotesi iniziale e lo stesso per i valori funzionali. Quindi per riassumere quello che abbiamo ottenuto, qui c'è una tabella in cui avete le diverse caratteristiche, della funzione che abbiamo assunto, partendo dalla Lipschitz convessa. Abbiamo visto che il.
-
-00:34:25 
-il numero di iterazioni per ottenere una data tolleranza è dell'ordine di 1 su epsilon al quadrato. Per la smooth convessa, abbiamo uno su epsilon, e per la smooth e fortemente convessa, abbiamo k, che è il numero di condizionamento, per il logaritmo di uno su epsilon. Quindi stiamo, essenzialmente, aggiungendo proprietà, quindi stiamo considerando funzioni che si comportano meglio, stiamo migliorando la velocità di convergenza dell'algoritmo.
-
-00:35:16 
-Qui, in tutte queste dimostrazioni, abbiamo... Assunto che il tasso di apprendimento è ottenuto, è dato, al tasso di apprendimento è dato un valore particolare, sia 1 su L, o nell'altro caso, nel primo caso era qui, era R su B per la radice quadrata di T.
-
-00:35:47 
-In ogni caso, in questa dimostrazione, il fatto che il tasso di apprendimento ha un valore particolare specifico è di fondamentale importanza per ottenere i risultati teorici. Cosa succede in pratica? È chiaro che, in pratica, molto spesso, o direi nella maggior parte delle situazioni, non sappiamo cos'è L, cos'è B, cos'è R, e così via.
-
-00:36:25 
-Quindi la domanda è, c'è un metodo per trovare un valore ragionevole per gamma per il tasso di apprendimento? Abbiamo visto ieri che il tasso di apprendimento è uno dei cosiddetti iperparametri, e il calcolo del suo valore, di solito viene fatto con una procedura per tentativi ed errori, può essere.
-
-00:36:57 
-guidato in qualche modo ispezionando l'andamento di validazione della funzione di costo. Ma, dovrebbe essere ottimizzato. In realtà, ci sono, c'è un metodo che a volte viene usato, si chiama metodo della line search. Qual è l'idea del metodo della line search? L'idea è, partendo dalla solita relazione ricorsiva per la discesa del gradiente,
-
-00:37:39 
-vogliamo scegliere gamma in modo intelligente ad ogni passo temporale. Quindi, prima differenza rispetto a quello che abbiamo fatto nell'analisi teorica, non stiamo scegliendo un singolo valore per gamma. Gamma è, direi, adattivo. Ad ogni iterazione, sceglieremo una dimensione del passo diversa.
-
-00:38:10 
-E la domanda è, come possiamo farlo? L'idea è, se partite dall'iterazione corrente, e avete il gradiente in, ricordate che dk è meno il gradiente all'iterazione k. Quindi, vogliamo trovare gamma che minimizza quella funzione 1d phi di gamma.
-
-00:38:56 
-E per eseguire questa minimizzazione, abbiamo, di solito ci sono due strategie. La prima è chiamata exact line search, in cui quello che volete fare è trovare il minimo esatto di phi. La seconda è la cosiddetta inexact line search, o backtracking line search, che è un metodo in cui state cercando un'approssimazione del valore di gamma che minimizza quella funzione.
-
-00:39:42 
-Iniziamo con l'exact line search. Quindi l'idea è abbiamo una funzione. Abbiamo una funzione phi di gamma, e vogliamo trovare... Tra tutti i possibili gamma positivi, quello che minimizza la funzione f di xd più gamma dk. Quindi dovete tenere a mente che siete all'iterazione k, quindi siamo all'iterazione k, xk è noto, dk è, dk è, quindi questi sono noti, okay?
-
-00:40:35 
-Quindi questi sono vettori, e sono noti. Quindi significa che quando costruite questa quantità, dovete tenere a mente che dovete tenere a mente, Questo è in realtà qualcosa in cui l'unica incognita è il parametro Gamma. Okay, questa è la ragione per cui nella slide precedente abbiamo detto che phi di Gamma è una 1D, è una funzione in 1D, quindi è un problema di minimizzazione 1D.
-
-00:41:08 
-E quello ovviamente dovete applicare la funzione f. Quindi dobbiamo impostare la phi derivata di Gamma uguale a zero. Se calcolate, se usate la regola della catena, avete che il gradiente di f in xk più Gamma d trasposto per dk.
-
-00:41:42 
-So, since we want to have phi prime of gamma equal to zero, what we want to achieve is to find the gamma such that this condition is true. Remember that this is x k plus one. Okay? What is the geometrical interpretation of this condition? It means that the new gradient should be orthogonal to the previous search direction decay.
-
-00:42:29 
-And what are the advantages of this method? It is clear that if the function f is simple, Then, you can come up with an explicit expression for gamma that minimizes the function phi. If the function f is not very simple, it's complicated, it's not easy or sometimes it's not possible to obtain an explicit value for gamma.
-
-00:43:18 
-If you want to solve the minimization problem, if f is simple, it can be obtained by a closed formula. If f is not simple, the exact minimization can be very, very difficult to achieve. In practice, even if it has some advantages, in the sense that by finding gamma, which minimizes the function phi, you are obtaining the best possible gamma.
-
-00:44:03 
-So the one that ensures the maximum reduction of the functional values. And obviously, it's a consequence, you are also finding the method for which you have to perform the smallest number of iterations to achieve the same accuracy. In practice, it's never used, because in practical applications, the function is not simple.
-
-00:44:39 
-So. Thank you very much. This is something that you can do on paper just for understanding what is the idea, but in practice is never. What is the inexact line search or backtracking line search? It's an approximate method that has the same aim as the exact line search.
-
-00:45:14 
-But we are not looking for the exact gamma. But we want to, as usual, create an iterative procedure that essentially is giving us a sequence of gamma. And then we can choose to stop at a certain point and use that particular gamma for making the next step.
-
-00:45:51 
-What are the steps? So what is the algorithm? You have to choose a first guess for gamma. Let's call that gamma bar. And then there are usually two constants in this method that are usually C and so C. Both are in the interval zero one. The first one is a constant that ensures that by using the gamma that you are going to compute, you will have a decrease in the functional value.
-
-00:46:35 
-And so is the shrink factor. So it's a factor that is used in this step in order to reduce the value of gamma that you have guessed at the previous iteration. So we said gamma equal to gamma bar, the starting point. And if by using this gamma.
-
-00:47:06 
-We see that this condition is satisfied, what does it mean? It means essentially that the new. The function of value on the new iteration is greater than the previous one, okay? If this is true, then we have to shrink to reduce the value of gamma, because this condition essentially is telling us that we are not reducing the function of value.
-
-00:47:43 
-When this condition is not fulfilled, then we have found a good gamma. And so we set gamma k, so the step size or learning rate that we are going to use at the kth iteration of the gradient descent, equal to the gamma that we have computed here. So essentially, it means that within your learning procedure, you have...
-
-00:48:14 
-Yeah, yeah. The iteration of the gradient and at each iteration of the gradient, you have some sub iterations for computing the, let's say, the best approximate gamma for making the next step. Okay. Okay. Usually, the backtracking line search is available in machine learning libraries. It's one of the possibility for choosing gamma or the other possibility.
-
-00:49:10 
-Is to use a so-called scheduling of for gamma. So what is the idea? The idea is that I can say, for example, that gamma step k is equal to 1 over k. So the idea behind this scheduling is that I want, when I'm going towards the solution, I want to pick smaller and smaller steps in order to better approximate the solution.
-
-00:49:51 
-This is just an instance of a possible choice. So what are the advantages of this backtracking? It's practical, it's efficient, it's an iterative procedure, it is robust in the sense that in most of the cases you are sure that you are getting a value of gamma which is reasonable, and it is used in many packages or practical applications.
-
-00:50:25 
-What are the drawbacks? You have additional human parameters, C, tau, and gamma bar. So if on one hand you are finding a good value of gamma, which is an important hyperparameter that we have already mentioned, on the other hand you are introducing at least these two other constants that you have to guess.
-
-00:50:57 
-What are the drawbacks? I have to say that it's true that in principle, the values for C and O can be adapted according to different functions and different situations. But in practice, even if you look at implementation in TensorFlow or PyTorch, most of the time, these are the default values for C and O, which that works well for, I would say, almost all the interesting applications.
-
-00:51:34 
-And obviously, since it is not the exact... value of gamma that gives you the minimum of t, the number of iterations that you have to perform in order to obtain the same accuracy as in the previous is higher because gamma computed according to the backtracking line search is not the gamma that you can compute with the exact line search.
-
-00:52:13 
-Okay, here it's just a table for summing up what we have found, playing gradient descent with fixed gamma or exact line search or backtracking. So far, we have considered, at least in the context of the gradient descent, only unconstrained optimization.
-
-00:52:48 
-So we have considered the minimization of a function f without any constraint. So, in practice, it can happen that I want to minimize a function subject to some constraint on x, which is an example of this situation that we have already encountered.
-
-00:53:25 
-Here, I'm saying that I want to minimize a function f subject to the fact that x belongs to a closed convex set. We have encountered this problem two times, but we have seen it also yesterday.
-
-00:54:06 
-It will be the problem of regularization. Regularization. When you are dealing with regularization, essentially, you are saying that you want to minimize your function subject to the fact that the weight vector is of minimum norm, is sparse, and we have translated these qualitative constraints in terms of it belongs to the unitary ball measured in the L2 norm or to the unitary ball measured in the L1 norm,
-
-00:54:39 
-which are both closed-convex sets. So this is an example. Here are other examples, so non-negativity, box constraints, so for example, you can set the constraint that the weights should have a value between some lower and upper value, or, as we have just mentioned, belonging to a unitary ball in some norm.
-
-00:55:17 
-So, what is the problem? The problem is that if you use the gradient descent, even if the iteration k belongs to the set C, the convex set C that defines essentially the constraint, the next step... Can be outside C. You have no guarantee that by performing one step of the gradient descent, you will find a new value x k plus one, which is still in C.
-
-00:56:03 
-Okay, so the idea is that we want to still use the gradient descent, but we want to stay within the convex set C that defines the constraints of the problem. Formally, we can use the projection operator.
-
-00:56:34 
-The projection operator. It's simply. An operator that, given a point y, finds the point belonging to c, which is closest to y, okay,
-
-00:57:05 
-where we have used the projection operator when we have introduced the least squares approximation. We have seen that, given the vector y, which is the true vector of labels, what we have done is to project the value onto the column space of the matrix x, okay? That was exactly the same idea. So, if Y is in C, obviously the projection is itself, otherwise it's a new point, and in practice, the projection is a point on the boundary of C.
-
-00:57:48 
-So, if you have, this is C, and you have here a point Y, which is outside C, the projection will be this point, which is on the boundary of C. So, what is the projection gradient method that is used in practice, and there is also a library that implements it.
-
-00:58:24 
-It's called... Oh. There is a Python library that implements all the, everything related to projection gradient, projection method, I will tell you the meaning, I will add to the slide. So, what is the idea? The idea is, or if you want the model, is the one that I have written in bold at the beginning.
-
-00:58:56 
-Descend, then project, okay? So, essentially, the idea is, I'm starting from a point here, which is a point in C, I am performing a descent step, I am going here, I project on the feasible set C, and then I move on. So, the first step is the gradient descent, and then you have to compute the new iteration, xk plus 1, as the projection of c.
-
-00:59:38 
-In one line, this is the update. So, xk plus 1 is the projection of one step of the gradient. This is an important point. The projection, or the projection gradient method, is efficient if the computation of this projection is not too expensive from the computational point of view.
-
-01:00:10 
-Let's see some examples. This is the one that we have already encountered twice. It's the L2 projection. This is the L2 projection. So, we want to consider as C the unitary bold defined by the VI2 norm. So, we compute the first gradient step, and then we have to perform the projection.
-
-01:00:43 
-So, the projection in this case is quite simple, because if you have, let's have a look at the situation in the plane. So, this is the unitary bold in the plane. If you have a point here, Y, and this is of radius R,
-
-01:01:23 
-I said unitary, okay, unitary if r is equal to y, let's say of radius r in general, so if the norm, the two norm of y is less than or equal to r, then y is somewhere here, and the projection is the identity, okay? The projection operator is the identity. What happens if we are here? Well, it means that this is the vector, and what we have to do is to shrink the length of this vector.
-
-01:02:05 
-So, in practice, we are constructing the unitary vector along the direction of y. this one and multiply by r in order to project the vector onto the boundary of the ball of radius r. Or if you want in compact form it's vector y times the minimum between 1 and r over the norm of y.
-
-01:02:42 
-Come potete vedere, questo è molto facile da calcolare, è molto, molto semplice e... scala la lunghezza del vettore. Questo è coerente con quello che abbiamo già affermato molte volte, cioè che la regolarizzazione L2, o in questo caso, il fatto che stiamo cercando la minimizzazione,
-
-01:03:14 
-ma con il vincolo che la soluzione appartiene alla palla di raggio r, è legato al fatto che stiamo cercando la soluzione con norma minima, o norma limitata da r, in questo caso. Questa è l'idea. Come abbiamo già osservato, questo non ha nulla a che fare con la sparsità.
-
-01:03:45 
-Quindi L2 promuove solo la norma minima, o norma limitata, in un certo senso. Cosa succede se considero la norma L1? In questo caso, non è possibile trovare un'espressione esplicita per l'operatore di proiezione,
-
-01:04:21 
-ma ci sono algoritmi, ovviamente non stiamo parlando del caso 2D, ma del caso multidimensionale, in cui è possibile in un tempo ragionevole, n log n, potete calcolare la, dove n è la dimensione dello spazio che state considerando, potete calcolare la soluzione. Qual è la proprietà importante che abbiamo già osservato molte volte?
-
-01:04:21 
-ma ci sono algoritmi, ovviamente non stiamo parlando del caso 2D, ma del caso multidimensionale, in cui è possibile in un tempo ragionevole, n log n, potete calcolare la, dove n è la dimensione dello spazio che state considerando, potete calcolare la soluzione. Qual è la proprietà importante che abbiamo già osservato molte volte?
-
-01:04:53 
-Il fatto che, poiché la palla unitaria nella norma L1 è qualcosa del genere, o la palla di raggio r, significa che il fatto che stiamo cercando qualcosa che appartiene a quella palla sta promuovendo la sparsità. Quindi qual è il collegamento tra la minimizzazione vincolata e la regolarizzazione che abbiamo incontrato due volte?
-
-01:05:30 
-Il problema vincolato essenzialmente equivale a minimizzare la funzione soggetta al fatto che la soluzione deve appartenere a un certo insieme complesso, C. E possiamo usare la discesa del gradiente proiettata. Poi il problema viene spostato alla definizione dell'operatore di proiezione. Ma in teoria, questo è quello che possiamo fare per il problema vincolato.
-
-01:06:04 
-Quindi, qual è la controparte nel contesto della minimizzazione? Vogliamo minimizzare, scusa, qui dovrebbe essere x. Quindi, vogliamo minimizzare f di x, e qui abbiamo il vincolo. Quindi, omega è la rappresentazione di qualche vincolo, come, per esempio, la norma o qualcos'altro. Lambda è un moltiplicatore di Lagrange, okay? E questo può essere risolto dalla cosiddetta discesa del gradiente prossimale.
-
-01:06:46 
-Cos'è, in pratica, cos'è il gradiente prossimale? Il gradiente prossimale, l'operatore, l'operatore prossimale è qualcosa che sta... assicurando la discesa, e sta anche soddisfacendo il vincolo in particolare.
-
-01:07:20 
-E la definizione della discesa del gradiente prossimale è legata in qualche modo alla definizione dell'operatore di proiezione. In pratica, se definite r, e c'è, quindi r è qualcosa che vi dice qual è l'estensione della regione vincolata, come possiamo vedere qui.
-
-01:07:54 
-Okay, quindi dato r positivo, c'è sempre lambda. qui, quindi il moltiplicatore di Lagrange, tale che questi due problemi hanno la stessa soluzione. Quindi, in altre parole, l'ottimizzazione vincolata e la regolarizzazione sono essenzialmente due facce dello stesso problema. Qui, ho riportato il caso della norma L2.
-
-01:08:39 
-Quindi, nella parte superiore, abbiamo il caso della minimizzazione vincolata, e qui abbiamo la regolarizzazione, che è la regressione ridge. Quindi, minimizzare F, con questo vincolo. Quindi stiamo penalizzando la norma due di X, il che significa che stiamo cercando il vettore di norma minima.
-
-01:09:12 
-Quindi stiamo aggiornando la soluzione X usando questo operatore prossimale, che in questo caso è proprio quello che abbiamo visto ieri, l'operatore di weight decay. Quindi questo è esattamente quello che abbiamo trovato ieri, la procedura di weight decay per ridurre il valore della soluzione ad ogni iterazione.
-
-01:09:46 
-Questo è chiamato anche soft penalty. Quindi tutti i pesi sono addestrati o scalati, se volete, da questo vettore ad ogni passo. Ciao. Per la norma L1, l'idea è la stessa. Qual è la differenza? Esattamente come nel caso vincolato, in cui per la L2 eravamo in grado di definire esplicitamente l'operatore di proiezione, mentre per la L1, questo dovrebbe essere fatto essenzialmente dal punto di vista numerico.
-
-01:10:28 
-Qui, la differenza è nella definizione dell'operatore prossimale. L'operatore prossimale per la norma L1 è solitamente chiamato operatore di soft thresholding, che è dato da questo termine. E se ricordate ieri, quando abbiamo visto la differenza tra la regolarizzazione L1 e L2, abbiamo trovato esattamente quella l'espressione che avevamo, che è la L1, che è la L2, che è la L2. Qualcosa di molto simile a quello che abbiamo qui.
-
-01:11:02 
-Quindi l'operatore prossimale. che abbiamo qui nel caso della, vincolo, scusa, la, regolarizzazione è esattamente quello che abbiamo trovato ieri. Okay, qui c'è un riassunto su quest'ultima parte. Proiezione, gradiente proiettato significa che calcoliamo un passo e poi proiettiamo sull'insieme ammissibile di soluzioni.
-
-01:11:34 
-E poi abbiamo visto come eseguire questo metodo, in due casi, palla L2 e L1, che rappresentano casi importanti perché sono direttamente collegati alle idee di regolarizzazione che abbiamo visto in altri contesti. Okay, quindi con questo, possiamo dire che abbiamo visto tutto relativo alla discesa del gradiente.
-
-01:12:15 
-È istruttivo perché è la base di, direi, qualsiasi metodo di ottimizzazione, ma non è il metodo che viene praticamente usato. Il metodo che viene praticamente usato è una variante di questo, che si chiama discesa del gradiente stocastico. Quindi forse possiamo fare una pausa di 10 minuti, e poi discuteremo della discesa del gradiente stocastico.
-
-01:12:49 
-Okay, quindi... Ora, stiamo per introdurre, direi, il cavallo da battaglia della minimizzazione nel contesto del machine learning, che è la discesa del gradiente stocastico. Qual è l'idea? Se ricordate, quando abbiamo discusso dell'algoritmo di backpropagation e abbiamo trovato le quattro relazioni per la backpropagation,
-
-01:13:24 
-una delle prime ipotesi che abbiamo menzionato era legata alla natura della funzione di costo. E l'affermazione era che la funzione di costo che stiamo per considerare è una somma di molte funzioni di costo, che sono. Di solito, se ho pesato per ogni singolo campione, quindi la forma tipica della funzione di costo per il problema di machine learning o deep learning è data da queste espressioni.
-
-01:14:08 
-Quindi abbiamo n campioni e la funzione di costo globale è data dalla somma di molte, diciamo, funzioni di costo elementari f i, che sono esattamente quale funzione di costo? Diciamo l'errore quadratico medio valutato su ogni singolo campione. OK, qual è l'idea della discesa del gradiente stocastico?
-
-01:14:41 
-Qual è la differenza principale rispetto alla discesa del gradiente? Nella discesa del gradiente, l'iterazione che abbiamo. scritto è xt più uno è uguale a xt meno gamma per il gradiente di f. Qui, invece di considerare il gradiente di f, stiamo solo considerando il gradiente.
-
-01:15:12 
-calcolato usando solo una delle n componenti della funzione di costo globale. Quindi abbiamo n, campioni, stiamo scegliendo casualmente uno di questi n indici, e il gradiente, il gradiente globale, è approssimato semplicemente prendendo il gradiente di una delle.
-
-01:15:45 
-componenti della funzione di costo globale. Quindi supponiamo che abbiate. 100 termini nella somma state solo scegliendo quello con indice 55 e state calcolando il gradiente solo di quel singolo termine e state usando quell'espressione per ovviamente approssimare, il gradiente completo okay questa è l'idea della discesa del gradiente stocastico.
-
-01:16:23 
-e ovviamente la stocasticità è qui il fatto che stiamo scegliendo l'indice che stiamo usando per calcolare il gradiente in modo casuale okay questo è questo box è il riassunto della definizione della discesa del gradiente stocastico è molto molto semplice. Perché lo stiamo facendo, perché nella replicazione, come abbiamo già menzionato molte volte, n potrebbe essere enorme.
-
-01:17:07 
-E quindi calcolare il gradiente, il gradiente completo, può essere molto, molto costoso dal punto di vista computazionale. Quindi per ridurre la complessità computazionale del metodo, noi stiamo, invece di prendere una somma di un milione di termini, supponendo che abbiamo un milione di campioni, stiamo solo scegliendone uno.
-
-01:17:39 
-Quindi è n volte più economico e, d'altra parte, n volte più veloce della discesa del gradiente. La domanda principale è, ha senso questa idea, o se volete, questa regola di aggiornamento che abbiamo appena introdotto è significativa nel senso che ci sta effettivamente aiutando ad ottimizzare la funzione di costo?
-
-01:18:18 
-La risposta è sì, e qui quello che stiamo per fare è cercare di essenzialmente rivedere tutte le dimostrazioni che abbiamo visto prima, ma per i gradienti stocastici. Qui, abbiamo che il gradiente che stiamo usando, stiamo usando lo stesso simbolo di prima, g, ma ora con gt, invece di rappresentare l'intero gradiente, stiamo solo rappresentando il gradiente calcolato usando un singolo campione.
-
-01:19:05 
-Per esempio, questa ipotesi è di fondamentale importanza. Il fatto che questo gradiente stocastico sia uno stimatore non distorto del vero gradiente. Quindi cosa significa? Significa che il valore atteso di g, condizionato a xt uguale a x, è effettivamente una.
-
-01:19:37 
-funzione di gt. In aspettativa è uguale al gradiente di effetto, e questa proprietà è importante nelle dimostrazioni che stiamo per vedere un altro punto importante è che la dimostrazione che stiamo per vedere tutti i risultati che abbiamo visto precedentemente.
-
-01:20:13 
-Stiamo stiamo, per esempio, la differenza tra i valori della funzione o la differenza tra le due iterate, eccetera, non sono più valide, come abbiamo visto in quel caso, ma sono valide in aspettativa. Quindi. Significa che in pratica, a parte alcune tecnicità, quello che stiamo per vedere è che nelle dimostrazioni che abbiamo visto prima,
-
-01:20:47 
-dobbiamo prendere l'aspettativa all'inizio e poi lavorare con l'aspettativa invece dei valori puntuali. Qui, questa è l'espressione che... Possiamo ottenere nel senso che qui stiamo. Ricordate che questo è il gradiente valutato con il singolo campione.
-
-01:21:26 
-Sappiamo che questo è uno stimatore non distorto e usando la definizione di convessità, possiamo dire che questa relazione è vera. E ho denotato questa relazione con il diamante perché sarà utile nel seguito.
-
-01:21:56 
-Quindi torneremo a questa relazione più tardi. Qui sto andando un po' più veloce. E principalmente considereremo i risultati e non andremo nei dettagli delle dimostrazioni, ma come potete vedere qui, abbiamo il risultato per la funzione Lipschitz convessa e funzione Lipschitz.
-
-01:22:28 
-Quindi come prima, abbiamo la condizione sulla condizione iniziale, l'ipotesi iniziale non è troppo lontana dalla vera soluzione. E poi abbiamo un limite sul gradiente qui, è sul valore atteso del quadrato del gradiente, ma è qualcosa di simile a quello che abbiamo visto prima. E in realtà quello che abbiamo è un risultato che, a parte il fatto che qui abbiamo l'aspettativa, assomiglia molto da vicino a quello che abbiamo visto per la discesa del gradiente.
-
-01:23:08 
-Okay qui c'è la dimostrazione ma non è molto importante. Qui abbiamo il caso per la convessità forte. Questo risultato è un po' più complicato dal punto di vista della dimostrazione ma quello che è importante è che ancora se la funzione è differenziabile, fortemente convessa e abbiamo ancora.
-
-01:23:41 
-un limite sul gradiente, quello che possiamo ottenere è qualcosa che ci dice... Sì, qui avete la funzione valutata su questa media di iterazioni meno la funzione nella soluzione è limitata da qualcosa che dipende dal gradiente, la costante di convessità forte e il numero di iterazioni.
-
-01:24:14 
-E di nuovo, come prima, potete vedere che in questo caso, abbiamo uno su epsilon in termini di complessità o numero di iterazioni che avete bisogno invece di uno su epsilon al quadrato. Quindi aggiungere la convessità forte sta aiutando nella convergenza. Qui, c'è la dimostrazione. Potete, se volete, potete andare.
-
-01:24:45 
-Attraverso i dettagli, ho cercato di. tutto, ma non è molto importante dal mio punto di vista. Voglio solo enfatizzare qualcosa di più interessante dal punto di vista pratico. Nella definizione della discesa del gradiente stocastico, qui abbiamo campione i, okay?
-
-01:25:16 
-Quindi, dobbiamo scegliere un i da questo insieme di numeri, da 1 a n. Come possiamo eseguire questo campionamento? Questo è un punto cruciale nella discesa del gradiente stocastico. Essenzialmente, ci sono due strategie. La prima è chiamata con rimpiazzo, e la seconda, senza rimpiazzo. Con rimpiazzo, significa che ad un'iterazione della discesa del gradiente stocastico, sto prendendo tutti i numeri da 1 a n, e sto scegliendo casualmente un valore.
-
-01:26:03 
-Alla prossima iterazione, sto ancora prendendo tutti i numeri possibili, e sto scegliendo casualmente un altro valore. Quindi significa, in pratica, che in principio, in due iterazioni consecutive, potrei scegliere lo stesso i. Perché quando ho scelto un indice i, alla prossima iterazione, questo indice i è ancora disponibile.
-
-01:26:35 
-Qual è il principale vantaggio di questa strategia? Il fatto che assumendo che ad ogni iterazione ho disponibili tutti gli indici, è un'assunzione forte in termini del fatto che i campioni, questo, quindi il gradiente ad ogni iterazione, sono tutti indipendenti e identicamente distribuiti.
-
-01:27:08 
-Quindi significa che dal punto di vista teorico, questo è importante per ottenere i risultati di convergenza. Quindi tutti i risultati di convergenza sulla discesa del gradiente stocastico sono basati sull'ipotesi che il campionamento sia fatto con rimpiazzo. Quindi ad ogni iterazione, ho la disponibilità di tutti i numeri possibili. La seconda strategia.
-
-01:27:39 
-È? Okay, qual è lo svantaggio in quello che vi ho detto prima, può succedere che stiate scegliendo lo stesso campione molte volte, e alcuni campioni non sono scelti affatto. Okay, quindi questa è una possibilità. Qual è l'altra possibilità? È senza rimpiazzo. Cosa significa? Significa che in pratica, ad ogni iterazione, sto scegliendo un numero, i, e questo numero non sarà disponibile finché tutti gli altri numeri non sono stati scelti almeno una volta. Okay?
-
-01:28:31 
-dal punto di vista pratico cosa significa uh è chiaro che dal punto di vista dell'implementazione questo è molto più facile perché uh all'inizio delle vostre uh iterazioni potete prendere il vettore da uno a n mescolate tutti gli indici e poi state solo scegliendo scegliendo in sequenza tutti gli elementi di questo vettore mescolato okay dato che il mescolamento iniziale.
-
-01:29:03 
-è casuale allora state scegliendo gli indici casualmente e questo è quello che viene fatto in pratica in ogni implementazione della discesa del gradiente quindi. E il vantaggio è che ogni punto dati è usato esattamente, almeno uno, in ogni epoca. Epoca significa che state guardando a tutti i possibili, un'epoca è quando state guardando a tutti i campioni possibili nel vostro set di dati.
-
-01:29:40 
-Converge più velocemente. Questo è verificato sperimentalmente. Lo svantaggio è che dal punto di vista teorico, il fatto che non stiamo rimpiazzando l'indice che è stato scelto rende l'analisi teorica molto più difficile. E questa è la ragione per cui tutti i risultati teorici, o i risultati teorici più importanti, sono basati sull'altra strategia.
-
-01:30:17 
-Grazie. Un altro punto, punto importante, è, e questo è qualcosa che dovete tenere a mente. Qual è la differenza tra ottimizzazione in generale e ottimizzazione nel machine learning? Beh, se devo ottimizzare, diciamo che state eseguendo una procedura di ottimizzazione della forma in cui volete trovare un parametro che definisce la forma di un oggetto, diciamo un profilo di un'ala, e per minimizzare la resistenza o massimizzare la portanza o qualsiasi cosa vogliate.
-
-01:31:04 
-In quel caso, quello che volete ottenere è, data la funzione che definisce, per esempio, la resistenza della portanza, volete minimizzare la resistenza, okay? Quindi volete trovare il valore del parametro, per esempio, che definisce, non so, dal punto di vista geometrico, potrebbe essere il raggio del bordo d'attacco di un'ala. Quindi qui avete un raggio e qualcosa legato al raggio di questo bordo d'attacco del profilo, e volete minimizzare la resistenza, okay?
-
-01:31:42 
-Quindi trovare, tra i valori possibili, trovare il valore di R che minimizza la resistenza. In quel caso, quello che volete ottenere è una soluzione che è la migliore possibile, okay? Perché volete avere la resistenza minima, la resistenza impossibile. Cosa succede nel contesto del machine learning? In realtà, l'obiettivo non è esattamente minimizzare f. È trovare il valore di w tale che la funzione sia vicina al minimo,
-
-01:32:25 
-il valore della funzione è vicino al minimo, ma abbiamo anche la possibilità di generalizzare. Quindi, non vogliamo andare verso l'overfitting. Quindi, in altre parole, nel machine learning, andare verso il minimo perfetto. La maggior parte delle volte significa che stiamo andando verso l'overfitting. Quindi questa è la ragione per cui i due obiettivi nella pratica ingegneristica, per esempio, e nel machine learning della minimizzazione sono totalmente diversi.
-
-01:33:05 
-Questa è la ragione per cui la discesa del gradiente stocastico è molto efficace nel machine learning, perché non vogliamo, non vogliamo necessariamente trovare il minimo esatto, ma essere vicini al minimo. E questi non saranno usati nel codice ingegneristico per trovare il minimo di qualcosa legato a questo problema. OK. OK. L'early stopping è qualcosa che abbiamo già discusso ieri.
-
-01:33:36 
-E questa è la stessa immagine qui. Voglio solo presentarvi. Un esempio importante. Relativo alla discesa del gradiente stocastico. Assumete che questo sia un esempio che è simile a qualcosa che succede in pratica. Stiamo considerando la regressione lineare considerando un certo numero di campioni e ogni f i.
-
-01:34:08 
-Ricordate che la funzione di costo globale è la somma della funzione di costo elementare, funzione di costo, e la funzione di costo elementare in questo caso è f i uguale a uno di a i x meno b i, dove x è il valore del campione e a i e b i sono i parametri che voglio trovare con l'ottimizzazione. OK.
-
-01:34:39 
-È chiaro che per questa parabola, il minimo è ottenuto quando xi è uguale a vi su ai, e il minimo globale, quindi se avete n campioni, quindi avete n termini di quel tipo, il minimo globale è ottenuto per x uguale a questo valore. Dovete solo sommare, fare la media somma del precedente.
-
-01:35:20 
-Qual è la vista pittorica di questa situazione? Qui avete il grafico. Ognuna delle parabole tratteggiate, rappresenta un singolo termine della funzione della funzione di costo quindi ogni parabola tratteggiata rappresenta uno dei fi okay quindi è per esempio in è uno dei termini di quel tipo e quella nera è.
-
-01:36:03 
-la somma di tutti i di tutti i termini tutte le parabole ogni parabola ha il suo proprio minimo, okay e la funzione di costo globale ha il suo proprio minimo ora cosa succede in pratica.
-
-01:36:34 
-Supponiamo che io stia scegliendo un valore di x, che è qui, e sto usando la parabola blu per rappresentare il gradiente. Ricordate che nella discesa del gradiente stocastico, sto usando solo un campione invece del campione completo. Se sto usando la parabola blu, quello che posso osservare è che la pendenza di questa parabola, o se volete, tutte le parabole in questa regione, quindi in questa regione verde,
-
-01:37:21 
-hanno la stessa pendenza pendenza negativa okay quindi tutte le parabole hanno lo stesso segno della pendenza, e questo segno è uh uguale al segno della parabola nera quindi cosa significa in pratica, in pratica significa che se sono qui in questa regione o in questa regione che è chiamata la regione far out il segno della pendenza di una parabola è uguale al segno della pendenza della.
-
-01:37:55 
-parabola nera quindi significa che scegliendo un singolo campione uh, almeno il segno della pendenza qui stiamo considerando il caso 1d ma è rappresentativo anche nel caso multidimensionale in 1d è molto più semplice da visualizzare, che, Significa che scegliendo la pendenza di questa parabola, ragionevolmente mi dà una decente direzione di discesa.
-
-01:38:28 
-Okay, cosa succede se sono qui nella regione rossa? Se scelgo la parabola blu o la parabola verde, hanno il segno della pendenza che è diverso. Quindi cosa significa? Significa che se sono in questa regione, a seconda di quale campione sto scegliendo, posso scegliere un segno diverso della pendenza.
-
-01:39:01 
-Questa regione è chiamata la regione di confusione, il che significa che in quella regione, a seconda del campione che state scegliendo, cosa succede? Può essere molto diverso. Questo comportamento può essere visualizzato praticamente.
-
-01:39:36 
-Qui, ho appena preparato un piccolo codice Python dove con alcuni slider, potete decidere il punto di partenza, che è il punto verde,
-
-01:40:06 
-e poi avete il percorso della discesa del gradiente stocastico verso il minimo. Quindi lasciatemi spostare... il punto iniziale un po' qui quello che potete notare è che c'è una fase iniziale diciamo qui dove beh la traiettoria non è così liscia come nel caso della discesa del gradiente ma almeno partendo da questo punto ci stiamo muovendo verso una regione dove uh il.
-
-01:40:41 
-comportamento del metodo inizia a diventare apparentemente pazzo come potete vedere anche se e, questo comportamento può essere reso ancora più evidente se aumento la dimensione del passo. questa è la regione di confusione, Perché? Perché in questa regione, scegliere un singolo campione per calcolare il gradiente non assicura che, almeno per il segno, state facendo bene.
-
-01:41:21 
-Mentre in questa regione, più o meno, abbiamo un percorso che sta andando verso il minimo. Quindi questo è un comportamento tipico del metodo della discesa del gradiente stocastico. C'è una fase iniziale, diciamo, in cui avete una buona diminuzione, e poi iniziate a muovervi in modo apparentemente casuale.
-
-01:41:54 
-E questo è buono o no? Beh, dal punto di vista del machine learning. Questo non è male, perché significa che avendo questa regione di confusione, questo è il punto finale che abbiamo raggiunto, questo è il vero minimo. Quindi siamo vicini, ma non siamo esattamente lì, quindi forse possiamo ragionevolmente evitare l'overfitting, e potete vedere.
-
-01:42:30 
-che cambiando il punto di partenza, il comportamento può essere ancora apparentemente più caotico, e anche aumentando il numero di iterazioni, come potete vedere, non assicura che, questo punto stia andando necessariamente più vicino al minimo, okay? Quindi questa è un'immagine che dovete tenere a mente,
-
-01:43:03 
-ed è un comportamento tipico della discesa del gradiente, la discesa del gradiente stocastico. Okay, quindi come ho scritto qui, la discesa del gradiente stocastico non può convergere a x stella.
-
-01:43:33 
-con tasso di apprendimento costante, e rimbalzerà intorno al minimo. Questa è l'immagine. Qui, ho riportato, senza dimostrazione, ma è interessante, un risultato che è simile a quello che abbiamo visto per la discesa del gradiente sulla differenza tra l'iterazione al tempo, scusa, la soluzione all'iterazione t e la vera soluzione.
-
-01:44:08 
-Ovviamente, qui siamo in aspettative, e abbiamo un primo termine, che è simile, esattamente simile a quello che abbiamo visto per la discesa del gradiente, che dipende dall'errore che avete introdotto con l'ipotesi iniziale. Okay, ma questo non è un problema. Perché? Perché qui avete una potenza t. Quindi significa che dato che questa è una costante.
-
-01:44:39 
-Più piccola di 1. Se fate abbastanza iterazioni, anche se l'errore iniziale è forse abbastanza grande, questo fattore può ridurre ad ogni iterazione l'errore, e se aggiungete solo questo termine, finirete con la vera soluzione. Ma, nel caso stocastico, abbiamo anche questo termine aggiuntivo, che è legato al tasso di apprendimento, b è la costante legata al limite del gradiente, e mu è la costante di convessità forte.
-
-01:45:19 
-È chiaro che questo termine, se avete un gamma fisso, è qualcosa che non andrà mai a zero. Quindi questa è la ragione, dal punto di vista teorico, questa è la ragione per cui avete la regione di confusione, perché anche se questo termine sta diventando sempre più piccolo a causa di questa potenza di p, siete ancora lasciati con questo termine, che non è zero. E l'unica possibilità per, dato che b e mu sono fissi perché sono legati alla forma della funzione che volete minimizzare, l'unica possibilità per ridurre questo termine è giocare con il gamma.
-
-01:46:03 
-Quindi se state giocando con gamma significa che volete ideare qualche strategia per aggiungere non un gamma costante, ma un gamma che è... programmato per essere sempre più piccolo quando sto andando verso il minimo, okay?
-
-01:46:39 
-In pratica, né la discesa del gradiente, né la discesa del gradiente stocastico, sono usati nella realtà. Quello che viene usato in pratica è qualcosa nel mezzo. Si chiama discesa del gradiente mini-batch. Cos'è la discesa del gradiente mini-batch? Abbiamo detto che nella discesa del gradiente, per calcolare il gradiente, stiamo usando tutti i termini che compongono la funzione di costo.
-
-01:47:17 
-Nella discesa del gradiente stocastico, stiamo usando solo un termine. Nel mini-batch, possiamo decidere quanti termini vogliamo usare. Diciamo che vogliamo usare un mini-batch di dimensione 10. In quel caso, significa che se abbiamo un milione di campioni, invece di scegliere solo uno, possiamo scegliere 10 indici scelti casualmente, e useremo quegli 10 indici per calcolare il gradiente.
-
-01:47:52 
-Qual è il vantaggio del mini-batch? Il vantaggio del mini-batch è che, essenzialmente, quindi formalmente, qui, m è la dimensione del mini-batch, che, se ricordate ieri, quando abbiamo parlato di iperparametri, era uno degli iperparametri che dovete decidere. Quindi, tra gli altri, tasso di apprendimento, ecc., potete anche decidere la dimensione del mini-batch.
-
-01:48:28 
-Poi, una volta che avete deciso la dimensione del mini-batch, il gradiente che qui è chiamato g tilde è calcolato come la media dei gradienti di 10 funzioni, 10 termini. E la regola di aggiornamento è la stessa, con l'unica differenza che ora il gradiente non è il gradiente completo, non è il gradiente calcolato con solo uno, ma è calcolato con il mini-batch.
-
-01:49:05 
-Quali sono i benefici di questo approccio? il fatto che stiamo usando invece di solo uno un certo numero di campioni stiamo riducendo la varianza e quindi la la stima g tilde del gradiente è più accurata, della stima che abbiamo ottenuto con una singola valutazione e quindi in pratica è.
-
-01:49:42 
-uh potete avere una convergenza che è uh più veloce e più stabile c'è un altro beneficio il calcolo parallelo perché ricordate che tutti i gradienti, devono essere calcolati nello stesso punto, xd, okay, iterazione precedente per calcolare il, quindi se avete un processore con 10 core, per esempio, potete distribuire il calcolo di queste 10 quantità tra i 10 core,
-
-01:50:29 
-e potete sfruttare il parallelismo per calcolare le componenti del gradiente, okay, e questa è una delle ragioni per cui l'approccio mini-batch è quello che viene usato, direi, sempre nel deep learning, e dato che questa operazione è...
-
-01:51:02 
-Esattamente la stessa e inoltre è fatta anche sugli stessi dati. Quindi non è una singola istruzione, dati multipli. Qui abbiamo singola istruzione e gli stessi dati. Quindi è ancora meglio se volete che questo calcolo sia perfetto per la GPU. OK, questa è la ragione per cui se eseguite lo stesso calcolo, il compito di apprendimento su GPU o sulla CPU,
-
-01:51:36 
-avete che prestazioni drammaticamente diverse. Principalmente questo è dovuto alla buona implementazione dell'algoritmo di ottimizzazione sulle GPU. Qual è lo svantaggio? Quali sono gli svantaggi del MiVecs? Beh, il. Quindi quello che abbiamo visto prima, il fatto che quando stiamo usando la classica discesa del gradiente stocastico con quei salti intorno al minimo, nel grafico che vi ho mostrato, era una funzione molto buona, era solo un paraboloide, ma supponiamo che vi venga data una funzione che non è convessa.
-
-01:52:27 
-Quindi avete molti, per esempio, molti minimi locali, un minimo globale, quindi una situazione reale, diciamo. Quei salti che possono accadere in pratica con la discesa del gradiente stocastico a volte vi aiuteranno a scappare da un minimo locale. Quindi se siete in un minimo locale.
-
-01:52:59 
-che non è esattamente il minimo che volete raggiungere saltando intorno. Forse ad un certo passo siete in grado di uscire dalla regione del minimo locale e di spostarvi forse o verso un altro miglior minimo locale o verso ancora meglio verso il minimo globale. Quindi questo è qualcosa che è solitamente generalmente vero.
-
-01:53:32 
-Quindi questo rumore, questi salti stanno guidando verso un minimo che è abbastanza piatto, quindi è una regione piatta. Se usate un mini-batch che è troppo grande, quindi se M sta andando verso N, vi state muovendo verso una discesa del gradiente.
-
-01:54:04 
-Quindi questo significa che state riducendo il rumore benefico. Il rumore che avevamo nella discesa del gradiente stocastico è ovviamente anche presente nella discesa del gradiente stocastico mini-batch, ma dato che abbiamo ridotto la varianza, in qualche modo l'entità dei salti sarà, in generale, più piccola.
-
-01:54:35 
-Quindi scegliere M troppo grande non è una buona scelta perché può creare overpeaking, perché vi state muovendo verso la discesa del gradiente. Quindi, di nuovo, trovare il valore giusto di M è molto importante e OK, questo è stato già notato e qui ho solo riportato in relazione a quello che vi ho detto prima possibili strategie per scegliere il valore giusto.
-
-01:55:22 
-Quindi, di nuovo, trovare il valore giusto di M è molto importante e qui ho solo riportato in relazione a quello che vi ho detto prima possibili strategie per scegliere il valore giusto. La diminuzione è inversamente proporzionale al numero di iterazioni. Oppure potete creare uno scheduler.
-
-01:55:55 
-Tutte le librerie, TensorFlow, PyTorch, in tutte le librerie, potete definire uno scheduler per decidere l'entità della dimensione del passo. Quindi, per esempio, potete scegliere un gamma grande nella zona parallela dove siamo sicuri, si spera, possiamo scegliere un passo più grande perché sappiamo che tutte le parabole hanno la stessa dimensione del globo.
-
-01:56:29 
-Quindi anche se stiamo scegliendo un passo più grande, si spera stiamo andando verso il minimo. E poi. Sì. Forse decidere di diminuire di un certo fattore dopo un certo numero di iterazioni, o se la funzione trasversale è caratterizzata da un certo comportamento, e in pratica, questa è la strategia più comunemente adottata in tutte le implementazioni della discesa del gradiente stocastico.
-
-01:57:13 
-Nella discesa del gradiente stocastico, vi ho detto, è il cavallo da battaglia, nel senso che è stato il primo algoritmo che è stato usato per minimizzare la funzione trasversale nel contesto delle reti neurali o del deep learning. Ma poi... Usandolo in molte situazioni diverse, molti problemi sono stati enfatizzati con l'uso del piano come discesa del gradiente.
-
-01:57:49 
-E quindi un numero di nuovi metodi sono stati sviluppati. Non sto parlando di metodi di ordine superiore, che saranno l'oggetto di un'altra parte del corso, ma ancora rimanendo nel contesto del primo ordine, quindi metodi che stanno usando il gradiente di Goddard nell'aviazione, per esempio. Molti metodi sono stati sviluppati, mi dispiace, sto parlando di, forse se ho sentito di Momentum, Master of Acceleration, Adam Method, e così via.
-
-01:58:33 
-Adegrad... E quello che vedremo nella prossima lezione lunedì sono tutte queste variazioni sulla discesa del gradiente stocastico che mirano ad accelerare ancora di più la convergenza del metodo nella maggior parte delle applicazioni, okay? Okay, per oggi possiamo fermarci qui.
-
----
-
-# APPENDICE COMPLETA: Teoria Avanzata della Convergenza e Ottimizzatori Stocastici
-
-**Fonte**: Slide da `GradientDescent_v1.pdf` (60 slides) e `SGD_v1.pdf` (23 slides)  
-**Obiettivo**: Analisi rigorosa della convergenza del Gradient Descent sotto diverse assunzioni (Lipschitz, L-smooth, strongly convex) e metodi di ottimizzazione stocastica (SGD, mini-batch, varianti avanzate).
-
----
-
-## PARTE I: TEORIA DELLA CONVERGENZA GRADIENT DESCENT
-
-### 1. Tabella Comparativa: Velocità di Convergenza GD
-
-*(Riferimento: Slide 1-14 da GradientDescent_v1.pdf)*
-
-**Tabella riassuntiva** delle velocità di convergenza del Gradient Descent sotto assunzioni progressive:
-
-| **Caso** | **Assunzioni** | **Learning Rate γ** | **Convergenza** | **Iterazioni per ε** | **Note** |
-|----------|----------------|---------------------|-----------------|----------------------|----------|
-| **Convesso solo** | f convessa differenziabile | Decrescente (es. 1/t) | O(1/√T) | O(1/ε²) | Risultato base, molto lento |
-| **Lipschitz convesso** | f convessa + ‖∇f(x)‖ ≤ B | γ* = R/(B√T) | O(1/√T) | O(R²B²/ε²) | Gradiente limitato globalmente |
-| **L-smooth convesso** | f convessa + Lip(∇f, L) | γ = 1/L | O(1/T) | O(LR²/ε) | **Migliore!** Curvatura limitata |
-| **Strongly convex** | μ-strong + L-smooth | γ = 2/(μ+L) | **O(ρᵏ)** con ρ < 1 | O(κ log(1/ε)) | **Convergenza lineare/esponenziale** |
-
-**Legenda**:
-- **R**: Raggio iniziale ‖x₀ - x*‖ ≤ R
-- **B**: Limite sul gradiente ‖∇f(x)‖ ≤ B (Lipschitz)
-- **L**: Costante di smoothness (Lipschitz sul gradiente)
-- **μ**: Costante di strong convexity
-- **κ = L/μ**: Condition number (numero di condizionamento)
-- **ρ = (κ-1)/(κ+1)**: Contraction factor
-
-**Osservazioni chiave**:
-1. **Convesso solo**: O(1/ε²) è **molto lento** → 10000 iter per ε=10⁻²
-2. **Lipschitz convesso**: Stessa complessità O(1/ε²) ma con costanti migliori
-3. **L-smooth**: **O(1/ε)** → 100 iter per ε=10⁻² → MOLTO meglio!
-4. **Strongly convex**: **Convergenza esponenziale** O(exp(-T/κ)) → la migliore possibile!
-
-*(Vedi Slide 2-5 da GradientDescent_v1.pdf per definizioni formali di convessità, Slide 6 per Lipschitz/Smoothness)*
-
----
-
-### 2. Caso Lipschitz Convesso: Analisi Completa
-
-*(Riferimento: Slide 6, 13-17 da GradientDescent_v1.pdf)*
-
-**Definizione (B-Lipschitz)**: Una funzione f è **B-Lipschitz** se per ogni x, y nel dominio:
-
-$$|f(x) - f(y)| \leq B \|x - y\|$$
-
-**Per funzioni convesse differenziabili**, questo equivale a:
-
-$$\|\nabla f(x)\| \leq B \quad \forall x$$
-
-**Interpretazione**: Il gradiente è limitato globalmente → la funzione non può "salire" o "scendere" troppo velocemente.
-
-#### Teorema (Convergenza Lipschitz Convessa)
-
-**Ipotesi**:
-1. f convessa differenziabile
-2. ‖∇f(x)‖ ≤ B per ogni x (gradiente limitato)
-3. ‖x₀ - x*‖ ≤ R (guess iniziale limitato)
-
-**Con learning rate ottimale**:
-
-$$\gamma^* = \frac{R}{B\sqrt{T}}$$
-
-**Risultato**: Dopo T iterazioni,
-
-$$f(x_{\text{best}}) - f(x^*) \leq \frac{RB}{\sqrt{T}}$$
-
-dove $x_{\text{best}} = \arg\min_{t=0,\ldots,T-1} f(x_t)$ è la migliore iterata tra tutte.
-
-**Complessità**: Per raggiungere f(x) - f(x*) ≤ ε, serve:
-
-$$T = O\left(\frac{R^2B^2}{\varepsilon^2}\right)$$
-
-**Esempio numerico** *(dalla lezione)*:
-- R = 1, B = 1, ε = 10⁻²
-- T ≈ 10⁴ iterazioni richieste!
-
-#### Dimostrazione (Sketch)
-
-**Step 1**: Dall'analisi base (convessità):
-
-$$f(x_t) - f(x^*) \leq \nabla f(x_t)^\top (x_t - x^*)$$
-
-**Step 2**: Regola di aggiornamento GD:
-
-$$x_{t+1} = x_t - \gamma \nabla f(x_t) \quad \Rightarrow \quad \nabla f(x_t) = \frac{x_t - x_{t+1}}{\gamma}$$
-
-**Step 3**: Sostituisci:
-
-$$\nabla f(x_t)^\top (x_t - x^*) = \frac{1}{\gamma}(x_t - x_{t+1})^\top(x_t - x^*)$$
-
-**Step 4**: Sviluppa usando ‖a - b‖² = ‖a‖² - 2a^\top b + ‖b‖²:
-
-$$= \frac{1}{2\gamma}\left[\|x_t - x^*\|^2 - \|x_{t+1} - x^*\|^2 + \|x_t - x_{t+1}\|^2\right]$$
-
-**Step 5**: Usa ‖∇f(x_t)‖ ≤ B:
-
-$$\|x_t - x_{t+1}\|^2 = \gamma^2 \|\nabla f(x_t)\|^2 \leq \gamma^2 B^2$$
-
-**Step 6**: Somma da t=0 a T-1 (somma telescopica!):
-
-$$\sum_{t=0}^{T-1} \nabla f(x_t)^\top (x_t - x^*) \leq \frac{\|x_0 - x^*\|^2}{2\gamma} + \frac{\gamma B^2 T}{2} \leq \frac{R^2}{2\gamma} + \frac{\gamma B^2 T}{2}$$
-
-**Step 7**: Ottimizza γ minimizzando Q(γ) = R²/(2γ) + (γB²T)/2:
-
-$$\frac{dQ}{d\gamma} = -\frac{R^2}{2\gamma^2} + \frac{B^2T}{2} = 0 \quad \Rightarrow \quad \gamma^* = \frac{R}{B\sqrt{T}}$$
-
-**Step 8**: Sostituisci γ* in Q(γ):
-
-$$Q(\gamma^*) = \frac{R^2 B\sqrt{T}}{2R} + \frac{R B^2 T}{2B\sqrt{T}} = RB\sqrt{T}$$
-
-**Step 9**: Usa convessità + somma telescopica:
-
-$$f(x_{\text{best}}) - f(x^*) \leq \frac{1}{T}\sum_{t=0}^{T-1} [f(x_t) - f(x^*)] \leq \frac{RB}{\sqrt{T}}$$
-
-**Q.E.D.** ∎
-
-*(Vedi Slide 13-17 da GradientDescent_v1.pdf per dimostrazione completa step-by-step)*
-
----
-
-### 3. Caso L-Smooth Convesso: Analisi Completa
-
-*(Riferimento: Slide 6-8, 18-22 da GradientDescent_v1.pdf)*
-
-**Definizione (L-Smoothness)**: Una funzione f è **L-smooth** se il suo gradiente è L-Lipschitz:
-
-$$\|\nabla f(x) - \nabla f(y)\| \leq L\|x - y\| \quad \forall x, y$$
-
-**Caratterizzazione equivalente** (upper bound quadratico - Slide 7):
-
-$$f(y) \leq f(x) + \nabla f(x)^\top(y - x) + \frac{L}{2}\|y - x\|^2$$
-
-**Interpretazione geometrica** *(Slide 8 mostra grafico)*:
-- f è limitata superiormente da una parabola con curvatura L
-- La funzione non può "curvare" troppo rapidamente
-- La tangente linearizzazione è accurata localmente
-
-#### Lemma (Sufficient Decrease Property)
-
-**Con learning rate γ = 1/L**:
-
-$$f(x_{k+1}) \leq f(x_k) - \frac{1}{2L}\|\nabla f(x_k)\|^2$$
-
-**Dimostrazione**:
-
-**Step 1**: Usa la definizione di L-smoothness con y = x_{k+1} = x_k - γ∇f(x_k):
-
-$$f(x_{k+1}) \leq f(x_k) + \nabla f(x_k)^\top(x_{k+1} - x_k) + \frac{L}{2}\|x_{k+1} - x_k\|^2$$
-
-**Step 2**: Sostituisci x_{k+1} - x_k = -γ∇f(x_k):
-
-$$f(x_{k+1}) \leq f(x_k) - \gamma \|\nabla f(x_k)\|^2 + \frac{L\gamma^2}{2}\|\nabla f(x_k)\|^2$$
-
-**Step 3**: Raccogli ‖∇f(x_k)‖²:
-
-$$f(x_{k+1}) \leq f(x_k) - \left(\gamma - \frac{L\gamma^2}{2}\right)\|\nabla f(x_k)\|^2$$
-
-**Step 4**: Con γ = 1/L:
-
-$$\gamma - \frac{L\gamma^2}{2} = \frac{1}{L} - \frac{L}{2L^2} = \frac{1}{L} - \frac{1}{2L} = \frac{1}{2L}$$
-
-**Quindi**:
-
-$$f(x_{k+1}) \leq f(x_k) - \frac{1}{2L}\|\nabla f(x_k)\|^2 \quad \text{(sufficient decrease!)}$$
-
-**Q.E.D.** ∎
-
-#### Teorema (Convergenza L-Smooth Convessa)
-
-**Ipotesi**:
-1. f convessa differenziabile
-2. f è L-smooth
-3. ‖x₀ - x*‖ ≤ R
-
-**Con learning rate γ = 1/L**:
-
-$$f(x_T) - f(x^*) \leq \frac{L\|x_0 - x^*\|^2}{2T} = \frac{LR^2}{2T}$$
-
-**Convergenza**: O(1/T) → **MOLTO meglio** di O(1/√T) caso Lipschitz!
-
-**Complessità**: Per raggiungere ε:
-
-$$T = O\left(\frac{LR^2}{\varepsilon}\right)$$
-
-**Esempio numerico**:
-- L = 100, R = 1, ε = 10⁻²
-- T ≈ 5000 iterazioni (vs 10⁴ del caso Lipschitz!)
-
-#### Dimostrazione (Completa)
-
-**Step 1**: Dal lemma sufficient decrease:
-
-$$\frac{1}{2L}\|\nabla f(x_k)\|^2 \leq f(x_k) - f(x_{k+1})$$
-
-**Step 2**: Usa convessità (first-order characterization):
-
-$$f(x_k) - f(x^*) \leq \nabla f(x_k)^\top(x_k - x^*)$$
-
-**Step 3**: Usa Cauchy-Schwarz:
-
-$$\nabla f(x_k)^\top(x_k - x^*) \leq \|\nabla f(x_k)\| \cdot \|x_k - x^*\|$$
-
-**Step 4**: Dal sufficient decrease:
-
-$$\|\nabla f(x_k)\|^2 \leq 2L[f(x_k) - f(x_{k+1})]$$
-
-**Quindi**:
-
-$$\|\nabla f(x_k)\| \leq \sqrt{2L[f(x_k) - f(x_{k+1})]}$$
-
-**Step 5**: Combina Step 3 + 4:
-
-$$f(x_k) - f(x^*) \leq \sqrt{2L[f(x_k) - f(x_{k+1})]} \cdot \|x_k - x^*\|$$
-
-**Step 6**: Somma telescopica da k=0 a T-1:
-
-$$\sum_{k=0}^{T-1} [f(x_k) - f(x^*)] \leq \sum_{k=0}^{T-1} \sqrt{2L[f(x_k) - f(x_{k+1})]} \cdot \|x_k - x^*\|$$
-
-**Step 7**: Usa ‖x_k - x*‖ ≤ ‖x₀ - x*‖ = R (perché f(x_k) decresce → x_k si avvicina):
-
-$$\sum_{k=0}^{T-1} [f(x_k) - f(x^*)] \leq R\sqrt{2L} \sum_{k=0}^{T-1} \sqrt{f(x_k) - f(x_{k+1})}$$
-
-**Step 8**: Usa Cauchy-Schwarz su somma:
-
-$$\sum_{k=0}^{T-1} \sqrt{f(x_k) - f(x_{k+1})} \leq \sqrt{T \cdot \sum_{k=0}^{T-1} [f(x_k) - f(x_{k+1})]} = \sqrt{T[f(x_0) - f(x_T)]}$$
-
-**Step 9**: Sostituisci:
-
-$$\sum_{k=0}^{T-1} [f(x_k) - f(x^*)] \leq R\sqrt{2LT[f(x_0) - f(x_T)]}$$
-
-**Step 10**: Usa sufficient decrease → f(x_T) è la minima tra tutte:
-
-$$T \cdot [f(x_T) - f(x^*)] \leq \sum_{k=0}^{T-1} [f(x_k) - f(x^*)]$$
-
-**Step 11**: Combina + risolvi per f(x_T) - f(x*):
-
-$$T[f(x_T) - f(x^*)] \leq R\sqrt{2LT[f(x_0) - f(x^*)]}$$
-
-$$\sqrt{T}[f(x_T) - f(x^*)] \leq R\sqrt{2L[f(x_0) - f(x^*)]}$$
-
-**Step 12**: Eleva al quadrato + divide per T:
-
-$$f(x_T) - f(x^*) \leq \frac{2LR^2[f(x_0) - f(x^*)]}{T} \leq \frac{LR^2}{T}$$
-
-**Q.E.D.** ∎
-
-*(Vedi Slide 18-22 da GradientDescent_v1.pdf per dimostrazione rigorosa con tutti i passaggi)*
-
-**Confronto grafico** *(Slide 8 mostra)*:
-- Curva blu: Lipschitz O(1/√T) - discesa lenta
-- Curva rossa: L-smooth O(1/T) - discesa rapida
-- **L-smooth converge MOLTO più velocemente!**
-
----
-
-### 4. Caso Strongly Convex: Convergenza Lineare/Esponenziale
-
-*(Riferimento: Slide 7-8, 23-30 da GradientDescent_v1.pdf)*
-
-**Definizione (μ-Strong Convexity)**: Una funzione f è **μ-strongly convex** (μ > 0) se:
-
-$$f(y) \geq f(x) + \nabla f(x)^\top(y - x) + \frac{\mu}{2}\|y - x\|^2 \quad \forall x, y$$
-
-**Interpretazione geometrica** *(Slide 8 mostra parabole)*:
-- f cresce **almeno** come una parabola con curvatura μ
-- Upper bound: parabola curvatura L (da L-smoothness)
-- Lower bound: parabola curvatura μ (da strong convexity)
-- f è "intrappolata" tra due parabole → **minimo unico e sharp!**
-
-**Immagine slide 8**: Due parabole (rossa sopra, blu sotto) con f(x) nel mezzo.
-
-#### Teorema (Convergenza Lineare/Esponenziale)
-
-**Ipotesi**:
-1. f è μ-strongly convex
-2. f è L-smooth
-3. Condition number κ = L/μ
-
-**Con learning rate γ = 2/(μ + L)**:
-
-$$\|x_k - x^*\|^2 \leq \rho^k \|x_0 - x^*\|^2$$
-
-dove il **contraction factor**:
-
-$$\rho = \frac{L - \mu}{L + \mu} = \frac{\kappa - 1}{\kappa + 1} < 1$$
-
-**Risultato**: **Convergenza lineare (esponenziale in scale lineare)!**
-
-**Per i valori funzionali**:
-
-$$f(x_k) - f(x^*) \leq \frac{L}{2}\rho^k \|x_0 - x^*\|^2$$
-
-**Complessità**: Per raggiungere ε:
-
-$$T = O\left(\kappa \log\frac{1}{\varepsilon}\right)$$
-
-**Esempio numerico**:
-- κ = 10: ρ = 9/11 ≈ 0.82 → convergenza moderata
-- κ = 100: ρ = 99/101 ≈ 0.98 → convergenza LENTA
-- κ = 1 (μ = L): ρ = 0 → **convergenza in 1 step!** (caso ideale)
-
-#### Analisi del Condition Number κ
-
-**Condition number** κ = L/μ misura quanto f è "ben condizionata":
-
-$$\kappa = \frac{L}{\mu} = \frac{\text{max curvature}}{\text{min curvature}}$$
-
-**Interpretazione**:
-- **κ vicino a 1**: f è quasi sferica → convergenza rapida (ρ → 0)
-- **κ grande**: f è molto "allungata" (ellissoide schiacciato) → convergenza lenta (ρ → 1)
-
-**Tabella convergenza**:
-
-| κ | ρ | Velocità | Iter per ε=10⁻² |
-|---|---|----------|-----------------|
-| 1 | 0.00 | Istantanea | 1 |
-| 2 | 0.33 | Molto rapida | ~3 |
-| 10 | 0.82 | Moderata | ~20 |
-| 100 | 0.98 | Lenta | ~200 |
-| 1000 | 0.998 | Molto lenta | ~2000 |
-
-**Grafico** *(Slide 30 da GradientDescent_v1.pdf mostra)*:
-- **Log-scale plot**: ‖x_k - x*‖ vs k
-- Decadimento **lineare in log-scale** → convergenza esponenziale!
-- Pendenza della retta = log(ρ) = log((κ-1)/(κ+1))
-
-#### Dimostrazione (Sketch principale)
-
-**Step 1**: Dall'analisi base GD:
-
-$$\|x_{k+1} - x^*\|^2 = \|x_k - \gamma\nabla f(x_k) - x^*\|^2$$
-
-**Step 2**: Sviluppa:
-
-$$= \|x_k - x^*\|^2 - 2\gamma\nabla f(x_k)^\top(x_k - x^*) + \gamma^2\|\nabla f(x_k)\|^2$$
-
-**Step 3**: Usa strong convexity + smoothness per limitare i due termini:
-
-Da **strong convexity**:
-
-$$\nabla f(x_k)^\top(x_k - x^*) \geq f(x_k) - f(x^*) + \frac{\mu}{2}\|x_k - x^*\|^2 \geq \frac{\mu}{2}\|x_k - x^*\|^2$$
-
-Da **smoothness** (dopo manipolazioni):
-
-$$\|\nabla f(x_k)\|^2 \leq 2L[f(x_k) - f(x^*)] \leq L\|\nabla f(x_k)\|\|x_k - x^*\|$$
-
-**Step 4**: Con γ = 2/(μ + L), dopo sostituzioni (calcoli lunghi):
-
-$$\|x_{k+1} - x^*\|^2 \leq \left(1 - \frac{2\mu L}{\mu + L}\right)\|x_k - x^*\|^2 = \left(\frac{L - \mu}{L + \mu}\right)^2 \|x_k - x^*\|^2$$
-
-**Step 5**: Applica ricorsivamente:
-
-$$\|x_k - x^*\|^2 \leq \rho^k \|x_0 - x^*\|^2 \quad \text{dove } \rho = \frac{\kappa - 1}{\kappa + 1}$$
-
-**Q.E.D.** ∎
-
-*(Vedi Slide 23-30 da GradientDescent_v1.pdf per dimostrazione completa con tutti i bound)*
-
-**Conclusione chiave**: Strong convexity + smoothness → **convergenza ESPONENZIALE!**  
-Questa è la **migliore velocità possibile** per metodi del primo ordine (che usano solo gradienti).
-
----
-
-### 5. Line Search Methods: Scelta Adattiva del Learning Rate
-
-*(Riferimento: Slide 31-40 da GradientDescent_v1.pdf)*
-
-Nelle dimostrazioni precedenti, abbiamo visto che il learning rate ottimale dipende da costanti (L, μ, B, R) che **in pratica non conosciamo**. I metodi di **line search** risolvono questo problema scegliendo γ_t **adattivamente** ad ogni iterazione.
-
-#### 5.1 Exact Line Search
-
-**Idea**: Minimizza esattamente lungo la direzione di discesa.
-
-**Problema 1D**: All'iterazione k, dato x_k e d_k = -∇f(x_k), trova:
-
-$$\gamma_k^* = \arg\min_{\gamma > 0} \phi(\gamma) \quad \text{dove } \phi(\gamma) = f(x_k + \gamma d_k)$$
-
-**Condizione di ottimalità**: Deriva φ e poni = 0:
-
-$$\phi'(\gamma) = \nabla f(x_k + \gamma d_k)^\top d_k = 0$$
-
-**Interpretazione geometrica** *(Slide 32 mostra grafico)*:
-- Il nuovo gradiente ∇f(x_{k+1}) deve essere **ortogonale** alla direzione precedente d_k
-- Questo assicura che abbiamo minimizzato esattamente lungo quella direzione
-
-**Vantaggi**:
-- Trova il γ che massimizza la riduzione di f
-- Numero minimo di iterazioni per raggiungere convergenza
-
-**Svantaggi**:
-- **Mai usato in pratica!**
-- Per f complicata, risolvere min_γ φ(γ) può essere costoso quanto il problema originale
-- Ogni iterazione GD richiederebbe sub-iterazioni per line search
-
-**Quando funziona**: Solo per f molto semplici (es. quadratiche) dove φ(γ) ha forma chiusa.
-
-#### 5.2 Backtracking Line Search (Inexact)
-
-**Idea**: Trova un'**approssimazione** di γ* che garantisce "sufficient decrease".
-
-**Algoritmo** *(Slide 35-37 da GradientDescent_v1.pdf)*:
-
-```
-Input: x_k, d_k = -∇f(x_k), γ̄ (starting guess), c ∈ (0,1), τ ∈ (0,1)
-
-γ ← γ̄
-While f(x_k + γd_k) > f(x_k) + c·γ·∇f(x_k)ᵀd_k:
-    γ ← τ·γ  # Shrink step size
-    
-Return γ_k ← γ
-```
-
-**Parametri tipici** *(Slide 38)*:
-- **c = 10⁻⁴**: Constant per Armijo condition (molto piccolo!)
-- **τ = 0.5**: Shrink factor (dimezza γ ad ogni fallimento)
-- **γ̄ = 1**: Starting guess (oppure γ_k-1 dalla iterazione precedente)
-
-**Armijo-Goldstein Condition**: La condizione nel while:
-
-$$f(x_k + \gamma d_k) \leq f(x_k) + c \cdot \gamma \cdot \nabla f(x_k)^\top d_k$$
-
-**Interpretazione** *(Slide 36 mostra grafico φ(γ))*:
-- **Lato destro**: Linearizzazione di φ(γ) con pendenza c·φ'(0)
-- **c piccolo (10⁻⁴)**: Accettiamo γ che dà "quasi qualsiasi" riduzione
-- **Sufficient decrease**: f deve diminuire abbastanza da non oscillare
-
-**Esempio visivo**:
-```
-φ(γ) = f(x_k + γd_k)
-     
-     φ(0) = f(x_k) ─────────────┐
-                                │ c·φ'(0)·γ (pendenza dolce)
-                                ↓
-                          ┌─────────── φ(γ) (curva vera)
-                          │
-                    γ accettato quando φ(γ) sotto la retta
-```
-
-**Processo iterativo**:
-1. Prova γ = γ̄ = 1
-2. Se f non diminuisce abbastanza: γ ← 0.5
-3. Se ancora non va: γ ← 0.25
-4. Continua finché Armijo è soddisfatta
-
-**Vantaggi** *(Slide 39)*:
-- **Pratico**: Facile da implementare
-- **Efficiente**: Poche iterazioni del while (3-5 tipicamente)
-- **Robusto**: Funziona per la maggior parte delle funzioni
-- **Disponibile**: In tutte le librerie (scipy.optimize, TensorFlow, PyTorch)
-
-**Svantaggi** *(Slide 40)*:
-- Introduce **due nuovi iperparametri** (c, τ)
-- Numero di iterazioni GD maggiore rispetto a exact line search
-- In pratica: **c e τ default funzionano quasi sempre** (no tuning necessario)
-
-#### 5.3 Wolfe Conditions (Opzionale)
-
-**Armijo + Curvature**: Due condizioni invece di una:
-
-1. **Sufficient decrease** (Armijo):
-   $$f(x_k + \gamma d_k) \leq f(x_k) + c_1 \gamma \nabla f(x_k)^\top d_k$$
-
-2. **Curvature condition**:
-   $$\nabla f(x_k + \gamma d_k)^\top d_k \geq c_2 \nabla f(x_k)^\top d_k$$
-
-**Parametri tipici**: c₁ = 10⁻⁴, c₂ = 0.9
-
-**Interpretazione curvature**: Il nuovo gradiente non deve essere troppo "ripido" nella direzione d_k → previene γ troppo piccolo.
-
-**Uso**: Metodi quasi-Newton (L-BFGS), meno comune in deep learning.
-
----
-
-### 6. Ottimizzazione Vincolata: Projected Gradient Descent
-
-*(Riferimento: Slide 41-50 da GradientDescent_v1.pdf)*
-
-Finora: Problemi **unconstrained** (min f(x) su tutto ℝ^d).  
-Ora: Problemi **constrained**:
-
-$$\min_{x \in C} f(x)$$
-
-dove **C ⊆ ℝ^d** è un insieme chiuso convesso (closed convex set).
-
-**Esempi pratici**:
-1. **Regularizzazione** (visto ieri):
-   - L2: C = {x : ‖x‖₂ ≤ r} (palla L2)
-   - L1: C = {x : ‖x‖₁ ≤ r} (palla L1 → sparsity!)
-
-2. **Non-negativity**: C = {x : x_i ≥ 0 ∀i}
-
-3. **Box constraints**: C = {x : l_i ≤ x_i ≤ u_i ∀i}
-
-**Problema**: Se x_k ∈ C, GD standard può dare x_{k+1} ∉ C!
-
-#### Operatore di Proiezione
-
-**Definizione** *(Slide 42)*:
-
-$$P_C(y) = \arg\min_{x \in C} \|x - y\|^2$$
-
-**Interpretazione**: Dato y (potenzialmente fuori da C), trova il punto x ∈ C **più vicino** a y.
-
-**Proprietà**:
-- Se y ∈ C: P_C(y) = y (proiezione identity)
-- Se y ∉ C: P_C(y) è sul **boundary** di C
-- P_C è **non-espansiva**: ‖P_C(y₁) - P_C(y₂)‖ ≤ ‖y₁ - y₂‖
-
-#### Projected Gradient Descent Algorithm
-
-**Idea**: "Descend, then project" *(Slide 43 mostra grafico)*:
-
-```
-x_{k+1} = P_C(x_k - γ∇f(x_k))
-```
-
-**Processo**:
-1. **Descend**: z_k = x_k - γ∇f(x_k) (passo GD standard)
-2. **Project**: x_{k+1} = P_C(z_k) (proietta su C)
-
-**Immagine** *(dalla lezione)*:
-```
-        C (convex set)
-      ┌─────────────┐
-      │             │
-   x_k●────────────→ z_k (fuori da C)
-      │         GD  │
-      │      ↙      │
-      │   x_{k+1}   │ ← proiezione su boundary
-      └─────────────┘
-```
-
-**Efficienza**: Projected GD è pratico **solo se** P_C è computazionalmente cheap!
-
-#### Esempi di Proiezioni
-
-**Caso 1: Palla L2** *(Slide 44-45)*
-
-$$C = \{x : \|x\|_2 \leq r\}$$
-
-**Proiezione**:
-
-$$P_C(y) = \begin{cases}
-y & \text{se } \|y\|_2 \leq r \\
-r \cdot \frac{y}{\|y\|_2} & \text{se } \|y\|_2 > r
-\end{cases}$$
-
-**Formula compatta**:
-
-$$P_C(y) = y \cdot \min\left(1, \frac{r}{\|y\|_2}\right)$$
-
-**Interpretazione** *(Slide 45 mostra grafico 2D)*:
-- Se y dentro palla: non fare nulla
-- Se y fuori: "shrink" y alla lunghezza r mantenendo direzione
-
-**Costo computazionale**: O(d) per calcolare ‖y‖₂ → **molto cheap!**
-
-**Collegamento con regolarizzazione L2**:
-- Minimizzare con vincolo ‖x‖₂ ≤ r
-- Equivalente a regolarizzazione: min f(x) + λ‖x‖₂²
-- Projected GD implementa implicitamente weight decay!
-
-**Caso 2: Palla L1** *(Slide 46-47)*
-
-$$C = \{x : \|x\|_1 \leq r\}$$
-
-**Proiezione**: **NO formula chiusa semplice!**
-
-**Algoritmo**: Esiste procedura O(d log d) *(non mostrata in dettaglio nelle slide)*
-
-**Proprietà chiave** *(Slide 47 mostra diamond 2D)*:
-- Palla L1 in 2D: rombo (vertici sugli assi)
-- Palla L1 in d dimensioni: "spiky" con vertici su assi
-- Proiezione su L1 ball → **promuove sparsity!**
-
-**Collegamento con LASSO**:
-- Minimizzare con vincolo ‖x‖₁ ≤ r
-- Equivalente a LASSO: min f(x) + λ‖x‖₁
-- Projected GD su L1 ball = soft thresholding iterativo
-
-#### Proximal Gradient Method (Cenni)
-
-*(Slide 48-50 da GradientDescent_v1.pdf)*
-
-**Problema regolarizzato**:
-
-$$\min_x f(x) + \lambda \Omega(x)$$
-
-dove Ω(x) è regolarizzatore (es. ‖x‖₁, ‖x‖₂²).
-
-**Operatore prossimale**:
-
-$$\text{prox}_{\lambda\Omega}(y) = \arg\min_x \left\{\frac{1}{2}\|x - y\|^2 + \lambda\Omega(x)\right\}$$
-
-**Proximal Gradient Descent**:
-
-$$x_{k+1} = \text{prox}_{\gamma\Omega}(x_k - \gamma\nabla f(x_k))$$
-
-**Esempi**:
-
-1. **Ω(x) = ‖x‖₂²** (L2 regularization):
-   $$\text{prox}_{\gamma\lambda\|\cdot\|_2^2}(y) = \frac{y}{1 + 2\gamma\lambda}$$
-   → **Weight decay operator!** (visto ieri in Lez18)
-
-2. **Ω(x) = ‖x‖₁** (L1 regularization):
-   $$\text{prox}_{\gamma\lambda\|\cdot\|_1}(y) = \text{sign}(y) \cdot \max(|y| - \gamma\lambda, 0)$$
-   → **Soft thresholding operator!**
-
-**Equivalenza** *(Slide 50)*:
-
-$$\text{Constrained: } \min_{x \in C} f(x) \quad \Leftrightarrow \quad \text{Regularized: } \min_x f(x) + \lambda\Omega(x)$$
-
-Dato r > 0, esiste λ tale che le due formulazioni hanno **stessa soluzione**!
-
-**Conclusione Parte I**: Abbiamo visto convergenza GD in 4 casi (convesso, Lipschitz, L-smooth, strongly convex), metodi line search (exact, backtracking), e projected/proximal GD per problemi vincolati. **Prossimo**: Ottimizzazione stocastica (SGD, mini-batch, varianti avanzate).
-
----
-
-## PARTE II: STOCHASTIC GRADIENT DESCENT E VARIANTI
-
-### 7. Stochastic Gradient Descent (SGD): Teoria e Convergenza
-
-*(Riferimento: Slide 1-10 da SGD_v1.pdf)*
-
-#### 7.1 Motivazione: Funzioni Sum-Structured
-
-**Setting del machine learning** *(Slide 2)*: La funzione di costo ha struttura:
-
-$$f(x) = \frac{1}{n}\sum_{i=1}^n f_i(x)$$
-
+## Capitolo 1: Analisi della Convergenza del Metodo del Gradiente
+### Introduzione alla Stima dell'Errore e Ipotesi Aggiuntive
+[00:00] L'analisi riprende dalla definizione di un limite superiore, o *bound*, per l'errore tra i valori della funzione obiettivo. L'obiettivo è stimare un limite per la differenza media tra il valore della funzione calcolato a ogni iterazione e il suo valore minimo. Tale quantità è espressa come:
+$$
+\frac{1}{T} \sum_{t=1}^{T} (f(x_t) - f(x^*))
+$$
 dove:
-- **n**: Numero di campioni nel training set
-- **f_i(x)**: Loss function sul campione i-esimo
-- **x**: Parametri del modello (pesi w)
-
-**Esempio (Mean Squared Error)**:
-
-$$f(w) = \frac{1}{n}\sum_{i=1}^n \|y_i - \phi(x_i)^\top w\|^2$$
-
-**Gradient Descent standard** richiede:
-
-$$\nabla f(x_t) = \frac{1}{n}\sum_{i=1}^n \nabla f_i(x_t) \quad \text{(somma su TUTTI i campioni!)}$$
-
-**Problema**: Se n è enorme (es. n = 10⁶ immagini), ogni iterazione GD richiede **n valutazioni del gradiente** → **molto costoso!**
-
-#### 7.2 Idea SGD: Stochastic Approximation
-
-**Stochastic Gradient Descent** *(Slide 2-3)*:
-
-```
-All'iterazione t:
-1. Sample i ∈ {1, ..., n} uniformly at random
-2. Compute g_t = ∇f_i(x_t)  (gradiente di UN SOLO campione!)
-3. Update: x_{t+1} = x_t - γ_t g_t
-```
-
-**Confronto costi** *(Slide 3)*:
-
-| Metodo | Costo per iterazione | Speedup |
-|--------|----------------------|---------|
-| Full GD | O(nd) | 1× |
-| SGD | O(d) | **n×** |
-
-**Domanda chiave**: Usare solo 1/n dei dati → converge comunque verso il minimo?
-
-**Risposta**: **Sì!** Con alcune modifiche teoriche (aspettative invece di bound deterministici).
-
-#### 7.3 Proprietà Chiave: Unbiased Estimator
-
-**Teorema (Unbiasedness)** *(Slide 4-5)*:
-
-Il gradiente stocastico g_t = ∇f_i(x_t) è uno **stimatore non distorto** del vero gradiente:
-
-$$\mathbb{E}[g_t | x_t = x] = \mathbb{E}_i[\nabla f_i(x)] = \frac{1}{n}\sum_{i=1}^n \nabla f_i(x) = \nabla f(x)$$
-
-**Conseguenza per l'analisi** *(Slide 5)*:
-
-La disuguaglianza base (first-order characterization) **non vale** per g_t singolo:
-
-$$f(x_t) - f(x^*) \leq \nabla f(x_t)^\top(x_t - x^*) \quad \text{(NON vale per } g_t \text{ singolo)}$$
-
-**MA**: Vale **in aspettativa**!
-
-$$\mathbb{E}[g_t^\top(x_t - x^*)] = \mathbb{E}[\nabla f(x_t)^\top(x_t - x^*)] \geq \mathbb{E}[f(x_t) - f(x^*)] \quad (⋄)$$
-
-**Questa proprietà (⋄) è fondamentale** per tutte le dimostrazioni SGD!
-
-**Interpretazione**:
-- Ogni singola iterazione SGD può essere "rumorosa" (gradiente approssimato male)
-- Ma **in media** (su molte iterazioni), SGD fa progressi nella direzione corretta
-- Il rumore si "media out" nel lungo termine
-
-#### 7.4 Convergenza SGD: Caso Lipschitz Convesso
-
-**Teorema** *(Slide 6-7 da SGD_v1.pdf)*:
-
-**Ipotesi**:
-1. f convessa differenziabile con minimo x*
-2. ‖x₀ - x*‖ ≤ R (guess iniziale limitato)
-3. 𝔼[‖g_t‖²] ≤ B² per ogni t (gradiente stocastico limitato in norma quadratica media)
-
-**Con learning rate costante**:
-
-$$\gamma = \frac{R}{B\sqrt{T}}$$
-
-**Risultato**: Dopo T iterazioni,
-
-$$\mathbb{E}\left[\frac{1}{T}\sum_{t=0}^{T-1} f(x_t)\right] - f(x^*) \leq \frac{RB}{\sqrt{T}}$$
-
-**Convergenza**: O(1/√T) → **stessa** del GD deterministico caso Lipschitz!
-
-**Complessità**: Per raggiungere ε:
-
-$$T = O\left(\frac{R^2B^2}{\varepsilon^2}\right) = O(1/\varepsilon^2)$$
-
-**Nota importante**: Il bound è sulla **media** delle iterate, non sull'ultima!
-
-$$\bar{x}_T = \frac{1}{T}\sum_{t=0}^{T-1} x_t \quad \text{(media pesata)}$$
-
-#### Dimostrazione (Sketch)
-
-**Step 1**: Partire dall'analisi base GD e prendere aspettative:
-
-$$\sum_{t=0}^{T-1} \mathbb{E}[g_t^\top(x_t - x^*)] \leq \frac{\gamma}{2}\sum_{t=0}^{T-1} \mathbb{E}[\|g_t\|^2] + \frac{1}{2\gamma}\|x_0 - x^*\|^2$$
-
-**Step 2**: Usa i tre fatti chiave:
-1. 𝔼[f(x_t) - f(x*)] ≤ 𝔼[g_t^\top(x_t - x*)] (da proprietà ⋄)
-2. 𝔼[‖g_t‖²] ≤ B² (ipotesi)
-3. ‖x₀ - x*‖² ≤ R² (ipotesi)
-
-**Step 3**: Sostituisci:
-
-$$\sum_{t=0}^{T-1} \mathbb{E}[f(x_t) - f(x^*)] \leq \frac{\gamma B^2 T}{2} + \frac{R^2}{2\gamma}$$
-
-**Step 4**: Ottimizza γ minimizzando il lato destro:
-
-$$Q(\gamma) = \frac{\gamma B^2 T}{2} + \frac{R^2}{2\gamma}$$
-
-$$\frac{dQ}{d\gamma} = \frac{B^2T}{2} - \frac{R^2}{2\gamma^2} = 0 \quad \Rightarrow \quad \gamma^* = \frac{R}{B\sqrt{T}}$$
-
-**Step 5**: Sostituisci γ*:
-
-$$\sum_{t=0}^{T-1} \mathbb{E}[f(x_t) - f(x^*)] \leq RB\sqrt{T}$$
-
-**Step 6**: Dividi per T:
-
-$$\mathbb{E}\left[\frac{1}{T}\sum_{t=0}^{T-1} f(x_t)\right] - f(x^*) \leq \frac{RB}{\sqrt{T}}$$
-
-**Q.E.D.** ∎
-
-*(Vedi Slide 7 da SGD_v1.pdf per dimostrazione completa)*
-
-#### 7.5 Convergenza SGD: Caso Strongly Convex
-
-**Teorema** *(Slide 8-9 da SGD_v1.pdf)*:
-
-**Ipotesi**:
-1. f è μ-strongly convex differenziabile
-2. 𝔼[‖g_t‖²] ≤ B² per ogni t
-
-**Con learning rate decrescente**:
-
-$$\gamma_t = \frac{2}{\mu(t+1)}$$
-
-**Risultato**:
-
-$$\mathbb{E}\left[f\left(\frac{\sum_{t=1}^T t \cdot x_t}{T(T+1)/2}\right)\right] - f(x^*) \leq \frac{2B^2}{\mu(T+1)}$$
-
-**Convergenza**: O(1/T) → **meglio** di O(1/√T) caso Lipschitz!
-
-**Complessità**: Per raggiungere ε:
-
-$$T = O\left(\frac{B^2}{\mu\varepsilon}\right) = O(1/\varepsilon)$$
-
-**Nota**: Il bound è sulla **weighted average** delle iterate:
-
-$$\tilde{x}_T = \frac{\sum_{t=1}^T t \cdot x_t}{\sum_{t=1}^T t} = \frac{2\sum_{t=1}^T t \cdot x_t}{T(T+1)}$$
-
-(Iterate recenti pesano di più!)
-
-#### Dimostrazione (Sketch Principale)
-
-**Step 1**: Dall'analisi base GD con aspettative:
-
-$$\mathbb{E}[g_t^\top(x_t - x^*)] = \frac{\gamma_t}{2}\mathbb{E}[\|g_t\|^2] + \frac{1}{2\gamma_t}(\mathbb{E}[\|x_t - x^*\|^2] - \mathbb{E}[\|x_{t+1} - x^*\|^2])$$
-
-**Step 2**: Usa proprietà ⋄ + strong convexity:
-
-$$\mathbb{E}[g_t^\top(x_t - x^*)] \geq \mathbb{E}[f(x_t) - f(x^*)] + \frac{\mu}{2}\mathbb{E}[\|x_t - x^*\|^2]$$
-
-**Step 3**: Combina (1) + (2) e usa 𝔼[‖g_t‖²] ≤ B²:
-
-$$\mathbb{E}[f(x_t) - f(x^*)] \leq \frac{B^2\gamma_t}{2} + \frac{\gamma_t^{-1} - \mu}{2}\mathbb{E}[\|x_t - x^*\|^2] - \frac{\gamma_t^{-1}}{2}\mathbb{E}[\|x_{t+1} - x^*\|^2]$$
-
-**Step 4**: Con γ_t = 2/(μ(t+1)):
-
-$$\gamma_t^{-1} - \mu = \frac{\mu(t+1)}{2} - \mu = \frac{\mu(t-1)}{2}$$
-
-**Step 5**: Moltiplica per t e somma da t=1 a T (usa **telescoping** + **Jensen's inequality**):
-
-Dopo manipolazioni algebriche complesse (Slide 9-10):
-
-$$\mathbb{E}\left[f\left(\frac{2\sum_{t=1}^T t \cdot x_t}{T(T+1)}\right)\right] - f(x^*) \leq \frac{2B^2}{\mu(T+1)}$$
-
-**Q.E.D.** ∎
-
-*(Vedi Slide 8-10 da SGD_v1.pdf per dimostrazione dettagliata con Jensen)*
-
-**Osservazione chiave**: Strong convexity dà convergenza **O(1/T)** invece di O(1/√T) → molto meglio!
-
----
-
-### 8. Sampling Strategies: With/Without Replacement
-
-*(Riferimento dalla lezione, Slide 11-12 da SGD_v1.pdf)*
-
-Nella definizione di SGD, abbiamo detto "sample i uniformly at random". Ci sono **due strategie**:
-
-#### 8.1 Sampling WITH Replacement
-
-**Procedura**:
-- Ad ogni iterazione t: sample i_t ~ Uniform({1, ..., n})
-- **Tutti** gli indici 1,...,n sono disponibili ad ogni step
-- Possibile scegliere **stesso campione** in iterazioni consecutive
-
-**Esempio** (n=5, T=10 iterazioni):
-```
-i_1 = 3, i_2 = 1, i_3 = 3 (← ripetuto!), i_4 = 5, i_5 = 2, ...
-```
-
-**Vantaggi** (teorici):
-- Campioni {g_t} sono **i.i.d.** (indipendenti e identicamente distribuiti)
-- Tutte le dimostrazioni teoriche funzionano perfettamente
-- Analisi matematica pulita
-
-**Svantaggi** (pratici):
-- Alcuni campioni possono essere scelti molte volte
-- Altri campioni possono NON essere mai scelti in un'epoca
-- Inefficiente: spreca informazione disponibile
-
-#### 8.2 Sampling WITHOUT Replacement (Usato in Pratica!)
-
-**Procedura** *(Slide 11)*:
-1. All'inizio dell'epoca: shuffle degli indici {1,...,n} → permutazione casuale π
-2. Iterate t=0,...,n-1: usa i_t = π(t) in ordine
-3. Fine epoca: ripeti shuffle
-
-**Esempio** (n=5, una epoca):
-```
-Shuffle → π = [3, 1, 5, 2, 4]
-Iteration 0: i_0 = 3
-Iteration 1: i_1 = 1
-Iteration 2: i_2 = 5
-Iteration 3: i_3 = 2
-Iteration 4: i_4 = 4
-New epoch → shuffle again!
-```
-
-**Vantaggi** (pratici):
-- **Facile da implementare**: 1 shuffle all'inizio + iterate in ordine
-- Ogni campione usato **esattamente 1 volta** per epoca
-- Converge **più velocemente** empiricamente (verificato sperimentalmente)
-- **Usato in tutte le librerie**: PyTorch DataLoader, TensorFlow tf.data
-
-**Svantaggi** (teorici):
-- Campioni NON sono i.i.d. (correlati entro epoca)
-- Analisi teorica **molto più difficile**
-- Risultati teorici rigorosi meno sviluppati
-
-**Implementazione pratica** (PyTorch esempio):
-
-```python
-from torch.utils.data import DataLoader, Dataset
-
-# Dataset con n campioni
-dataset = MyDataset(...)
-
-# DataLoader con shuffle=True → sampling WITHOUT replacement!
-dataloader = DataLoader(
-    dataset, 
-    batch_size=32,      # mini-batch size
-    shuffle=True,       # ← Shuffle all'inizio di ogni epoca
-    num_workers=4       # Parallel loading
-)
-
-# Training loop
-for epoch in range(num_epochs):
-    for batch in dataloader:  # ← Ogni batch diverso, nessuna ripetizione in epoca
-        x, y = batch
-        loss = compute_loss(x, y)
-        loss.backward()
-        optimizer.step()
-```
-
-**Conclusione**: In pratica, **without replacement** è universalmente usato (più efficiente, converge meglio). Teoria matematica preferisce **with replacement** (analisi più pulita).
-
----
-
-### 9. SGD vs Machine Learning Optimization: Difference in Goals
-
-*(Riferimento dalla lezione, 01:31:04 - 01:33:05)*
-
-**Punto chiave dalla lezione**: Obiettivi di ottimizzazione in ML sono **diversi** da ottimizzazione classica!
-
-#### 9.1 Ottimizzazione Classica (Engineering)
-
-**Esempio**: Ottimizzare forma di un'ala per minimizzare resistenza (drag).
-
-**Obiettivo**: Trovare il **minimo esatto** di f(R) = drag(R), dove R = raggio bordo d'attacco.
-
-**Perché**: Vogliamo la migliore performance possibile → minimo drag fisicamente raggiungibile.
-
-**Metodi**: GD deterministico, Newton, BFGS, ... → convergenza precisa al minimo.
-
-#### 9.2 Ottimizzazione Machine Learning
-
-**Esempio**: Minimizzare training loss L_train(w).
-
-**Obiettivo**: **NON** il minimo esatto di L_train!
-
-**Obiettivo vero**: 
-1. L_train(w) **vicino** al minimo (non esatto)
-2. **Generalizzazione**: L_test(w) piccolo (avoid overfitting!)
-
-**Perché**: Minimo esatto di L_train → **overfitting**!
-
-**Grafico concettuale**:
-```
-Training loss
-    │
-    │  ●  ← minimo esatto (overfitting)
-    │ ╱ ╲
-    │╱   ╲
-    ●─────●  ← zone "buone" (vicine al minimo, generalizzano)
-    │      
-────┼────────► Complessità modello
-    │
-Test loss
-    │      ╱ ← overfitting!
-    │    ╱
-    │  ╱ ● ← minimo training
-    │╱
-    ●────────  ← minimo test (vogliamo questo!)
-```
-
-**Implicazione per SGD**:
-- Il "rumore" di SGD (bouncing intorno al minimo) è **benefico**!
-- Impedisce overfitting → migliore generalizzazione
-- Non serve convergenza esatta → early stopping ottimale
-
-**Citazione dalla lezione** *(01:32:25)*:
-> "Nel machine learning, andare verso il minimo perfetto la maggior parte delle volte significa che stiamo andando verso l'overfitting. Quindi questa è la ragione per cui la discesa del gradiente stocastico è molto efficace nel machine learning, perché non vogliamo necessariamente trovare il minimo esatto, ma essere vicini al minimo."
-
-#### 9.3 Early Stopping in SGD
-
-**Strategia** *(dalla lezione ieri, vedi Lez18)*:
-1. Monitor validation loss L_val(w_t) durante training
-2. Training loss L_train(w_t) continua a scendere
-3. Validation loss L_val(w_t) prima scende, poi **risale** (overfitting!)
-4. **Stop** quando L_val inizia a risalire
-
-**Grafico** (mostrato ieri Lez18):
-```
-Loss
-  │
-  │ Train ───────────────↘ (continua a scendere)
-  │
-  │ Val ────↘──↗ (scende poi risale)
-  │         ↑
-  │    Stop qui! (best model)
-  │
-  └──────────────────────────► Epochs
-```
-
-**Perché SGD è perfetto per questo**:
-- Rumore intrinseco impedisce convergenza esatta
-- Facile interrompere quando validation peggiora
-- GD deterministico convergerebbero troppo precisamente al minimo training
-
----
-
-### 10. Far-Out vs Confusion Regions: SGD Behavior
-
-*(Riferimento dalla lezione, 01:34:08 - 01:42:30, esempio con parabole)*
-
-**Esempio didattico dalla lezione**: Funzione f = Σᵢ f_i dove ogni f_i(x) = (1/2)aᵢ(x - bᵢ/aᵢ)²
-
-Ogni termine f_i è una **parabola** con minimo in x_i* = bᵢ/aᵢ.
-
-#### 10.1 Visualizzazione (2D)
-
-```
-f_i values
-    │
-    │  ╱╲  ╱╲  ╱╲  ╱╲  ╱╲   ← parabole tratteggiate (singoli f_i)
-    │ ╱  ╲╱  ╲╱  ╲╱  ╲╱  ╲
-    │╱                    ╲
-    ────────────●──────────────  ← parabola nera (f totale)
-    │           ↑
-    │      minimo globale x*
-    │
-    │ ← FAR-OUT   →│← CONFUSION →│← FAR-OUT →
-    │   REGION     │   REGION    │  REGION
-```
-
-#### 10.2 Far-Out Region (Verde)
-
-**Definizione**: Regione lontana dal minimo dove **tutte** le parabole f_i hanno stesso **segno** del gradiente.
-
-**Comportamento SGD**:
-- Sample f_i casuale → gradiente ∇f_i(x_t)
-- **Segno(∇f_i(x_t)) = Segno(∇f(x_t))** per quasi tutte le parabole!
-- SGD fa progressi **consistenti** verso il minimo
-- Traiettoria relativamente **smooth**
-
-**Esempio dalla lezione**:
-- Punto di partenza x₀ lontano a sinistra
-- Tutte le parabole hanno pendenza **negativa** (puntano a destra verso minimi)
-- f totale ha pendenza negativa
-- SGD si muove a destra in modo relativamente ordinato
-
-#### 10.3 Confusion Region (Rossa)
-
-**Definizione**: Regione **vicino al minimo** dove parabole diverse hanno **segni opposti** del gradiente.
-
-**Comportamento SGD**:
-- Sample f_i casuale → può dare gradiente con **segno sbagliato**!
-- Parabola blu: ∇f_blu < 0 (dice "vai sinistra")
-- Parabola verde: ∇f_verde > 0 (dice "vai destra")
-- f totale: ∇f ≈ 0 (vicino al minimo)
-- SGD fa "salti caotici" intorno al minimo!
-
-**Visualizzazione traiettoria** (dalla lezione, Colab demo):
-```
-      Far-Out          Confusion
-        │                 │
-  ──────●────────→  ●↗●↙●→●←●↘●  ← smooth   ← chaotic jumps!
-   x₀   │            │  
-        │        minimo x*
-```
-
-#### 10.4 Demo Interattiva (Dalla Lezione)
-
-**Parametri slide bar** (01:40:06 - 01:42:30):
-- **Punto iniziale**: x₀ (verde)
-- **Learning rate**: γ
-- **Numero iterazioni**: T
-
-**Osservazioni chiave**:
-
-1. **x₀ lontano** (far-out):
-   - Traiettoria relativamente diretta verso minimo
-   - Fase iniziale smooth
-
-2. **Vicino al minimo** (confusion):
-   - "Apparentemente pazzo" *(citazione lezione)*
-   - Salti in direzioni random
-   - **Non converge al minimo esatto** anche con T → ∞!
-
-3. **Aumentare γ**:
-   - Far-out: Convergenza più rapida (OK)
-   - Confusion: Salti **più grandi** → ancora più caotico!
-
-4. **Aumentare T** (iterazioni):
-   - Far-out → Confusion velocemente
-   - Confusion: Più iterazioni **NON** portano più vicino al minimo!
-   - Bouncing persiste indefinitamente
-
-**Citazione dalla lezione** *(01:41:54)*:
-> "Questo comportamento può essere reso ancora più evidente se aumento la dimensione del passo. Questa è la regione di confusione. Perché? Perché in questa regione, scegliere un singolo campione per calcolare il gradiente non assicura che, almeno per il segno, state facendo bene."
-
-#### 10.5 Implicazioni Teoriche
-
-**Teorema (Limite di convergenza SGD)** *(dalla lezione, 01:44:08 - 01:46:03)*:
-
-Per f μ-strongly convex, con learning rate **costante** γ:
-
-$$\mathbb{E}[\|x_t - x^*\|^2] \leq \underbrace{\rho^t \|x_0 - x^*\|^2}_{\text{termine "buono"}} + \underbrace{\frac{\gamma B^2}{\mu}}_{\text{termine "rumore"}}$$
-
-dove ρ < 1 (contraction factor).
-
-**Interpretazione**:
-
-1. **Primo termine**: ρᵗ‖x₀ - x*‖² → 0 quando t → ∞ (come GD deterministico)
-   - Errore iniziale decade esponenzialmente
-   - Con t abbastanza grande, diventa trascurabile
-
-2. **Secondo termine**: γB²/μ **NON va a zero**!
-   - Dipende da γ (learning rate)
-   - Dipende da B (bound gradiente), μ (strong convexity)
-   - Rappresenta **rumore intrinseco** di SGD
-
-**Limite pratico**:
-
-$$\lim_{t \to \infty} \mathbb{E}[\|x_t - x^*\|^2] \geq \frac{\gamma B^2}{\mu}$$
-
-**Conseguenze**:
-- Con γ costante, SGD **non converge esattamente** a x*
-- Bouncing intorno al minimo con raggio ~ √(γB²/μ)
-- Per ridurre rumore: **diminuire γ** nel tempo (learning rate schedules!)
-
-**Soluzione**: Learning rate **decrescente** γ_t → 0:
-- Es: γ_t = γ₀/t, γ_t = γ₀/√t, step decay, cosine annealing
-- Secondo termine → 0 quando t → ∞
-- Ma: Convergenza più lenta nelle fasi iniziali
-
-**Citazione dalla lezione** *(01:45:19)*:
-> "È chiaro che questo termine, se avete un gamma fisso, è qualcosa che non andrà mai a zero. Quindi questa è la ragione, dal punto di vista teorico, questa è la ragione per cui avete la regione di confusione [...] l'unica possibilità per ridurre questo termine è giocare con il gamma."
-
----
-
-### 11. Mini-Batch SGD: Best of Both Worlds
-
-*(Riferimento: Slide 13-17 da SGD_v1.pdf, lezione 01:46:39 - 01:51:36)*
-
-**Problema**: 
-- **Full-batch GD**: Lento (costo O(nd) per iterazione)
-- **SGD (batch=1)**: Rumoroso, bouncing, instabile
-
-**Soluzione**: **Mini-batch SGD** → usa **m campioni** (1 < m < n) per approssimare gradiente!
-
-#### 11.1 Algoritmo Mini-Batch SGD
-
-**Procedura** *(Slide 13)*:
-
-```
-Parametri:
-- m: batch size (iperparametro!)
-- γ: learning rate
-
-All'iterazione t:
-1. Sample B_t ⊂ {1,...,n} con |B_t| = m (uniformly random)
-2. Compute stochastic gradient:
-   
-   g̃_t = (1/m) Σ_{i∈B_t} ∇f_i(x_t)
-   
-3. Update: x_{t+1} = x_t - γ g̃_t
-```
-
-**Casi speciali**:
-- **m = 1**: Standard SGD
-- **m = n**: Full-batch GD
-- **m ∈ (1, n)**: Mini-batch (il "sweet spot"!)
-
-#### 11.2 Vantaggi Mini-Batch
-
-**1. Riduzione Varianza** *(Slide 14)*:
-
-**Varianza SGD** (m=1):
-
-$$\text{Var}(g_t) = \text{Var}(\nabla f_i(x_t)) = \sigma^2$$
-
-**Varianza mini-batch** (m campioni):
-
-$$\text{Var}(\tilde{g}_t) = \text{Var}\left(\frac{1}{m}\sum_{i \in B_t} \nabla f_i(x_t)\right) = \frac{\sigma^2}{m}$$
-
-**Implicazione**: Varianza ridotta di **fattore m**!
-
-**Effetto pratico**:
-- Gradiente più accurato → direzione di discesa migliore
-- Convergenza più **smooth** e **stabile**
-- Meno oscillazioni intorno al minimo
-
-**Esempio numerico**:
-- m = 1: Var = σ²
-- m = 32: Var = σ²/32 ≈ 0.03σ² (molto più basso!)
-- m = 256: Var = σ²/256 ≈ 0.004σ² (quasi deterministico)
-
-**2. Parallelizzazione** *(dalla lezione, 01:49:42 - 01:50:29)*:
-
-**Key observation**: Tutti i gradienti ∇f_i(x_t) per i ∈ B_t devono essere calcolati nello **stesso punto** x_t.
-
-**Operazione SIMD** (Single Instruction, Multiple Data):
-- **Stessa** operazione (compute gradient)
-- **Stesso** dato (punto x_t)
-- **Diversi** campioni (i ∈ B_t)
-
-**Perfetto per GPU!**
-
-**Esempio pratico** (10 core CPU):
-- Batch size m = 32
-- Dividi 32 campioni tra 10 core
-- Core 1: gradienti campioni 1-4
-- Core 2: gradienti campioni 5-8
-- ...
-- Core 10: gradienti campioni 29-32
-- **Somma** risultati → media
-
-**Speedup empirico**:
-```
-Device    | Batch=1 | Batch=32 | Batch=256 | Speedup (256 vs 1)
-----------|---------|----------|-----------|-------------------
-CPU (1)   | 100 ms  | 150 ms   | 400 ms    | 25× (not 256×!)
-CPU (16)  | 100 ms  | 20 ms    | 50 ms     | 50× (better!)
-GPU (V100)| 10 ms   | 2 ms     | 3 ms      | 80-100× (best!)
-```
-
-*(Numeri illustrativi, dipendono da architettura)*
-
-**Perché GPU >> CPU per mini-batch**:
-- GPU ha 1000+ cores (vs 4-16 CPU)
-- Architettura ottimizzata per SIMD
-- Memoria condivisa veloce
-- Librerie ottimizzate (cuDNN per deep learning)
-
-**Citazione dalla lezione** *(01:51:02)*:
-> "Esattamente la stessa [operazione] e inoltre è fatta anche sugli stessi dati. Quindi non è una singola istruzione, dati multipli. Qui abbiamo singola istruzione e gli stessi dati. Quindi è ancora meglio se volete che questo calcolo sia perfetto per la GPU."
-
-**3. Convergenza Più Veloce** *(empirico)*:
-
-**Observation**: In pratica, mini-batch converge **molto più velocemente** di SGD puro!
-
-**Grafico tipico** (iterazioni vs loss):
-```
-Loss
-  │
-  │ ╲
-  │  ╲ ← Full GD (smooth ma lento)
-  │   ╲___
-  │     
-  │  ╲╲╲ ← Mini-batch m=32 (smooth + veloce)
-  │    ╲╲___
-  │
-  │  ╲  ╲  ╲ ← SGD m=1 (veloce ma rumoroso)
-  │   ╲  ╲  ╲___~~
-  │
-  └──────────────────────► Iterations
-```
-
-**Grafico tipico** (wall-clock time vs loss):
-```
-Loss
-  │
-  │  ╲_______ ← Full GD (lento!)
-  │
-  │    ╲╲___ ← Mini-batch m=32 (BEST!)
-  │
-  │     ╲  ╲~~ ← SGD m=1 (rumoroso)
-  │
-  └──────────────────────► Time (seconds)
-```
-
-**Optimal batch size empirico**: m = 32-256 per molte applicazioni deep learning!
-
-#### 11.3 Svantaggi Mini-Batch
-
-**1. Riduzione "Rumore Benefico"** *(dalla lezione, 01:52:27 - 01:54:35)*:
-
-**Problema**: Il rumore di SGD aiuta a **scappare da minimi locali** (funzioni non-convesse)!
-
-**Scenario** (funzione non-convessa con molti minimi locali):
-```
-f(x)
-  │   ╱╲        ╱╲     ╱╲
-  │  ╱  ╲      ╱  ╲   ╱  ╲
-  │ ╱    ╲____╱    ╲_╱    ╲
-  │╱      ↑         ↑      ╲
-  └───────●─────────●───────●── x
-    local   local   global
-    min #1  min #2  min (best!)
-```
-
-**SGD (m=1)**: 
-- Alto rumore → grandi salti casuali
-- Se "intrappolato" in minimo locale #1: salto casuale può portare fuori!
-- Possibile raggiungere minimo locale #2 o globale
-
-**Mini-batch (m grande)**:
-- Basso rumore → piccoli salti
-- Se "intrappolato": difficile uscire
-- Converge a minimo locale vicino (può NON essere il migliore!)
-
-**Citazione dalla lezione** *(01:52:59)*:
-> "Quei salti che possono accadere in pratica con la discesa del gradiente stocastico a volte vi aiuteranno a scappare da un minimo locale. [...] Se usate un mini-batch che è troppo grande, quindi se M sta andando verso N, vi state muovendo verso una discesa del gradiente. Questo significa che state riducendo il rumore benefico."
-
-**Implicazione pratica**:
-- Batch size **troppo grande** (m → n) può dare **overfitting** (sharp minima)
-- Batch size **piccolo** (m piccolo) trova **flat minima** (generalizzano meglio!)
-
-**Evidenza empirica** (research paper: "On Large-Batch Training..."):
-- Small batch (32-64): Test accuracy 95%
-- Large batch (8192): Test accuracy 92% (overfitting!)
-
-**2. Nuovo Iperparametro**:
-- Oltre a γ (learning rate), ora anche m (batch size) da tuning!
-- Trade-off: velocità vs generalizzazione
-
-#### 11.4 Scelta Pratica del Batch Size
-
-**Guidelines empiriche**:
-
-| Application | Typical Batch Size | Rationale |
-|-------------|-------------------|-----------|
-| Computer Vision (CNN) | 32-128 | Balance speed/memory |
-| NLP (Transformer) | 32-64 (effective batch) | Memory constraints |
-| RL (Reinforcement Learning) | 1-32 | Online learning |
-| Tabular data | 256-1024 | Less overfitting concern |
-
-**Fattori da considerare**:
-
-1. **GPU memory**: Batch troppo grande → out of memory!
-   - ResNet-50 su ImageNet: max ~128 per GPU (16GB)
-   - GPT-3: Gradient accumulation su micro-batches
-
-2. **Dataset size**: 
-   - n piccolo (< 10000): Batch 32-128
-   - n grande (> 1M): Batch 128-512
-
-3. **Generalizzazione**:
-   - Batch piccolo (32-64): Meglio generalizzazione
-   - Batch grande (512+): Risk overfitting
-
-**Tecnica avanzata: Gradient Accumulation**:
-
-Se GPU memory limita batch size, simula batch grande:
-
-```python
-effective_batch_size = 256
-actual_batch_size = 32  # Quello che GPU può gestire
-accumulation_steps = effective_batch_size // actual_batch_size  # = 8
-
-optimizer.zero_grad()
-for i, batch in enumerate(dataloader):
-    loss = model(batch)
-    loss = loss / accumulation_steps  # Scale loss
-    loss.backward()  # Accumula gradienti
-    
-    if (i + 1) % accumulation_steps == 0:
-        optimizer.step()  # Update ogni 8 mini-batch
-        optimizer.zero_grad()
-```
-
-**Risultato**: Simula batch=256 con memoria per batch=32!
-
----
-
-### 12. Learning Rate Schedules: Ridurre il Rumore SGD
-
-*(Riferimento: Slide 18-20 da SGD_v1.pdf, lezione 01:55:22 - 01:57:13)*
-
-**Problema**: Con γ costante, SGD non converge esattamente (regione confusion, bouncing).
-
-**Soluzione**: **Diminuire γ nel tempo** → ridurre salti quando ci si avvicina al minimo!
-
-#### 12.1 Schedules Comuni
-
-**1. Step Decay** *(Slide 18)*:
-
-$$\gamma_t = \gamma_0 \cdot \text{decay}^{\lfloor t / \text{drop\_every} \rfloor}$$
-
-**Esempio**:
-```python
-γ_0 = 0.1
-decay = 0.5
-drop_every = 10 epochs
-
-Epoch 0-9:   γ = 0.1
-Epoch 10-19: γ = 0.05   # ÷2
-Epoch 20-29: γ = 0.025  # ÷4
-Epoch 30-39: γ = 0.0125 # ÷8
-```
-
-**Pro**: Semplice, interpretabile  
-**Contro**: Richiede tuning di drop_every
-
-**2. Exponential Decay**:
-
-$$\gamma_t = \gamma_0 \cdot e^{-\lambda t}$$
-
-**Esempio**:
-```python
-γ_0 = 0.1
-λ = 0.01
-
-t=0:   γ = 0.1
-t=100: γ = 0.0368
-t=200: γ = 0.0135
-```
-
-**Pro**: Smooth, continuo  
-**Contro**: Decade troppo velocemente
-
-**3. Polynomial Decay**:
-
-$$\gamma_t = \gamma_0 \cdot \left(1 + \frac{t}{T}\right)^{-p}$$
-
-**Esempio** (p=1, decay lineare inverso):
-```python
-γ_0 = 0.1
-T = 1000
-p = 1
-
-t=0:    γ = 0.1
-t=500:  γ = 0.0333  # 1/(1+0.5)
-t=1000: γ = 0.05    # 1/(1+1)
-```
-
-**Pro**: Teoria SGD (p=1 → convergenza O(1/T))  
-**Contro**: Lento nelle fasi finali
-
-**4. Cosine Annealing** *(Slide 19, popolare in deep learning!)*:
-
-$$\gamma_t = \gamma_{\min} + \frac{1}{2}(\gamma_{\max} - \gamma_{\min})\left[1 + \cos\left(\frac{\pi t}{T}\right)\right]$$
-
-**Grafico**:
-```
-γ_t
-  │
-γ_max ●─────╲
-  │         ╲
-  │          ╲
-  │           ╲
-  │            ╲
-γ_min          ●───────
-  └──────────────────────► t
-  0                      T
-```
-
-**Esempio**:
-```python
-γ_max = 0.1
-γ_min = 0.001
-T = 100 epochs
-
-t=0:   γ = 0.1      # Start alto
-t=25:  γ = 0.0714   # Scende
-t=50:  γ = 0.0505   # Metà strada
-t=75:  γ = 0.0214   # Quasi fine
-t=100: γ = 0.001    # Minimo
-```
-
-**Pro**: 
-- Smooth descent
-- Molto usato (ResNet, BERT, GPT training)
-- Converge bene empiricamente
-
-**Contro**: Richiede conoscere T (num total epochs)
-
-**5. Warmup + Cosine** *(best practice moderna!)*:
-
-**Fase 1 (Warmup)**: γ cresce linearmente da 0 a γ_max (primi ~5% epochs)  
-**Fase 2 (Cosine)**: Cosine annealing da γ_max a γ_min
-
-```
-γ_t
-  │      ╱────╲
-  │    ╱       ╲
-  │  ╱          ╲
-  │╱             ●
-  ●───────────────────► t
-  0  warmup   T
-```
-
-**Perché warmup**:
-- All'inizio: pesi randomizzati → gradienti molto grandi e rumorosi
-- γ alto subito → update troppo grandi → instabilità!
-- Warmup stabilizza training iniziale
-
-**Implementazione PyTorch**:
-
-```python
-from torch.optim.lr_scheduler import CosineAnnealingLR, LinearLR, SequentialLR
-
-optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
-
-# Warmup: 0 → 0.1 in 5 epochs
-warmup = LinearLR(optimizer, start_factor=0.01, end_factor=1.0, total_iters=5)
-
-# Cosine: 0.1 → 0.001 in 95 epochs
-cosine = CosineAnnealingLR(optimizer, T_max=95, eta_min=0.001)
-
-# Combine
-scheduler = SequentialLR(optimizer, schedulers=[warmup, cosine], milestones=[5])
-
-# Training loop
-for epoch in range(100):
-    train_one_epoch(...)
-    scheduler.step()  # Update γ
-```
-
-#### 12.2 Quando Usare Quale Schedule?
-
-| Schedule | Best For | Typical Use Case |
-|----------|----------|------------------|
-| **Step decay** | Computer Vision classica | ResNet su ImageNet (decay @ epochs 30, 60, 90) |
-| **Exponential** | RL, online learning | Policy gradient methods |
-| **Polynomial (1/t)** | Teoria SGD, convex | Convex optimization research |
-| **Cosine** | Deep learning moderno | Transformers (BERT, GPT), Vision (ViT) |
-| **Warmup + Cosine** | **BEST modern practice** | Tutti i Transformer models |
-
-**Citazione dalla lezione** *(01:55:55)*:
-> "Tutte le librerie, TensorFlow, PyTorch, in tutte le librerie, potete definire uno scheduler per decidere l'entità della dimensione del passo. [...] Questa è la strategia più comunemente adottata in tutte le implementazioni della discesa del gradiente stocastico."
-
-#### 12.3 Adaptive Learning Rates (Preview Lez20)
-
-**Problema**: Un singolo γ per tutti i parametri → non ottimale!
-
-**Idea**: Ogni parametro w_i ha il suo learning rate γ_i adattivo!
-
-**Metodi** (vedremo nella prossima lezione):
-1. **AdaGrad**: γ_i ∝ 1/√(Σ g_i²) → piccolo per parametri aggiornati spesso
-2. **RMSprop**: γ_i ∝ 1/√(moving avg g_i²) → fixing AdaGrad decay
-3. **Adam**: Momentum + RMSprop → **most popular optimizer!**
-
-**Anteprima Adam**:
-```python
-optimizer = torch.optim.Adam(
-    model.parameters(),
-    lr=0.001,           # γ iniziale (di solito 10× più piccolo di SGD!)
-    betas=(0.9, 0.999), # Momentum parameters
-    eps=1e-8            # Numerical stability
-)
-```
-
-**Prossima lezione** (Lez20 lunedì): Momentum, Nesterov, AdaGrad, RMSprop, Adam in dettaglio!
-
----
-
-## CONCLUSIONE LEZ19
-
-**Riassunto completo**:
-
-**PARTE I: Gradient Descent Deterministico**
-1. ✅ Convergenza Lipschitz convex: O(1/ε²) iterations
-2. ✅ Convergenza L-smooth convex: **O(1/ε)** → molto meglio!
-3. ✅ Convergenza strongly convex: **O(log(1/ε))** → esponenziale!
-4. ✅ Line search (exact, backtracking Armijo)
-5. ✅ Projected GD + Proximal GD (ottimizzazione vincolata)
-
-**PARTE II: Stochastic Gradient Descent**
-1. ✅ SGD: n× più veloce per iterazione
-2. ✅ Convergenza Lipschitz: O(1/ε²) (come GD!)
-3. ✅ Convergenza strongly convex: O(1/ε) (come L-smooth GD!)
-4. ✅ Sampling strategies (with/without replacement)
-5. ✅ ML objectives ≠ classical optimization (generalizzazione!)
-6. ✅ Far-out vs confusion regions (rumore benefico)
+- $T$ è il numero totale di iterazioni dell'algoritmo.
+- $x_t$ è il vettore dei parametri (o iterata) alla $t$-esima iterazione.
+- $x^*$ è la soluzione ottima, ovvero il punto di minimo della funzione.
+- $f(\cdot)$ è la funzione obiettivo che si intende minimizzare.
+[00:11] Partendo dalla sola ipotesi di convessità della funzione $f$, l'analisi di base ha condotto alla seguente disuguaglianza fondamentale:
+$$
+\frac{1}{T} \sum_{t=1}^{T} (f(x_t) - f(x^*)) \le \frac{\gamma}{2T} \sum_{t=1}^{T} ||\nabla f(x_t)||^2 + \frac{1}{2\gamma T} ||x_1 - x^*||^2
+$$
+Questa relazione costituisce il punto di partenza per derivare risultati più specifici sulla convergenza, i quali si ottengono introducendo ipotesi aggiuntive sulla funzione obiettivo $f$.
+### Caso 1: Funzione Convessa con Gradiente Limitatato
+#### Ipotesi e Tesi del Teorema
+[00:30] Il primo risultato si ottiene introducendo l'ipotesi che il gradiente della funzione sia limitato. Questa proprietà è anche nota come Lipschitzianità della funzione rispetto al gradiente.
+- **Definizione di Gradiente Limitatato**: Una funzione $f$ si dice a gradiente limitato se esiste una costante positiva $B$ tale che la norma del suo gradiente è sempre inferiore o uguale a tale costante per ogni punto del dominio. Matematicamente:
+  $$
+  ||\nabla f(x)|| \le B \quad \forall x
+  $$
+[00:40] Si introduce un'ulteriore ipotesi riguardante il punto di partenza dell'algoritmo, $x_1$. Si assume che la distanza tra $x_1$ e la soluzione ottima $x^*$ sia limitata da una costante $R$:
+$$
+||x_1 - x^*|| \le R
+$$
+[00:51] Sotto queste due ipotesi, e scegliendo un passo di apprendimento (o *learning rate*) $\gamma$ specifico, definito come:
+$$
+\gamma = \frac{R}{B\sqrt{T}}
+$$
+dove $T$ è il numero totale di iterazioni, si ottiene la seguente stima per la differenza media dei valori funzionali:
+$$
+\frac{1}{T} \sum_{t=1}^{T} (f(x_t) - f(x^*)) \le \frac{RB}{\sqrt{T}}
+$$
+[01:06] Questa relazione implica che la differenza tra il valore della funzione calcolato nell'iterata "migliore" ($x_{best}$) e il valore ottimo $f(x^*)$ decresce con un tasso dell'ordine di $1/\sqrt{T}$.
+#### Numero di Iterazioni e Tasso di Convergenza
+[01:15] Se si desidera che la soluzione trovata, $x_{best}$, soddisfi una certa tolleranza $\epsilon$, ovvero che l'errore sia inferiore a tale soglia:
+$$
+f(x_{best}) - f(x^*) \le \epsilon
+$$
+[01:23] Sfruttando la stima precedente, è possibile determinare il numero di iterazioni $T$ necessarie per garantire tale accuratezza. Il numero di iterazioni risulta essere dell'ordine di:
+$$
+T \approx \frac{R^2 B^2}{\epsilon^2}
+$$
+[01:34] Questo risultato indica che il tasso di convergenza, in relazione alla tolleranza $\epsilon$ desiderata, è dell'ordine di $1/\epsilon^2$. Di conseguenza, per raggiungere una tolleranza molto piccola (ad esempio, $\epsilon = 10^{-2}$), il numero di iterazioni teoricamente richiesto può diventare estremamente elevato.
+#### Dimostrazione del Risultato
+[01:52] La dimostrazione del teorema è relativamente diretta e si basa sull'applicazione delle ipotesi aggiuntive alla disuguaglianza fondamentale.
+[02:04] Si parte dalla disuguaglianza ottenuta nell'analisi di base:
+$$
+\frac{1}{T} \sum_{t=1}^{T} (f(x_t) - f(x^*)) \le \frac{\gamma}{2T} \sum_{t=1}^{T} ||\nabla f(x_t)||^2 + \frac{1}{2\gamma T} ||x_1 - x^*||^2
+$$
+Il primo termine al secondo membro viene maggiorato utilizzando l'ipotesi di gradiente limitato, per cui $||\nabla f(x_t)||^2 \le B^2$. Il secondo termine viene maggiorato utilizzando l'ipotesi sulla distanza iniziale, per cui $||x_1 - x^*||^2 \le R^2$.
+[02:13] Applicando queste maggiorazioni, si ottiene:
+$$
+\frac{1}{T} \sum_{t=1}^{T} (f(x_t) - f(x^*)) \le \frac{\gamma}{2T} \sum_{t=1}^{T} B^2 + \frac{R^2}{2\gamma T}
+$$
+La sommatoria $\sum_{t=1}^{T} B^2$ è pari a $T \cdot B^2$, quindi la disuguaglianza si semplifica in:
+$$
+\frac{1}{T} \sum_{t=1}^{T} (f(x_t) - f(x^*)) \le \frac{\gamma B^2}{2} + \frac{R^2}{2\gamma T}
+$$
+[02:24] Il teorema postula l'esistenza di un valore ottimale per il passo di apprendimento $\gamma$. Per trovarlo, si considera il lato destro della disuguaglianza come una funzione di $\gamma$, che si può denotare con $Q(\gamma)$:
+$$
+Q(\gamma) = \frac{\gamma B^2}{2} + \frac{R^2}{2\gamma T}
+$$
+[02:32] Per trovare il valore di $\gamma$ che minimizza $Q(\gamma)$, si calcola la sua derivata prima rispetto a $\gamma$ e la si pone uguale a zero:
+$$
+\frac{dQ}{d\gamma} = \frac{B^2}{2} - \frac{R^2}{2\gamma^2 T} = 0
+$$
+[02:42] Risolvendo l'equazione per $\gamma$, si ottiene il valore ottimale:
+$$
+\gamma_{opt} = \frac{R}{B\sqrt{T}}
+$$
+[02:49] Sostituendo questo valore ottimale di $\gamma$ nell'espressione di $Q(\gamma)$, si ottiene il risultato finale enunciato dal teorema:
+$$
+\frac{1}{T} \sum_{t=1}^{T} (f(x_t) - f(x^*)) \le \frac{RB}{\sqrt{T}}
+$$
+[02:58] Questo primo risultato stabilisce che, sotto le ipotesi di funzione convessa e a gradiente limitato, l'errore medio decresce con un fattore proporzionale a $1/\sqrt{T}$, portando a un tasso di convergenza dell'ordine di $1/\epsilon^2$.
+### Caso 2: Funzione L-smooth (a gradiente Lipschitziano)
+#### La Condizione di Decrescita Sufficiente
+[03:10] Si analizza ora il caso in cui si aggiunge l'ipotesi di L-smoothness della funzione.
+- **Definizione di Funzione L-smooth**: Una funzione $f$ è detta L-smooth, o a gradiente L-Lipschitziano, se esiste una costante $L > 0$ tale che il suo gradiente soddisfa la seguente condizione per ogni coppia di punti $x, y$:
+  $$
+  ||\nabla f(x) - \nabla f(y)|| \le L ||x - y|| \quad \forall x, y
+  $$
+  Una conseguenza diretta di questa proprietà è la seguente disuguaglianza, che fornisce un limite superiore quadratico alla funzione:
+  $$
+  f(y) \le f(x) + \nabla f(x)^T(y-x) + \frac{L}{2}||y-x||^2
+  $$
+[03:15] In questo scenario, si sceglie un passo di apprendimento costante pari a $\gamma = 1/L$. Con questa scelta, è possibile dimostrare una proprietà fondamentale nota come "condizione di decrescita sufficiente" (*sufficient decrease*).
+[03:23] Questa condizione garantisce che, se la funzione è L-smooth e si utilizza $\gamma = 1/L$, i valori della funzione obiettivo calcolati a ogni iterazione del metodo del gradiente formano una sequenza strettamente decrescente. Matematicamente, si ha:
+$$
+f(x_{t+1}) \le f(x_t) - \frac{1}{2L} ||\nabla f(x_t)||^2
+$$
+Poiché il termine $||\nabla f(x_t)||^2$ è sempre non negativo, si ha $f(x_{t+1}) < f(x_t)$ (a meno che non si sia già raggiunto un punto stazionario dove il gradiente è nullo), garantendo una sequenza decrescente di valori funzionali.
+#### Dimostrazione della Decrescita Sufficiente
+[03:40] La dimostrazione parte dalla disuguaglianza che definisce la proprietà di L-smoothness.
+[03:46] In tale disuguaglianza, si sostituisce la relazione ricorsiva del metodo del gradiente con $\gamma = 1/L$:
+$$
+x_{t+1} = x_t - \frac{1}{L} \nabla f(x_t)
+$$
+Ponendo $y = x_{t+1}$ e $x = x_t$, la disuguaglianza di L-smoothness diventa:
+$$
+f(x_{t+1}) \le f(x_t) + \nabla f(x_t)^T(x_{t+1}-x_t) + \frac{L}{2}||x_{t+1}-x_t||^2
+$$
+[03:55] Si sostituisce ora l'espressione per la differenza $(x_{t+1}-x_t) = -\frac{1}{L}\nabla f(x_t)$:
+$$
+f(x_{t+1}) \le f(x_t) + \nabla f(x_t)^T \left(-\frac{1}{L}\nabla f(x_t)\right) + \frac{L}{2}\left\|-\frac{1}{L}\nabla f(x_t)\right\|^2
+$$
+[04:01] Semplificando i termini si ottiene:
+- Il prodotto scalare diventa: $-\frac{1}{L} \nabla f(x_t)^T \nabla f(x_t) = -\frac{1}{L} ||\nabla f(x_t)||^2$.
+- Il termine quadratico diventa: $\frac{L}{2} \frac{1}{L^2} ||\nabla f(x_t)||^2 = \frac{1}{2L} ||\nabla f(x_t)||^2$.
+[04:08] Combinando i termini, la disuguaglianza si trasforma in:
+$$
+f(x_{t+1}) \le f(x_t) - \frac{1}{L} ||\nabla f(x_t)||^2 + \frac{1}{2L} ||\nabla f(x_t)||^2
+$$
+[04:18] Sommando i termini simili contenenti la norma del gradiente, si ottiene la relazione finale, che dimostra la condizione di decrescita sufficiente:
+$$
+f(x_{t+1}) \le f(x_t) - \frac{1}{2L} ||\nabla f(x_t)||^2
+$$
+### Caso 3: Funzione Convessa e L-smooth
+#### Ipotesi e Tasso di Convergenza
+[04:25] Si considera ora il caso di una funzione che è contemporaneamente convessa e L-smooth.
+[04:30] Mentre il risultato precedente mostrava una decrescita tra iterazioni consecutive, l'obiettivo qui è dimostrare che, dopo $T$ iterazioni, l'errore all'ultima iterata è limitato da una costante che dipende dal numero di iterazioni e dalla distanza iniziale dalla soluzione. La disuguaglianza da dimostrare è:
+$$
+f(x_T) - f(x^*) \le \frac{L ||x_1 - x^*||^2}{2T}
+$$
+[04:46] Assumendo, come nel primo caso, che la distanza iniziale dalla soluzione sia limitata da una costante $R$ (cioè $||x_1 - x^*|| \le R$), il risultato può essere riscritto come:
+$$
+f(x_T) - f(x^*) \le \frac{L R^2}{2T}
+$$
+[04:56] Se si desidera raggiungere una tolleranza $\epsilon$, il numero di iterazioni $T$ necessario per garantire $f(x_T) - f(x^*) \le \epsilon$ è dell'ordine di:
+$$
+T \approx \frac{L R^2}{2\epsilon}
+$$
+[05:04] La differenza fondamentale rispetto al primo caso (gradiente limitato) è che il numero di iterazioni è ora proporzionale a $1/\epsilon$, anziché a $1/\epsilon^2$. L'aggiunta dell'ipotesi di L-smoothness ha quindi permesso di ottenere un tasso di convergenza significativamente migliore.
+#### Dimostrazione del Risultato
+[05:15] La dimostrazione parte nuovamente dall'analisi di base, utilizzando un passo di apprendimento $\gamma = 1/L$.
+[05:20] Si sfrutta la condizione di decrescita sufficiente, che può essere riscritta per fornire un limite superiore alla norma del gradiente in funzione della decrescita della funzione obiettivo:
+$$
+||\nabla f(x_t)||^2 \le 2L (f(x_t) - f(x_{t+1}))
+$$
+[05:29] Partendo dalla disuguaglianza fondamentale derivata dalla convessità, $f(x_t) - f(x^*) \le \nabla f(x_t)^T(x_t - x^*)$, e sommando su tutte le iterazioni da $t=1$ a $T$, si ottiene:
+$$
+\sum_{t=1}^{T} (f(x_t) - f(x^*)) \le \sum_{t=1}^{T} \nabla f(x_t)^T(x_t - x^*)
+$$
+[05:35] L'idea chiave della dimostrazione consiste nel sommare la condizione di decrescita sufficiente su tutte le iterazioni.
+[05:40] Questa operazione porta a una somma telescopica. Sommando i termini $f(x_t) - f(x_{t+1})$ per $t$ da 1 a $T$, i termini intermedi si cancellano a vicenda.
+[05:50] Il risultato della somma telescopica è la differenza tra il valore della funzione alla prima iterazione e quello all'iterazione $T+1$:
+$$
+\sum_{t=1}^{T} (f(x_t) - f(x_{t+1})) = f(x_1) - f(x_{T+1})
+$$
+Poiché $x^*$ è il punto di minimo, si ha $f(x^*) \le f(x_{T+1})$. Di conseguenza, la somma può essere maggiorata come segue: $f(x_1) - f(x_{T+1}) \le f(x_1) - f(x^*)$.
+[06:00] Combinando i vari passaggi, si ottiene un limite per la media dei gradienti.
+[06:05] Questo limite viene inserito nell'equazione originale dell'analisi di base.
+[06:15] Dopo aver riorganizzato i termini, si ottiene una disuguaglianza che permette di raggruppare i valori funzionali sul lato sinistro.
+[06:20] Anche in questo passaggio si presenta una somma telescopica, il cui risultato finale è limitato superiormente da $\frac{L}{2} ||x_1 - x^*||^2$.
+[06:28] Grazie alla condizione di decrescita sufficiente, sappiamo che la sequenza dei valori funzionali $f(x_t)$ è decrescente, ovvero $f(x_{t+1}) \le f(x_t)$. Questo implica che $f(x_T)$ è il valore più piccolo tra tutti quelli calcolati durante le $T$ iterazioni.
+[06:39] Di conseguenza, la somma degli errori funzionali può essere minorata come segue:
+$$
+\sum_{t=1}^{T} (f(x_t) - f(x^*)) \ge T (f(x_T) - f(x^*))
+$$
+[06:48] Combinando tutti questi risultati, si giunge alla disuguaglianza finale:
+$$
+f(x_T) - f(x^*) \le \frac{L ||x_1 - x^*||^2}{2T}
+$$
+Questo limite mostra come l'errore all'ultima iterazione dipenda dalla distanza iniziale dalla soluzione e decresca linearmente con il numero di iterazioni $T$.
+### Caso 4: Funzione $\mu$-fortemente Convessa e L-smooth
+#### Ipotesi e Risultati Principali
+[07:00] Si introduce un'ulteriore e più stringente condizione sulla funzione: la $\mu$-forte convessità.
+- **Definizione di Funzione $\mu$-fortemente Convessa**: Una funzione $f$ si dice $\mu$-fortemente convessa se esiste una costante $\mu > 0$ tale che la seguente disuguaglianza è valida per ogni coppia di punti $x, y$:
+  $$
+  f(y) \ge f(x) + \nabla f(x)^T(y-x) + \frac{\mu}{2}||y-x||^2
+  $$
+  Questa condizione implica che la funzione è limitata inferiormente da una parabola quadratica.
+[07:05] In questo caso, si ottengono due risultati fondamentali: un limite sulla distanza tra le iterate e la soluzione ottima, e un limite sulla differenza dei valori funzionali.
+[07:13] Si dimostra che la distanza al quadrato tra l'iterata $x_{t+1}$ e la soluzione $x^*$ si riduce a ogni passo di un fattore costante:
+$$
+||x_{t+1} - x^*||^2 \le \left(1 - \frac{\mu}{L}\right) ||x_t - x^*||^2
+$$
+Il rapporto $\kappa = L/\mu$ è noto come **numero di condizionamento** del problema di ottimizzazione.
+[07:25] Sfruttando questa relazione di contrazione, si può dimostrare che il numero di passi $T$ richiesto per raggiungere una data tolleranza $\epsilon$ è dell'ordine di:
+$$
+T \approx \kappa \log\left(\frac{1}{\epsilon}\right)
+$$
+Questo tipo di convergenza, detta lineare (o geometrica), è molto più rapida di quelle viste in precedenza.
+#### Il Concetto di Numero di Condizionamento
+[07:35] Il numero di condizionamento è un concetto centrale in analisi numerica.
+[07:41] Per un problema numerico generico, che può essere rappresentato in forma astratta come $F(x, d) = 0$ (dove $x$ è l'incognita e $d$ sono i dati), il numero di condizionamento quantifica la sensibilità della soluzione $x$ a piccole variazioni (perturbazioni) nei dati $d$.
+[08:00] Un esempio classico è quello dei sistemi di equazioni lineari $Ax=b$. Per una matrice quadrata e invertibile $A$, il numero di condizionamento è definito come:
+$$
+\kappa(A) = ||A|| \cdot ||A^{-1}||
+$$
+dove la norma può essere una qualsiasi norma matriciale indotta. Questo numero è sempre maggiore o uguale a 1.
+[08:10] Un numero di condizionamento elevato indica che il problema è "mal condizionato": piccole perturbazioni nei dati di input (ad esempio, nel vettore $b$ o nella matrice $A$) possono provocare grandi variazioni nella soluzione $x$.
+[08:18] La velocità di convergenza di molti metodi iterativi, come il metodo del gradiente o il metodo del gradiente coniugato, dipende fortemente dal numero di condizionamento della matrice del sistema. Per il metodo del gradiente, la dipendenza è da $\kappa(A)$, mentre per il gradiente coniugato, un metodo più avanzato, è da $\sqrt{\kappa(A)}$.
+[08:33] Questo concetto si estende al contesto dell'ottimizzazione non lineare, dove il numero di condizionamento $\kappa = L/\mu$ governa la velocità di convergenza dell'algoritmo del gradiente.
+[08:50] Un esempio famoso di matrice mal condizionata è la matrice di Hilbert, per la quale una minima perturbazione nel termine noto $b$ può produrre una soluzione completamente diversa da quella attesa.
+#### Dimostrazione dei Risultati
+[09:08] La dimostrazione si basa su una delle relazioni ottenute nell'analisi di base, che lega il prodotto scalare del gradiente con la differenza tra l'iterata corrente e la soluzione ottima. Questa relazione, che indichiamo come BA1 (*Basic Analysis 1*), è:
+$$
+\nabla f(x_t)^T(x_t - x^*) = \frac{1}{2\gamma} (||x_t - x^*||^2 - ||x_{t+1} - x^*||^2) + \frac{\gamma}{2} ||\nabla f(x_t)||^2
+$$
+[09:25] Si utilizza inoltre la definizione di $\mu$-forte convessità. Scegliendo $x = x_t$ e $y = x^*$ nella disuguaglianza di forte convessità e riarrangiando i termini, si ottiene un limite inferiore per il prodotto scalare $\nabla f(x_t)^T(x_t - x^*)$. Questa relazione, che indichiamo come SC2 (*Strong Convexity 2*), è:
+$$
+\nabla f(x_t)^T(x_t - x^*) \ge f(x_t) - f(x^*) + \frac{\mu}{2} ||x_t - x^*||^2
+$$
+[09:50] Combinando le due condizioni BA1 e SC2, e dopo alcuni passaggi algebrici, si ottiene una relazione che limita l'errore all'iterazione $t+1$:
+$$
+||x_{t+1} - x^*||^2 \le (1 - \mu\gamma) ||x_t - x^*||^2 - 2\gamma(f(x_t) - f(x^*)) + \gamma^2 ||\nabla f(x_t)||^2
+$$
+[10:05] In questa disuguaglianza, il termine $(1 - \mu\gamma) ||x_t - x^*||^2$ rappresenta il fattore di contrazione desiderato. Gli ultimi due termini, $- 2\gamma(f(x_t) - f(x^*)) + \gamma^2 ||\nabla f(x_t)||^2$, possono essere visti come un "rumore" che perturba la convergenza.
+[10:12] Il fattore $(1 - \mu\gamma)$, se minore di 1, garantisce una riduzione dell'errore a ogni passo. L'obiettivo è dimostrare che la somma dei termini di "rumore" è negativa o nulla, in modo da non ostacolare la convergenza.
+[10:25] Scegliendo il passo di apprendimento $\gamma = 1/L$, si possono sfruttare le proprietà della funzione.
+[10:30] Dalle proprietà di L-smoothness e convessità, si può derivare la seguente disuguaglianza, che lega l'errore funzionale alla norma del gradiente:
+$$
+f(x_t) - f(x^*) \ge \frac{1}{2L} ||\nabla f(x_t)||^2
+$$
+[10:48] Sostituendo questa relazione nel termine di "rumore" e utilizzando $\gamma = 1/L$, si ha:
+$$
+\text{Rumore} = -\frac{2}{L}(f(x_t) - f(x^*)) + \frac{1}{L^2} ||\nabla f(x_t)||^2
+$$
+Utilizzando la disuguaglianza $f(x_t) - f(x^*) \ge \frac{1}{2L} ||\nabla f(x_t)||^2$, si ottiene:
+$$
+\text{Rumore} \le -\frac{2}{L}\left(\frac{1}{2L} ||\nabla f(x_t)||^2\right) + \frac{1}{L^2} ||\nabla f(x_t)||^2 = -\frac{1}{L^2} ||\nabla f(x_t)||^2 + \frac{1}{L^2} ||\nabla f(x_t)||^2 = 0
+$$
+Una derivazione più attenta mostra che il termine di rumore è strettamente non positivo.
+[11:10] Poiché il termine di rumore è non positivo, la disuguaglianza per l'errore si semplifica notevolmente:
+$$
+||x_{t+1} - x^*||^2 \le (1 - \mu\gamma) ||x_t - x^*||^2
+$$
+[11:18] Sostituendo il valore scelto per il passo di apprendimento, $\gamma = 1/L$, si ottiene la relazione di contrazione lineare dell'errore:
+$$
+||x_{t+1} - x^*||^2 \le \left(1 - \frac{\mu}{L}\right) ||x_t - x^*||^2
+$$
+[11:24] Applicando questa relazione ricorsivamente per $T$ iterazioni, si ottiene la convergenza lineare della distanza delle iterate dalla soluzione:
+$$
+||x_T - x^*||^2 \le \left(1 - \frac{\mu}{L}\right)^T ||x_1 - x^*||^2
+$$
+[11:33] Per dimostrare il secondo risultato, relativo alla convergenza dei valori funzionali, si utilizza una caratterizzazione della L-smoothness.
+[11:38] Si osserva che il gradiente calcolato nel punto di minimo è nullo, ovvero $\nabla f(x^*) = 0$.
+[11:42] Sfruttando la proprietà di L-smoothness, si può dimostrare la seguente relazione:
+$$
+f(x_t) - f(x^*) \le \frac{L}{2} ||x_t - x^*||^2
+$$
+Sostituendo in questa disuguaglianza il risultato ottenuto per la convergenza della distanza delle iterate, si dimostra che anche i valori funzionali convergono linearmente al valore ottimo.
+### Riepilogo dei Tassi di Convergenza
+[12:00] La tabella seguente riassume i tassi di convergenza ottenuti per il metodo del gradiente in base alle diverse ipotesi sulla funzione obiettivo $f$. Il tasso è espresso come il numero di iterazioni $T$ necessarie per raggiungere una tolleranza $\epsilon$.
+| Ipotesi sulla Funzione $f$ | Numero di Iterazioni $T$ per Tolleranza $\epsilon$ |
+| :--- | :--- |
+| Convessa, Gradiente Limitatato | $O(1/\epsilon^2)$ |
+| Convessa, L-smooth | $O(1/\epsilon)$ |
+| $\mu$-fortemente Convessa, L-smooth | $O(\kappa \log(1/\epsilon))$ |
+[12:10] Come si evince dalla tabella, l'aggiunta di ipotesi che rendono la funzione "meglio comportata" (più regolare e strutturata) si traduce in un miglioramento significativo del tasso di convergenza dell'algoritmo.
+## Capitolo 2: Scelta del Passo di Apprendimento e Ottimizzazione Vincolata
+### La Scelta Pratica del Passo di Apprendimento (Learning Rate)
+[12:20] Tutte le dimostrazioni di convergenza analizzate si basano sull'assunzione che il passo di apprendimento $\gamma$ abbia un valore specifico, calcolato in funzione di costanti come $L$ (costante di Lipschitz), $B$ (limite del gradiente) o $R$ (limite sulla distanza iniziale).
+[12:35] Nella pratica, queste costanti sono quasi sempre sconosciute. Di conseguenza, sorge il problema di come scegliere un valore ragionevole per $\gamma$.
+[12:44] Il passo di apprendimento è un iperparametro cruciale del modello, che viene tipicamente ottimizzato attraverso un processo di "tentativi ed errori" (*trial and error*), guidato dall'osservazione dell'andamento della funzione di costo su un insieme di dati di validazione.
+[12:58] Esistono, tuttavia, metodi più strutturati per la scelta di $\gamma$, come il metodo della "ricerca lineare" (*line search*).
+### Il Metodo della Line Search
+[13:02] L'idea fondamentale della ricerca lineare è scegliere il passo di apprendimento $\gamma$ in modo "intelligente" a ogni iterazione dell'algoritmo.
+[13:07] A differenza dell'analisi teorica, dove $\gamma$ è una costante, in questo approccio $\gamma$ diventa adattivo: a ogni iterazione $k$, si sceglie un passo specifico $\gamma_k$.
+[13:16] Partendo dall'iterata corrente $x_k$ e dalla direzione di discesa $d_k = -\nabla f(x_k)$, si cerca il valore di $\gamma$ che minimizza la funzione monodimensionale $\phi(\gamma)$, definita come il valore della funzione obiettivo lungo la direzione di discesa:
+$$
+\phi(\gamma) = f(x_k + \gamma d_k)
+$$
+[13:25] Esistono due strategie principali per eseguire questa minimizzazione:
+1.  **Ricerca Lineare Esatta (*Exact Line Search*)**: Trova il valore di $\gamma$ che minimizza esattamente la funzione $\phi(\gamma)$.
+2.  **Ricerca Lineare Inesatta (*Inexact Line Search*) o Backtracking**: Cerca un valore approssimato di $\gamma$ che garantisca una diminuzione sufficiente del valore della funzione, senza richiedere la minimizzazione esatta.
+### Exact Line Search
+[13:40] L'obiettivo della ricerca lineare esatta è trovare il valore $\gamma > 0$ che minimizza la funzione $\phi(\gamma) = f(x_k + \gamma d_k)$.
+[13:48] Poiché $x_k$ e $d_k$ sono noti all'iterazione $k$, $\phi(\gamma)$ è una funzione della sola variabile $\gamma$.
+[14:05] Per trovare il minimo, si calcola la derivata prima di $\phi(\gamma)$ rispetto a $\gamma$ e la si pone uguale a zero. Applicando la regola della catena, si ottiene:
+$$
+\phi'(\gamma) = \nabla f(x_k + \gamma d_k)^T d_k = 0
+$$
+[14:15] Poiché la nuova iterata è $x_{k+1} = x_k + \gamma d_k$, la condizione $\phi'(\gamma)=0$ ha un'interpretazione geometrica chiara: il gradiente calcolato nella nuova iterata, $\nabla f(x_{k+1})$, deve essere ortogonale alla direzione di ricerca precedente, $d_k$.
+[14:26] **Vantaggi e Svantaggi**:
+- **Vantaggi**: Se la funzione $f$ ha una forma semplice (ad esempio, quadratica), è possibile trovare una formula analitica chiusa per il $\gamma$ ottimale. Teoricamente, questo metodo garantisce la massima riduzione del valore funzionale a ogni passo e, di conseguenza, converge nel minor numero di iterazioni.
+- **Svantaggi**: Se $f$ è una funzione complessa, come accade nella maggior parte delle applicazioni reali, trovare il minimo esatto di $\phi(\gamma)$ può essere computazionalmente molto oneroso o addirittura impossibile. Per questo motivo, la ricerca lineare esatta è quasi mai utilizzata in pratica.
+### Inexact Line Search (Backtracking)
+[15:10] Il metodo del backtracking è un approccio approssimato che persegue lo stesso obiettivo della ricerca esatta, ma senza la necessità di trovare il minimo preciso.
+[15:18] Si basa su una procedura iterativa per trovare un valore di $\gamma$ che sia "sufficientemente buono".
+[15:29] **Algoritmo di Backtracking**:
+1.  Si scelgono tre parametri: una stima iniziale per il passo, $\bar{\gamma}$, e due costanti $c \in (0, 1)$ e $\tau \in (0, 1)$.
+    - $c$ è una costante che controlla la condizione di decrescita sufficiente (nota come condizione di Armijo).
+    - $\tau$ è un fattore di riduzione (*shrink factor*) utilizzato per diminuire il passo.
+2.  Si inizializza il passo di apprendimento con la stima iniziale: $\gamma = \bar{\gamma}$.
+3.  Si verifica la seguente condizione, nota come **condizione di Armijo**:
+    $$
+    f(x_k + \gamma d_k) > f(x_k) + c \gamma \nabla f(x_k)^T d_k
+    $$
+    Poiché la direzione di discesa è $d_k = -\nabla f(x_k)$, la condizione può essere riscritta come:
+    $$
+    f(x_k - \gamma \nabla f(x_k)) > f(x_k) - c \gamma ||\nabla f(x_k)||^2
+    $$
+    Questa condizione verifica se il passo $\gamma$ produce una diminuzione "sufficiente" del valore della funzione. Il lato destro rappresenta una retta con pendenza inferiore a quella della funzione nel punto $x_k$.
+4.  **Ciclo**: Finché la condizione di Armijo è vera, significa che il passo $\gamma$ è troppo grande e non garantisce una decrescita adeguata. Si riduce quindi $\gamma$ moltiplicandolo per il fattore di riduzione $\tau$:
+    $$
+    \gamma \leftarrow \tau \gamma
+    $$
+5.  **Uscita**: Quando la condizione di Armijo diventa falsa, si è trovato un valore di $\gamma$ adeguato. Si imposta il passo per l'iterazione corrente del gradiente, $\gamma_k$, a questo valore di $\gamma$ e si procede con l'aggiornamento di $x_k$ a $x_{k+1}$.
+[16:25] In sintesi, all'interno di ogni iterazione del metodo del gradiente, si esegue un ciclo di sotto-iterazioni (il backtracking) per calcolare un passo di apprendimento $\gamma_k$ appropriato per l'aggiornamento successivo.
+### Introduzione alla Scelta del Passo di Apprendimento (Gamma)
+[00:00] L'algoritmo di *backtracking line search* è una delle tecniche disponibili nelle librerie di apprendimento automatico per la scelta del parametro $\gamma$. Un'altra possibilità consiste nell'utilizzare una cosiddetta **schedulazione** per $\gamma$.
+[00:06] L'idea di base della schedulazione è quella di ridurre progressivamente il valore del passo di apprendimento man mano che l'algoritmo si avvicina alla soluzione, in modo da poterla approssimare con maggiore precisione. Un esempio pratico di questa strategia consiste nel definire il passo $\gamma$ all'iterazione $k$ come inversamente proporzionale a $k$:
+$$
+\gamma_k = \frac{1}{k}
+$$
+Questa è solo una delle molteplici scelte possibili per la schedulazione del passo di apprendimento.
+### Analisi del Backtracking Line Search
+#### Vantaggi del Backtracking Line Search
+[00:20] Il metodo del *backtracking line search* presenta diversi vantaggi significativi:
+- **Praticità ed Efficienza**: È una procedura iterativa che si dimostra pratica ed efficiente nella maggior parte dei casi.
+- **Robustezza**: Garantisce quasi sempre di ottenere un valore ragionevole per $\gamma$, adattandosi alle caratteristiche locali della funzione.
+- **Diffusione**: È una tecnica ampiamente utilizzata e implementata in molti pacchetti software e applicazioni pratiche.
+#### Svantaggi del Backtracking Line Search
+[00:30] D'altra parte, questo metodo introduce anche alcuni svantaggi. Il principale è la necessità di definire ulteriori iperparametri, ovvero le costanti $c$, $\tau$ e la stima iniziale $\bar{\gamma}$. Sebbene il metodo permetta di determinare automaticamente un buon valore per $\gamma$, introduce nuove costanti che devono essere scelte a priori.
+[00:42] È importante notare che, sebbene in linea di principio i valori di $c$ e $\tau$ possano essere adattati a diverse funzioni, in pratica si utilizzano quasi sempre valori di default. Anche nelle implementazioni di librerie note come TensorFlow o PyTorch, i valori predefiniti per questi parametri si dimostrano efficaci per la stragrande maggioranza delle applicazioni.
+[00:59] Un altro svantaggio è legato al numero di iterazioni. Poiché il valore di $\gamma$ calcolato con il backtracking non è il valore esatto che minimizza la funzione lungo la direzione di discesa (come avverrebbe con l'*exact line search*), il numero totale di iterazioni necessarie per raggiungere la stessa accuratezza sarà tendenzialmente superiore.
+### Riepilogo dei Metodi per la Scelta di Gamma
+[01:12] La tabella seguente riassume le caratteristiche dei diversi approcci al metodo del gradiente discendente analizzati, in base alla strategia di scelta del passo di apprendimento $\gamma$:
+1.  **Gradiente Discendente con $\gamma$ fisso**: Semplice da implementare, ma la scelta di $\gamma$ è critica e non adattiva.
+2.  **Gradiente Discendente con *Exact Line Search***: Garantisce la massima discesa a ogni passo, ma è computazionalmente troppo oneroso per la maggior parte delle applicazioni reali.
+3.  **Gradiente Discendente con *Backtracking Line Search***: Un compromesso pratico che adatta $\gamma$ a ogni iterazione, garantendo una convergenza robusta a costo di introdurre nuovi iperparametri.
+### Ottimizzazione Vincolata: Introduzione
+[01:20] Finora, l'analisi del gradiente discendente ha riguardato esclusivamente problemi di **ottimizzazione non vincolata**, ovvero la minimizzazione di una funzione $f(x)$ senza alcuna restrizione sulla variabile $x$.
+[01:27] In molte applicazioni pratiche, può essere necessario minimizzare una funzione soggetta a determinati vincoli su $x$.
+[01:33] Un problema di ottimizzazione vincolata può essere formulato come la minimizzazione di una funzione $f(x)$ soggetta al vincolo che la soluzione $x$ appartenga a un insieme chiuso e convesso, denotato con $C$.
+#### Il Legame con la Regolarizzazione
+[01:44] Il concetto di ottimizzazione vincolata è strettamente legato alla **regolarizzazione**. Quando si applica la regolarizzazione, si cerca di minimizzare una funzione di costo con il vincolo aggiuntivo che il vettore dei pesi abbia norma minima o sia sparso. Questi vincoli qualitativi sono stati tradotti matematicamente nell'appartenenza del vettore dei pesi a una palla unitaria misurata in norma L2 o in norma L1. Entrambi questi insiemi (le palle L2 e L1) sono esempi di insiemi chiusi e convessi.
+[02:06] Altri esempi comuni di vincoli includono:
+- **Vincoli di non negatività**: i componenti del vettore soluzione devono essere non negativi ($x_i \ge 0$).
+- **Vincoli a scatola (*box constraints*)**: ogni componente del vettore dei pesi deve avere un valore compreso tra un limite inferiore e uno superiore ($l_i \le x_i \le u_i$).
+- **Appartenenza a una palla unitaria**: come già menzionato, il vettore deve appartenere a una palla di raggio fissato, definita rispetto a una certa norma (es. L1, L2).
+### Il Problema del Gradiente Discendente con Vincoli
+[02:17] L'applicazione del metodo del gradiente discendente standard a un problema vincolato presenta una criticità fondamentale. Anche se l'iterata corrente, $x_k$, appartiene all'insieme ammissibile $C$, non vi è alcuna garanzia che l'iterata successiva, $x_{k+1} = x_k - \gamma \nabla f(x_k)$, rimanga all'interno di $C$.
+[02:28] L'idea per risolvere questo problema è modificare l'algoritmo del gradiente discendente per garantire che tutte le iterate generate rimangano sempre all'interno dell'insieme convesso $C$ che definisce i vincoli.
+### L'Operatore di Proiezione
+[02:38] La soluzione formale a questo problema consiste nell'introdurre l'**operatore di proiezione**.
+[02:42] Dato un punto $y$ e un insieme chiuso e convesso $C$, l'operatore di proiezione su $C$, denotato con $\text{proj}_C(y)$, restituisce il punto appartenente a $C$ che ha la minima distanza da $y$. Questo concetto è stato già incontrato nel contesto dell'approssimazione ai minimi quadrati, dove il vettore delle etichette reali veniva proiettato sullo spazio generato dalle colonne della matrice dei dati.
+[03:00] Se il punto $y$ si trova già all'interno dell'insieme $C$, la sua proiezione è il punto stesso. Se, invece, $y$ è esterno a $C$, la sua proiezione sarà un punto che si trova sulla frontiera di $C$.
+[03:07] Ad esempio, se $C$ è un disco nel piano e $y$ è un punto esterno al disco, la sua proiezione sarà il punto sulla circonferenza del disco che si trova sulla retta congiungente il centro del disco e $y$.
+### Il Metodo del Gradiente Proiettato
+[03:14] Il **metodo del gradiente proiettato** (*projected gradient method*) è una tecnica pratica, implementata in diverse librerie software, che estende il gradiente discendente ai problemi vincolati.
+[03:27] L'idea fondamentale di questo metodo può essere riassunta nel motto: "Prima discendi, poi proietta" (*Descend, then project*).
+[03:32] L'algoritmo funziona nel seguente modo:
+1.  Si parte da un punto $x_k$ che appartiene all'insieme ammissibile $C$.
+2.  Si esegue un passo standard di discesa del gradiente, ottenendo un punto intermedio $y_k = x_k - \gamma \nabla f(x_k)$, che potrebbe trovarsi al di fuori di $C$.
+3.  Si proietta questo punto intermedio sull'insieme ammissibile $C$ per ottenere la nuova iterata $x_{k+1}$.
+[03:41] L'intera operazione di aggiornamento può essere scritta in una singola riga:
+$$
+x_{k+1} = \text{proj}_C (x_k - \gamma \nabla f(x_k))
+$$
+dove $\text{proj}_C$ indica l'operatore di proiezione sull'insieme $C$.
+[03:53] Un punto cruciale per l'efficienza di questo metodo è che il calcolo della proiezione non deve essere computazionalmente troppo oneroso.
+### Esempi di Proiezione
+#### Proiezione L2
+[04:03] Un esempio importante è la proiezione sulla palla unitaria (o di raggio $r$) definita dalla norma L2. In questo caso, l'insieme $C$ è $C = \{x : ||x||_2 \le r\}$.
+[04:10] L'algoritmo prevede di calcolare il passo del gradiente e poi di proiettare il risultato su questa palla.
+[04:18] Se il punto ottenuto dopo il passo di discesa, $y$, si trova all'interno o sulla frontiera della palla (ovvero $||y||_2 \le r$), allora il punto è già ammissibile e la sua proiezione coincide con il punto stesso.
+[04:31] Se, invece, il punto $y$ si trova all'esterno della palla ($||y||_2 > r$), la proiezione consiste nel "restringere" la lunghezza del vettore $y$ per riportarlo sulla frontiera, mantenendone la direzione. Questo si ottiene riscalando il vettore $y$ per il fattore $r/||y||_2$.
+[04:46] La formula compatta per la proiezione sulla palla L2 di raggio $r$ è:
+$$
+\text{proj}_C(y) = y \cdot \min\left(1, \frac{r}{||y||_2}\right)
+$$
+Questa operazione è computazionalmente molto semplice, poiché richiede solo il calcolo della norma del vettore e una moltiplicazione scalare.
+[05:00] Questo risultato è coerente con l'interpretazione della regolarizzazione L2, che mira a trovare soluzioni con norma piccola o limitata da un valore $r$.
+[05:13] Come già osservato, questo tipo di vincolo non promuove la sparsità della soluzione, ma favorisce pesi di piccola entità.
+#### Proiezione L1
+[05:21] Se si considera la proiezione sulla palla unitaria definita dalla norma L1, non è possibile trovare un'espressione analitica esplicita e semplice per l'operatore di proiezione, specialmente in spazi multidimensionali.
+[05:28] Tuttavia, esistono algoritmi numerici efficienti che permettono di calcolare la proiezione L1 in un tempo ragionevole, tipicamente con una complessità computazionale di $O(n \log n)$, dove $n$ è la dimensione dello spazio.
+[05:38] La proprietà fondamentale della palla L1, già osservata in precedenza, è la sua forma geometrica (un rombo in 2D, un iper-ottaedro in dimensioni superiori), che promuove la **sparsità**. Pertanto, proiettare una soluzione su tale insieme favorisce l'azzeramento di alcune delle sue componenti.
+### Collegamento tra Ottimizzazione Vincolata e Regolarizzazione
+[05:50] Il problema di ottimizzazione vincolata, che consiste nel minimizzare $f(x)$ con il vincolo $x \in C$, può essere risolto con il metodo del gradiente proiettato.
+[06:07] La controparte di questo problema è il problema di minimizzazione regolarizzata, formulato come:
+$$
+\min_x f(x) + \lambda \Omega(x)
+$$
+dove:
+- $f(x)$ è la funzione di costo.
+- $\Omega(x)$ è un termine di regolarizzazione che penalizza soluzioni indesiderate (es. $\Omega(x) = ||x||_p$).
+- $\lambda$ è un iperparametro (spesso interpretato come un moltiplicatore di Lagrange) che bilancia il peso tra la minimizzazione di $f(x)$ e la penalità di regolarizzazione.
+Questo tipo di problema può essere risolto con una variante del metodo del gradiente nota come **gradiente discendente prossimale**.
+[06:20] L'operatore prossimale è una generalizzazione dell'operatore di proiezione. La sua applicazione garantisce una discesa lungo la funzione regolarizzata.
+[06:34] Esiste una relazione profonda tra i due approcci: per un dato valore del raggio $r$ nel problema vincolato, esiste sempre un valore del moltiplicatore $\lambda$ tale che il problema vincolato e il problema regolarizzato ammettono la stessa soluzione. In altre parole, l'ottimizzazione vincolata e la regolarizzazione sono due formulazioni equivalenti dello stesso problema di base.
+#### Caso della Norma L2 (Ridge Regression)
+[06:51] Nel caso della norma L2, si ha la seguente corrispondenza:
+- **Ottimizzazione Vincolata**: $\min_x f(x)$ con il vincolo $||x||_2 \le r$.
+- **Regolarizzazione (Ridge Regression)**: $\min_x f(x) + \lambda ||x||_2^2$.
+[07:00] In questo caso, l'operatore prossimale associato alla regolarizzazione L2 corrisponde all'operatore di *weight decay* (decadimento dei pesi).
+[07:08] L'aggiornamento tramite *weight decay* consiste nel ridurre il valore dei pesi a ogni iterazione tramite un fattore di riscalamento. Questo approccio è anche noto come *soft penalty*, poiché tutti i pesi vengono contratti verso lo zero, senza essere forzatamente azzerati.
+#### Caso della Norma L1 (LASSO)
+[07:22] Per la norma L1, l'analogia è simile. La differenza principale risiede nella complessità dell'operatore.
+[07:34] Nel problema regolarizzato con norma L1 (LASSO), l'operatore prossimale corrispondente è noto come **operatore di soft thresholding**.
+[07:43] L'espressione analitica di questo operatore è esattamente quella derivata in precedenza analizzando le proprietà della regolarizzazione L1. Esso agisce "tagliando" le componenti del vettore vicine a zero e contraendo le altre, promuovendo così la sparsità.
+### Riepilogo del Gradiente Proiettato e Prossimale
+[08:03] In sintesi:
+- Il **gradiente proiettato** si applica a problemi di ottimizzazione vincolata. L'algoritmo consiste in un passo di discesa del gradiente seguito da una proiezione sull'insieme delle soluzioni ammissibili.
+- Il **gradiente prossimale** si applica a problemi di ottimizzazione regolarizzata e utilizza un operatore (l'operatore prossimale) che generalizza l'idea della proiezione.
+- I casi con vincoli (o regolarizzazione) L1 e L2 sono di fondamentale importanza pratica.
+[08:18] Sebbene il gradiente discendente (e le sue varianti) sia un metodo fondamentale e didatticamente molto istruttivo, non è l'algoritmo più utilizzato nelle applicazioni moderne di machine learning. Il metodo di elezione è una sua variante stocastica.
+[08:31] La discussione proseguirà con l'analisi del gradiente discendente stocastico.
+## Capitolo 3: Il Gradiente Discendente Stocastico (SGD)
+### Introduzione al Gradiente Discendente Stocastico (SGD)
+[08:42] Si introduce ora il metodo di ottimizzazione più importante nel contesto dell'apprendimento automatico: il **gradiente discendente stocastico** (SGD, *Stochastic Gradient Descent*).
+[08:50] L'idea fondamentale dell'SGD nasce dalla struttura tipica delle funzioni di costo utilizzate nell'apprendimento automatico.
+[09:00] Come visto in precedenza, la funzione di costo globale $F(x)$ è tipicamente definita come una media (o una somma) di funzioni di costo elementari $f_i(x)$, dove ciascuna $f_i(x)$ è calcolata su un singolo campione del dataset. La forma tipica è:
+$$
+F(x) = \frac{1}{N} \sum_{i=1}^{N} f_i(x)
+$$
+dove $N$ è il numero totale di campioni nel dataset e $f_i(x)$ è la funzione di costo (ad esempio, l'errore quadratico) valutata sull'$i$-esimo campione.
+### Differenza tra Gradiente Discendente e Gradiente Discendente Stocastico
+[09:20] La regola di aggiornamento del gradiente discendente standard (spesso chiamato *batch gradient descent*) è:
+$$
+x_{t+1} = x_t - \gamma \nabla F(x_t) = x_t - \gamma \frac{1}{N} \sum_{i=1}^{N} \nabla f_i(x_t)
+$$
+Nel gradiente discendente stocastico, invece di calcolare il gradiente dell'intera funzione di costo $F$, che richiede di processare tutti gli $N$ campioni, si approssima il gradiente globale utilizzando una sola delle sue componenti.
+[09:33] Ad ogni iterazione $t$, si seleziona casualmente un indice $i$ dall'insieme $\{1, 2, \dots, N\}$, e si approssima il gradiente vero $\nabla F(x_t)$ con il gradiente della singola componente $\nabla f_i(x_t)$.
+[09:44] Ad esempio, se la funzione di costo è una somma di 100 termini, si sceglie casualmente un indice (es. 55), si calcola il gradiente solo di quel singolo termine e si utilizza questa approssimazione per aggiornare i parametri.
+[09:56] La "stocasticità" del metodo deriva proprio da questa selezione casuale dell'indice a ogni iterazione. La regola di aggiornamento dell'SGD è quindi:
+$$
+x_{t+1} = x_t - \gamma \nabla f_i(x_t)
+$$
+dove $i$ è un indice scelto casualmente a ogni passo $t$.
+### Vantaggi Computazionali dell'SGD
+[10:08] Il motivo principale per cui si adotta questo approccio è di natura computazionale. Nelle applicazioni reali, il numero di campioni $N$ può essere enorme (milioni o miliardi). Calcolare il gradiente completo $\nabla F$ a ogni iterazione, che richiede un passaggio su tutto il dataset, diventa proibitivamente costoso.
+[10:18] Utilizzando l'SGD, invece di calcolare una somma di $N$ gradienti, se ne calcola solo uno. Questo rende ogni passo di aggiornamento circa $N$ volte più economico e, di conseguenza, $N$ volte più veloce rispetto a un passo del gradiente discendente standard.
+### Analisi Teorica dell'SGD
+[10:29] La domanda fondamentale è se questa approssimazione sia legittima, ovvero se l'algoritmo SGD sia comunque in grado di ottimizzare la funzione di costo. La risposta è affermativa, e la sua giustificazione teorica si basa su alcune ipotesi chiave.
+#### Ipotesi Fondamentale: Stimatore Imparziale del Gradiente
+[10:44] Si denota con $g_t = \nabla f_i(x_t)$ il gradiente stocastico calcolato all'iterazione $t$. L'ipotesi di fondamentale importanza per l'analisi della convergenza dell'SGD è che questo gradiente stocastico sia uno **stimatore imparziale** (*unbiased estimator*) del vero gradiente.
+[10:55] Matematicamente, ciò significa che il valore atteso del gradiente stocastico $g_t$, condizionato al valore dell'iterata $x_t$, è uguale al gradiente completo. Se la selezione dell'indice $i$ è uniforme, si ha:
+$$
+\mathbb{E}_{i}[g_t | x_t = x] = \mathbb{E}_{i}[\nabla f_i(x)] = \frac{1}{N} \sum_{i=1}^{N} \nabla f_i(x) = \nabla F(x)
+$$
+Questa proprietà garantisce che, in media, la direzione di aggiornamento dell'SGD coincida con la direzione del gradiente vero.
+#### Convergenza in Valore Atteso
+[11:10] Un'altra conseguenza della natura stocastica dell'algoritmo è che i risultati di convergenza non sono più validi puntualmente (cioè per una singola traiettoria), ma lo diventano **in valore atteso** (*in expectation*).
+[11:21] In pratica, ciò significa che le dimostrazioni di convergenza viste per il gradiente deterministico possono essere adattate al caso stocastico applicando l'operatore di valore atteso e lavorando con le quantità medie anziché con i valori esatti.
+[11:30] Utilizzando la proprietà di convessità e l'ipotesi di stimatore imparziale, è possibile derivare relazioni fondamentali analoghe a quelle del caso deterministico, ma valide in valore atteso.
+### Risultati di Convergenza per l'SGD
+[11:47] Si presentano ora i principali risultati di convergenza per l'SGD, senza entrare nei dettagli delle dimostrazioni.
+#### Caso di Funzioni Convesse e Lipschitziane
+[11:53] Per funzioni convesse e Lipschitziane, si mantengono ipotesi simili a quelle del gradiente discendente deterministico:
+- La distanza iniziale dalla soluzione, $||x_0 - x^*||$, è limitata.
+- Esiste un limite superiore per la varianza del gradiente stocastico, ovvero per il valore atteso del quadrato della sua norma.
+[12:07] Il risultato di convergenza ottenuto è molto simile a quello del caso deterministico, con la differenza che il limite superiore si applica all'errore in valore atteso.
+#### Caso di Funzioni Fortemente Convesse
+[12:17] Per le funzioni fortemente convesse, sebbene la dimostrazione sia più complessa, si ottiene un risultato significativo. Se la funzione è differenziabile, fortemente convessa e il gradiente stocastico ha varianza limitata, si ottiene un limite superiore per la differenza (in valore atteso) tra il valore della funzione e il valore ottimo.
+[12:30] Questo limite dipende dalla varianza del gradiente, dalla costante di forte convessità $\mu$ e dal numero di iterazioni $T$.
+[12:40] Analogamente al caso deterministico, anche nel contesto stocastico l'ipotesi di forte convessità migliora la velocità di convergenza. La complessità, in termini di numero di iterazioni necessarie per raggiungere un'accuratezza $\epsilon$, passa da $O(1/\epsilon^2)$ (per funzioni convesse) a $O(1/\epsilon)$ (per funzioni fortemente convesse).
+### Strategie di Campionamento nell'SGD
+[13:14] Un aspetto cruciale nell'implementazione pratica dell'SGD è la strategia con cui si seleziona l'indice $i$ dall'insieme $\{1, \dots, N\}$ a ogni iterazione. Esistono due approcci principali.
+#### 1. Campionamento con Reinserimento (With Replacement)
+[13:25] In questa strategia, a ogni iterazione dell'SGD, si seleziona casualmente un indice dall'intero insieme di indici disponibili.
+[13:32] L'indice scelto viene immediatamente "reinserito" nell'insieme, rendendolo disponibile per essere selezionato anche nelle iterazioni successive. Ciò implica che lo stesso campione potrebbe essere scelto più volte consecutivamente.
+[13:42] **Vantaggio**: Il vantaggio principale di questo approccio è di natura teorica. Assumere che a ogni iterazione tutti gli indici siano disponibili garantisce che i gradienti stocastici calcolati in iterazioni diverse siano variabili casuali indipendenti e identicamente distribuite (i.i.d.). Questa ipotesi è fondamentale per dimostrare rigorosamente i risultati di convergenza dell'SGD.
+[14:02] **Svantaggio**: Lo svantaggio è pratico: alcuni campioni potrebbero essere selezionati molte volte all'interno di un ciclo sul dataset, mentre altri potrebbero non essere mai scelti.
+#### 2. Campionamento senza Reinserimento (Without Replacement)
+[14:12] In questa strategia, una volta che un indice $i$ viene selezionato, non è più disponibile per le selezioni successive fino a quando tutti gli altri indici non sono stati scelti almeno una volta.
+[14:21] **Implementazione pratica**: Questo approccio è molto più comune e semplice da implementare. All'inizio di ogni **epoca** (un passaggio completo sul dataset), si crea una lista degli indici da $1$ a $N$, la si mescola casualmente (*shuffle*), e poi si scorrono sequenzialmente gli indici di questa lista mescolata. Poiché l'ordine iniziale è casuale, la selezione degli indici risulta casuale ma senza ripetizioni all'interno di un'epoca.
+[14:44] **Vantaggi**:
+- Ogni punto del dataset viene utilizzato esattamente una volta per ogni epoca.
+- Sperimentalmente, si osserva che questa strategia converge più velocemente rispetto al campionamento con reinserimento.
+[14:58] **Svantaggio**: Dal punto di vista teorico, il fatto che gli indici non vengano reinseriti rende l'analisi della convergenza molto più complessa. I gradienti stocastici calcolati all'interno di un'epoca non sono più indipendenti, e per questo motivo la maggior parte dei risultati teorici si basa sulla strategia con reinserimento.
+### Ottimizzazione in Machine Learning vs. Ottimizzazione Generale
+[15:13] È fondamentale comprendere la differenza tra l'obiettivo dell'ottimizzazione in un contesto generale e quello dell'ottimizzazione nell'apprendimento automatico.
+[15:18] **Ottimizzazione Generale (es. Ingegneria)**: Si consideri un problema di ottimizzazione della forma di un profilo alare per minimizzare la resistenza aerodinamica. L'obiettivo è trovare il valore esatto dei parametri di forma che minimizza la funzione "resistenza". In questo caso, si desidera trovare la soluzione migliore possibile, ovvero il minimo globale della funzione obiettivo.
+[16:00] **Ottimizzazione in Machine Learning**: L'obiettivo non è semplicemente minimizzare la funzione di costo $F(w)$ sull'insieme di addestramento. L'obiettivo finale è trovare un vettore di pesi $w$ che non solo dia un valore basso alla funzione di costo, ma che permetta al modello di **generalizzare** bene a dati nuovi e mai visti.
+[16:10] In altre parole, nel machine learning, raggiungere il minimo perfetto della funzione di costo sul training set spesso corrisponde a una situazione di **overfitting**, in cui il modello impara a memoria i dati di addestramento ma perde la sua capacità di fare previsioni accurate su nuovi dati.
+[16:18] Questa differenza di obiettivi spiega perché il gradiente discendente stocastico è così efficace nell'apprendimento automatico. Non è necessario trovare il minimo esatto della funzione di costo, ma è sufficiente avvicinarsi a una regione di minimo che garantisca una buona generalizzazione. Al contrario, l'SGD non sarebbe la scelta ideale in un contesto ingegneristico che richiede di trovare il minimo esatto di una funzione obiettivo.
+## Capitolo 4: Comportamento e Varianti del Gradiente Stocastico
+### Introduzione all'Early Stopping e al Gradiente Stocastico
+[00:00] L'argomento dell'arresto anticipato (*early stopping*) è stato già trattato, ma ora viene contestualizzato con un esempio significativo legato al metodo della discesa del gradiente stocastico.
+[00:13] Si consideri un semplice problema di regressione lineare. La funzione di costo globale, $F(x)$, è la somma di $n$ funzioni di costo elementari, $f_i(x)$.
+[00:24] Ciascuna funzione di costo elementare $f_i(x)$, associata all'$i$-esimo campione, ha la forma di una parabola:
+$$
+f_i(x) = \frac{1}{2} (a_i x - b_i)^2
+$$
+dove $x$ è il parametro scalare da ottimizzare, mentre $a_i$ e $b_i$ sono costanti specifiche del campione.
+[00:36] Il punto di minimo di una singola parabola $f_i(x)$ si trova annullando il termine quadratico, ovvero per $x_i = \frac{b_i}{a_i}$.
+[00:43] Il minimo globale della funzione di costo complessiva $F(x) = \sum_{i=1}^n f_i(x)$ si trova nel punto $x^*$ che corrisponde a una media pesata dei minimi individuali:
+$$
+x^* = \frac{\sum_{i=1}^n a_i b_i}{\sum_{i=1}^n a_i^2}
+$$
+Questo valore si ottiene calcolando il gradiente della funzione $F(x)$ e ponendolo uguale a zero.
+### Interpretazione Grafica del Gradiente Stocastico
+[00:54] La situazione può essere visualizzata graficamente. Le parabole tratteggiate rappresentano le singole funzioni di costo elementari $f_i(x)$, mentre la parabola nera rappresenta la funzione di costo globale $F(x)$, che è la loro somma.
+[01:09] Ogni parabola elementare ha il proprio punto di minimo, e anche la funzione di costo globale ha un suo minimo globale, $x^*$.
+[01:16] Analizziamo il comportamento del gradiente stocastico. Supponiamo di trovarci in un punto $x$ e di selezionare casualmente un campione (ad esempio, quello associato alla parabola blu) per calcolare il gradiente.
+[01:28] Se il punto $x$ si trova in una zona lontana dal minimo globale (la "regione lontana" o *far-out region*), si osserva che la pendenza (il gradiente) di quasi tutte le parabole elementari ha lo stesso segno.
+[01:40] In questa regione, il segno del gradiente di una singola parabola scelta a caso coincide con il segno del gradiente della funzione di costo globale (la parabola nera).
+[01:48] In pratica, ciò significa che lontano dal minimo, il gradiente calcolato su un singolo campione casuale è un'indicazione affidabile della direzione di discesa verso il minimo globale. Sebbene l'esempio sia monodimensionale per semplicità, questo principio si estende a casi multidimensionali.
+[02:03] In questa zona, il gradiente stocastico fornisce una direzione di discesa ragionevolmente buona.
+### La Regione di Confusione
+[02:08] La situazione cambia radicalmente quando l'algoritmo si avvicina al minimo ed entra nella cosiddetta "regione di confusione" (*region of confusion*).
+[02:11] In questa zona, le pendenze delle singole parabole elementari possono avere segni discordanti. A seconda del campione scelto casualmente (ad esempio, quello associato alla parabola blu o a quella verde), il segno del gradiente può essere opposto.
+[02:17] Ciò implica che, all'interno di questa regione, la direzione del passo di aggiornamento dipende in modo critico dal campione specifico selezionato, e il comportamento dell'algoritmo diventa molto più rumoroso e imprevedibile.
+[02:28] Una simulazione del percorso seguito dal gradiente stocastico mostra questo comportamento. Partendo da un punto lontano, si osserva una fase iniziale in cui, sebbene la traiettoria non sia liscia, il metodo si muove progressivamente verso la regione del minimo.
+[02:51] Successivamente, l'algoritmo entra in una fase in cui il suo comportamento diventa apparentemente caotico, con oscillazioni attorno al minimo. Questo effetto è amplificato se si utilizza un passo di apprendimento (*learning rate*) più grande.
+[03:01] Questa è la manifestazione pratica della regione di confusione: l'uso di un singolo campione per calcolare il gradiente non garantisce più che la direzione scelta sia corretta, nemmeno per quanto riguarda il segno.
+[03:14] Questo comportamento è tipico dell'SGD: una fase iniziale di rapida discesa, seguita da un movimento rumoroso e oscillatorio attorno al punto di minimo.
+### Implicazioni della Regione di Confusione e Overfitting
+[03:25] Dal punto di vista dell'apprendimento automatico, questo comportamento rumoroso non è necessariamente negativo.
+[03:29] La presenza della regione di confusione impedisce all'algoritmo di convergere esattamente al minimo teorico della funzione di costo sul training set. Il punto finale raggiunto è solo in prossimità del minimo, ma non coincide con esso.
+[03:36] Questo può essere un vantaggio, poiché aiuta a prevenire l'**overfitting**. Evitando di adattarsi perfettamente ai dati di addestramento, il modello può mantenere una migliore capacità di generalizzazione.
+[03:41] Aumentare il numero di iterazioni non garantisce che l'algoritmo si avvicini progressivamente e stabilmente al minimo; continuerà a oscillare nella sua vicinanza.
+[03:53] Questa immagine di una discesa rapida seguita da oscillazioni è fondamentale per comprendere il comportamento tipico del gradiente stocastico.
+### Analisi Teorica della Convergenza del Gradiente Stocastico
+[04:00] Se utilizzato con un tasso di apprendimento $\gamma$ costante, il gradiente stocastico non può convergere esattamente al minimo $x^*$, ma continuerà a "rimbalzare" (*bounce around*) nelle sue vicinanze.
+[04:08] Esiste un risultato teorico che formalizza questo comportamento, analizzando la distanza al quadrato (in valore atteso) tra l'iterata $x_t$ e la soluzione ottima $x^*$.
+[04:15] Per una funzione fortemente convessa, la disuguaglianza è la seguente:
+$$
+\mathbb{E}[\|x_t - x^*\|^2] \leq (1 - \gamma \mu)^t \|x_0 - x^*\|^2 + \frac{\gamma B^2}{\mu}
+$$
+dove:
+- $\mathbb{E}[\cdot]$ indica il valore atteso.
+- $x_t$ è la soluzione all'iterazione $t$.
+- $x^*$ è la soluzione ottimale.
+- $x_0$ è il punto di partenza.
+- $\gamma$ è il tasso di apprendimento (costante).
+- $\mu$ è la costante di forte convessità della funzione.
+- $B^2$ è una costante che limita la varianza del gradiente stocastico.
+[04:20] Il primo termine, $(1 - \gamma \mu)^t \|x_0 - x^*\|^2$, è analogo a quello visto per il gradiente discendente deterministico. Poiché $(1 - \gamma \mu)$ è una costante minore di 1, questo termine decresce esponenzialmente con il numero di iterazioni $t$ e tende a zero.
+[04:28] Se questo fosse l'unico termine, l'algoritmo convergerebbe linearmente alla soluzione esatta.
+[04:42] Tuttavia, nel caso stocastico è presente un secondo termine additivo, $\frac{\gamma B^2}{\mu}$.
+[04:49] Questo termine è legato al tasso di apprendimento $\gamma$, alla varianza del gradiente $B^2$ e alla costante di forte convessità $\mu$. Se $\gamma$ è mantenuto costante, questo termine non andrà mai a zero.
+[04:56] Dal punto di vista teorico, è proprio questo termine di errore residuo la causa della regione di confusione e delle oscillazioni attorno al minimo.
+[05:08] Poiché $B$ e $\mu$ sono proprietà intrinseche della funzione, l'unico modo per ridurre questo errore residuo è agire sul tasso di apprendimento $\gamma$.
+[05:16] Questo risultato teorico suggerisce la necessità di adottare strategie in cui $\gamma$ non sia costante, ma venga ridotto progressivamente (*scheduled*) durante l'addestramento, in modo che anche il secondo termine tenda a zero.
+### Il Metodo Mini-Batch Gradient Descent
+[05:26] In pratica, né il gradiente discendente classico (batch) né quello puramente stocastico (con un solo campione) sono le scelte più comuni. Si utilizza invece un approccio intermedio: la **discesa del gradiente mini-batch** (*mini-batch gradient descent*).
+[05:34] Riepilogando i tre approcci:
+- **Gradient Descent (Batch)**: Utilizza tutti gli $N$ campioni per calcolare il gradiente a ogni passo.
+- **Stochastic Gradient Descent (SGD)**: Utilizza un solo campione casuale per calcolare il gradiente.
+- **Mini-Batch Gradient Descent**: Utilizza un sottoinsieme di $m$ campioni (il *mini-batch*), con $1 < m < N$, per calcolare il gradiente.
+[05:46] Ad esempio, se si dispone di un milione di campioni, invece di usarne uno solo o tutti, si possono selezionare casualmente 10, 32 o 128 campioni e calcolare il gradiente medio su questo sottoinsieme.
+[05:58] La dimensione del mini-batch, $m$, è un iperparametro del modello che deve essere scelto.
+[06:10] Una volta fissata la dimensione $m$, il gradiente approssimato $\tilde{g}_t$ viene calcolato come la media dei gradienti relativi ai campioni nel mini-batch selezionato all'iterazione $t$:
+$$
+\tilde{g}_t = \frac{1}{m} \sum_{i \in \mathcal{I}_t} \nabla f_i(x_t)
+$$
+dove $\mathcal{I}_t$ è l'insieme degli indici degli $m$ campioni scelti casualmente.
+[06:19] La regola di aggiornamento utilizza questo gradiente mediato:
+$$
+x_{t+1} = x_t - \gamma \tilde{g}_t
+$$
+### Vantaggi del Metodo Mini-Batch
+[06:26] L'approccio mini-batch offre due vantaggi fondamentali.
+[06:28] **1. Riduzione della Varianza**: Utilizzando una media su $m$ campioni invece di un singolo campione, si riduce la varianza dell'approssimazione del gradiente. La stima $\tilde{g}_t$ del gradiente vero è quindi più accurata rispetto a quella ottenuta con l'SGD puro, portando a una convergenza generalmente più rapida e stabile.
+[06:44] **2. Calcolo Parallelo**: Un altro beneficio cruciale è la possibilità di parallelizzare i calcoli. Tutti i gradienti $\nabla f_i(x_t)$ per i campioni nel mini-batch devono essere valutati nello stesso punto $x_t$.
+[06:53] Se si dispone di un processore con più core (o, più comunemente, di una GPU), è possibile distribuire il calcolo dei singoli gradienti sui diversi core, eseguendoli in parallelo e accelerando notevolmente la computazione.
+[07:05] Questo è uno dei motivi principali per cui l'approccio mini-batch è universalmente adottato nel deep learning.
+[07:10] La struttura di calcolo del mini-batch (eseguire la stessa operazione su dati diversi) è ideale per le architetture delle **GPU (Graphics Processing Units)**.
+[07:20] Le GPU sono ottimizzate per eseguire la stessa operazione su grandi quantità di dati in parallelo (architettura SIMD/SIMT). Questo spiega le differenze drammatiche di prestazioni osservate quando si esegue un addestramento su GPU rispetto a una CPU.
+### Svantaggi e Scelta della Dimensione del Mini-Batch
+[07:33] L'approccio mini-batch presenta anche delle considerazioni da tenere a mente.
+[07:36] Il "rumore" introdotto dal gradiente stocastico, che causa le oscillazioni attorno al minimo, può essere benefico in scenari con funzioni di costo non convesse e con molti minimi locali. I salti casuali possono aiutare l'algoritmo a "sfuggire" da un minimo locale sub-ottimale.
+[07:51] Un salto sufficientemente grande potrebbe spostare il punto al di fuori della regione di attrazione di un minimo locale, permettendogli di esplorare altre aree dello spazio dei parametri e potenzialmente trovare un minimo migliore.
+[08:04] In generale, si ritiene che questo rumore tenda a guidare l'algoritmo verso minimi che si trovano in regioni "piatte" (*flat minima*), i quali spesso garantiscono una migliore generalizzazione del modello.
+[08:10] Se si utilizza una dimensione del mini-batch $m$ troppo grande, l'algoritmo si avvicina al comportamento deterministico del gradient descent. Questo riduce l'entità del rumore benefico.
+[08:17] Sebbene il rumore sia presente anche nel metodo mini-batch, la sua ampiezza è ridotta a causa della media su più campioni.
+[08:25] Scegliere un valore di $m$ troppo elevato non è sempre una buona strategia, poiché può portare a una convergenza verso minimi "acuti" (*sharp minima*) e a un maggiore rischio di overfitting.
+[08:31] Trovare il valore ottimale per la dimensione del mini-batch $m$ è quindi un compito importante nell'ottimizzazione degli iperparametri.
+### Strategie per la Gestione del Tasso di Apprendimento (Learning Rate Scheduling)
+[08:37] Per migliorare ulteriormente la convergenza e gestire il comportamento dell'algoritmo, si utilizzano strategie per variare dinamicamente il tasso di apprendimento $\gamma$ durante l'addestramento.
+[08:42] Una strategia comune è quella di far decrescere $\gamma$ in modo inversamente proporzionale al numero di iterazioni o di epoche.
+[08:45] Un'altra possibilità è creare uno **schedulatore** (*scheduler*), ovvero una funzione che regola il valore di $\gamma$ secondo una logica predefinita. Le principali librerie di deep learning, come TensorFlow e PyTorch, offrono strumenti avanzati per definire questi schedulatori.
+[08:55] Ad esempio, si può impostare un valore di $\gamma$ elevato nella fase iniziale dell'addestramento (la "far-out region") per accelerare la discesa, per poi ridurlo quando la funzione di costo smette di migliorare (raggiunge un plateau).
+[09:08] Questa strategia, nota come *step decay* o *reduce on plateau*, è una delle più comuni e efficaci nelle implementazioni pratiche.
+### Oltre il Gradiente Stocastico: Metodi di Ottimizzazione Avanzati
+[09:17] La discesa del gradiente stocastico è stata per anni l'algoritmo fondamentale (*workhorse*) per l'ottimizzazione nel deep learning.
+[09:26] Tuttavia, il suo utilizzo in scenari sempre più complessi ha evidenziato alcuni limiti, come la sensibilità alla scelta del learning rate e la difficoltà a navigare paesaggi di costo complessi. Di conseguenza, sono stati sviluppati numerosi metodi alternativi, che rimangono comunque nell'ambito dei metodi del primo ordine (cioè, basati solo sul calcolo del gradiente).
+[09:42] Tra questi metodi avanzati, i più noti sono:
+- **Momentum**: Introduce un termine di "inerzia" per smorzare le oscillazioni e accelerare la discesa.
+- **Nesterov Accelerated Gradient (NAG)**: Una variante migliorata del Momentum.
+- **AdaGrad**: Adatta il learning rate per ogni singolo parametro.
+- **Adam**: Combina le idee di Momentum e di adattamento del learning rate, ed è oggi uno degli ottimizzatori più utilizzati.
+[09:50] Queste varianti dell'SGD sono state progettate per accelerare la convergenza e migliorare la stabilità dell'addestramento, e saranno oggetto di analisi successive.
+[10:01] La lezione odierna si conclude qui.
