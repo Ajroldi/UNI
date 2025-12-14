@@ -4,13 +4,19 @@
 - $N$ utenti,
 - $D$ film (o, più in generale, contenuti multimediali come serie, documentari, e così via).
 Ogni utente vota solo una parte dei film disponibili. La matrice dei voti contiene quindi molti valori mancanti. Ogni riga rappresenta un utente, ogni colonna un film, e in ciascuna posizione $(i,j)$ della matrice compare il voto dell’utente $i$ per il film $j$, se tale voto è stato espresso.
-[00:25] L’obiettivo è predire quale sarebbe il voto dei valori mancanti per ogni utente, in modo da poter formulare suggerimenti personalizzati. Il problema rientra nella classe dei sistemi di raccomandazione: a partire dalle preferenze parzialmente note degli utenti, si vogliono produrre raccomandazioni sui contenuti che questi potrebbero apprezzare.
+[00:25] L’obiettivo è predire quale sarebbe il voto dei valori mancanti per ogni utente, in modo da poter formulare suggerimenti personalizzati. Il problema rientra nella classe dei sistemi di raccomandazione: a partire dalle preferenze parzialmente note degli utenti, si vogliono produrre raccomandazioni sui contenuti che questi potrebbero apprezzare.-
 [00:40] Nelle applicazioni reali il numero di utenti $N$ e il numero di film $D$ è in genere molto grande. La matrice risultante è quindi di dimensione molto elevata e al tempo stesso molto sparsa, poiché molti elementi sono mancanti. Il punto cruciale è che si vuole sfruttare il fatto che il dataset possiede una struttura a rango basso, cioè può essere approssimato bene da una matrice di rango molto minore rispetto alle sue dimensioni.
+
+<img width="1064" height="562" alt="image" src="https://github.com/user-attachments/assets/830ccc84-c6a9-457a-aacf-9a42b1a1e03e" />
+
 [00:55] Dire che la matrice ha rango basso significa che esistono alcuni fattori latenti, o feature derivate, di dimensione ridotta, che permettono di descrivere tutte le colonne o tutte le righe della matrice. Questi fattori latenti rappresentano caratteristiche nascoste ma rilevanti nei dati, che riassumono le principali variazioni nelle preferenze degli utenti e nelle proprietà dei film.
 [01:05] Alcuni esempi di possibili feature latenti nel caso dei film sono:
 - il genere del film (ad esempio drammatico, commedia, azione),
 - l’epoca o l’era di produzione,
 - il tipo di pubblico a cui è rivolto (ad esempio adulti o bambini).
+
+<img width="1049" height="690" alt="image" src="https://github.com/user-attachments/assets/e90b05c8-e0dd-48d4-b924-76b7e3cc05a5" />
+
 Queste caratteristiche non sono necessariamente direttamente osservate nella matrice dei voti, ma ne determinano in modo implicito la struttura.
 [01:15] Il numero di feature latenti “significative” viene indicato con $r$ ed è pari al rango della matrice. Si assume che $r$ sia molto più piccolo sia del numero di utenti $N$ sia del numero di film $D$. L’ipotesi fondamentale è quindi che il dataset possieda una struttura intrinsecamente a rango basso, e che questo possa essere sfruttato per ricostruire le voci mancanti in modo significativo.
 ## Gradi di libertà di una matrice a rango basso e decomposizione SVD
@@ -45,6 +51,9 @@ dove:
 \frac{(2n - r - 1)\,r}{2}.
 ```
 Questa formula tiene conto sia della normalizzazione dei vettori sia della loro mutua ortogonalità.
+
+<img width="1069" height="137" alt="image" src="https://github.com/user-attachments/assets/41b36545-6373-4f64-990e-d7cbd4e7c509" />
+
 [02:55] Sommando il contributo di $U$ e di $V$, si ottiene che il numero complessivo di gradi di libertà necessari per descrivere una matrice $M$ di rango $r$ è:
 ```math
 (2n - r)\,r.
@@ -105,6 +114,10 @@ cioè
 ```math
 M_{ij} = X_{ij}, \quad \text{per tutti } (i,j) \in \Omega.
 ```
+
+<img width="1165" height="218" alt="image" src="https://github.com/user-attachments/assets/b14fa8dc-5ee3-47aa-a4f1-73b47c4f37d1" />
+<img width="1154" height="598" alt="image" src="https://github.com/user-attachments/assets/828f3195-84f0-496c-8a80-c3cebf6d8f2d" />
+
 [05:55] Questa formulazione garantisce che la matrice incognita $M$ coincida con la matrice originale $X$ nelle posizioni osservate. Tra tutte le matrici che soddisfano questo vincolo si sceglie quella il cui rango è il più basso possibile.
 [06:05] Tuttavia il problema così posto è estremamente difficile. La funzione rango è una funzione intera, non continua e non convessa, e il problema di minimizzarla sotto vincoli lineari appartiene alla classe dei problemi NP-hard. Ciò significa che non esiste, in generale, un algoritmo efficiente (in tempo polinomiale) che ne trovi la soluzione esatta per matrici di grandi dimensioni.
 [06:20] È quindi necessario individuare un modo per rendere il problema trattabile, pur mantenendo l’idea fondamentale: trovare una matrice a rango basso coerente con le osservazioni disponibili.
@@ -125,6 +138,8 @@ dove $A$ è una matrice, $b$ un vettore e $\|\cdot\|_2$ è la norma euclidea. Qu
 - il funzionale ha un unico minimo globale,
 - i metodi iterativi come il gradiente convergono, in condizioni standard, verso tale minimo.
 [07:05] Nel caso di funzioni non convesse, il paesaggio di ottimizzazione può essere molto più complesso, con numerosi minimi locali e punti di sella. Un algoritmo di discesa può fermarsi in un minimo locale e non fornire la soluzione ottimale globale. La funzione rango appartiene a questa categoria: piccoli cambiamenti nella matrice possono produrre variazioni improvvise nel rango.
+<img width="1126" height="569" alt="image" src="https://github.com/user-attachments/assets/16d9a3f6-00c6-43a9-849d-01efe1c3f784" />
+
 [07:15] La non convessità della funzione rango rende il problema di matrix completion, formulato come minimizzazione del rango, molto difficile. D’altra parte, molte funzioni di costo che modellano problemi reali sono non convesse, come ad esempio le funzioni di loss nelle reti neurali. Questo mostra che la non convessità è spesso inevitabile, ma quando possibile è utile trovare rilassamenti convessi che approssimino il problema originale.
 ## Esempio di funzione rango e confronto con la norma nucleare
 [07:40] Per chiarire meglio la natura non convessa della funzione rango, si consideri una matrice $2\times 2$ che dipende da due parametri reali $x$ e $y$:
@@ -152,6 +167,9 @@ dove:
 - $M^\top M$ è una matrice simmetrica semidefinita positiva,
 - $\sqrt{M^\top M}$ è la radice quadrata matriciale di $M^\top M$,
 - la traccia è la somma degli autovalori di $\sqrt{M^\top M}$, che coincidono con i valori singolari di $M$.
+
+<img width="984" height="695" alt="image" src="https://github.com/user-attachments/assets/e963be1b-5a47-47cf-b839-e638d8825831" />
+
 [08:40] Se si costruisce il vettore
 ```math
 \sigma = (\sigma_1, \sigma_2, \dots, \sigma_r),
@@ -169,6 +187,9 @@ Nel caso dei valori singolari, tale definizione coincide con la somma dei valori
 [09:00] La norma nucleare ha due proprietà importanti nel contesto del matrix completion:
 1. è una funzione convessa della matrice $M$;
 2. è strettamente legata al rango, perché dipende direttamente dai valori singolari che determinano il rango della matrice.
+
+<img width="921" height="430" alt="image" src="https://github.com/user-attachments/assets/f955be1c-c770-4b92-a606-4d8c080452b5" />
+
 ## Norme vettoriali $L_0$ e $L_1$ e analogia con il rango
 [09:15] Per comprendere il collegamento tra il rango di una matrice e la norma nucleare, è utile richiamare l’analogo vettoriale. In particolare si considerano due funzioni sullo spazio dei vettori: la cosiddetta norma $L_0$ e la norma $L_1$.
 [09:20] La “norma” $L_0$, che in realtà non è una vera norma in senso matematico, di un vettore $v$ è definita come il numero di componenti non nulle di $v$:
@@ -516,6 +537,9 @@ risulta quindi applicabile a un’ampia gamma di problemi oltre al caso dei sist
 - si sviluppa una procedura iterativa basata sulla SVD e sul soft thresholding dei valori singolari, alternando:
   - passi di riduzione del rango (sogliatura dei valori singolari),
   - passi di avvicinamento ai dati osservati (aggiornamento con il residuo proiettato).
+
+<img width="792" height="643" alt="image" src="https://github.com/user-attachments/assets/014ca7d5-f6dd-4ea0-82a3-cfa3d78581b8" />
+
 ## Introduzione alle Support Vector Machines (SVM)
 [23:05] Si introduce ora un secondo argomento: le *Support Vector Machines* (SVM). Queste derivano da idee simili a quelle dei metodi ai minimi quadrati e dei metodi kernel, ma utilizzano funzioni di perdita diverse.
 [23:25] Le SVM si suddividono in due grandi famiglie:
@@ -524,6 +548,9 @@ risulta quindi applicabile a un’ampia gamma di problemi oltre al caso dei sist
 La differenza principale riguarda l’obiettivo:
 - nella classificazione, si vuole separare punti appartenenti a classi diverse tramite un iperpiano (o una frontiera indotta da un kernel);
 - nella regressione, si vuole approssimare una funzione, spesso un iperpiano in uno spazio di feature, tollerando un certo errore entro un tubo di ampiezza $\varepsilon$.
+
+<img width="910" height="616" alt="image" src="https://github.com/user-attachments/assets/1489ade7-fefb-4875-9050-a3ee5bbf619b" />
+
 [23:55] Nel caso della classificazione, l’obiettivo è costruire un iperpiano che separi i dati di due (o più) classi massimizzando il margine, cioè la distanza tra l’iperpiano e i punti più vicini di ciascuna classe. Nel caso della regressione, si vuole trovare una funzione che approssimi i dati il meglio possibile, ignorando gli errori che rientrano all’interno di una fascia (tubo) di ampiezza $\varepsilon$ attorno alla funzione stessa.
 ## Support Vector Classification: margine massimo
 [24:20] Per la classificazione, “ottimale” significa che l’iperpiano di separazione è quello che massimizza il margine, cioè la distanza minima tra l’iperpiano e i punti più vicini di ciascuna classe.
@@ -543,6 +570,8 @@ La differenza principale riguarda l’obiettivo:
 - se $\varepsilon$ è grande, il tubo è largo, molti punti cadono al suo interno e non vengono penalizzati; il numero di support vectors diminuisce;
 - se $\varepsilon$ è piccolo, il tubo è stretto, più punti si trovano al di fuori del tubo e diventano support vectors; la soluzione può diventare più complessa.
 ## Funzione di perdita $\varepsilon$-insensitive
+<img width="1012" height="507" alt="image" src="https://github.com/user-attachments/assets/b0c20414-949e-4db5-94f7-df1740a78767" />
+
 [26:50] Nella SVR si utilizza la funzione di perdita *$\varepsilon$-insensitive*. Indicato con $y_i$ il valore osservato e con $f(x_i)$ la predizione, la perdita è definita come:
 ```math
 L_\varepsilon(y_i, f(x_i)) =
@@ -637,6 +666,8 @@ f(x) = \sum_{i=1}^n (\alpha_i - \alpha_i^*) K(x_i, x) + b.
 ```math
 L_{\text{hinge}}(y_i, f(x_i)) = \max(0, 1 - y_i f(x_i)).
 ```
+<img width="1016" height="438" alt="image" src="https://github.com/user-attachments/assets/35e19571-f747-4418-9d12-a9cf46f45597" />
+
 [37:15] Questa funzione di perdita:
 - è nulla se $y_i f(x_i) \ge 1$, cioè se il punto è correttamente classificato e si trova al di là del margine;
 - aumenta linearmente quando $y_i f(x_i) < 1$, cioè quando il punto è mal classificato o troppo vicino all’iperpiano di separazione.
