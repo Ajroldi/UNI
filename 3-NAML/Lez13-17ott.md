@@ -1,3 +1,4 @@
+# Lab03 | LS, ridge and kernel regression. Pagerank algorithm.
 ## Introduzione al laboratorio e obiettivi della giornata
 [00:00] È il terzo laboratorio. La giornata prevede circa quindici minuti per riprendere il terzo esercizio della sessione precedente, non mostrato in aula, passando attraverso la soluzione e riepilogando i concetti principali della PCA (Principal Component Analysis). La PCA è una tecnica di riduzione dimensionale che proietta i dati su direzioni di massima varianza, semplificando la visualizzazione e l’applicazione di modelli.
 [00:20] Sono previsti due notebook sugli argomenti trattati. Il primo riguarda la regressione ai minimi quadrati, la regressione ridge e la regressione con kernel. Il secondo è dedicato all’algoritmo PageRank di Google per la valutazione delle connessioni nei grafi.
