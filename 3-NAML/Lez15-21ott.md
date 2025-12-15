@@ -10,6 +10,9 @@
 [03:30] La funzione di costo misura la differenza tra uscita della rete ed etichetta reale. Dopo l’addestramento, si testa il modello su 200 immagini restanti. La funzione di costo dipende dalla discrepanza tra etichette vere e predette; bisogna calcolare la derivata rispetto a tutti i parametri della rete. In linea di principio si considera la derivata dell’uscita rispetto all’ingresso, ma operativamente interessa la sensibilità dell’uscita rispetto ai parametri del modello: come varia l’uscita al variare dei pesi.
 [04:00] Per ogni parametro, si deve quantificare l’effetto di una sua variazione sull’uscita: una misura di sensibilità. Questo rende il calcolo delle derivate un passaggio decisivo. Le domande riguardano i metodi disponibili per calcolare tali derivate e la loro fattibilità.
 ## Quattro approcci al calcolo delle derivate
+<img width="1046" height="461" alt="image" src="https://github.com/user-attachments/assets/c6b550c6-b034-4e43-912a-8bdeac1f0fa4" />
+
+
 [04:30] Esistono quattro modalità: calcolo manuale, differenziazione numerica (differenze finite), differenziazione simbolica (Maple, MATLAB, Mathematica, pacchetti simbolici in Python), e differenziazione automatica. Tra queste, la differenziazione automatica è il metodo utilizzato nella pratica. La “differenziazione automatica” (AD) calcola valori di derivate numeriche esatte basandosi sulla composizione di operazioni elementari e sulle regole della catena.
 [05:00] Il calcolo manuale consente, se la formula viene semplificata, espressioni eleganti; è utile per dimostrazioni di sensibilità e convergenza grazie a derivate esplicitate. Tuttavia, per espressioni complesse è soggetto a errori ed è dispendioso in tempo.
 [05:30] La differenziazione numerica tramite differenze finite è semplice, funziona come scatola nera su qualunque funzione, richiede solo poche valutazioni della funzione e una divisione. La formula di differenza in avanti per la derivata prima di $f$ in $x_0$ è:
@@ -22,6 +25,10 @@ Qui $h$ è l’incremento scelto. È un’approssimazione e presenta rischi nume
 ```math
 f'(x_0) = \frac{f(x_0 + h) - f(x_0)}{h} + \mathcal{O}(h).
 ```
+<img width="1033" height="521" alt="image" src="https://github.com/user-attachments/assets/1fb2028d-7053-41db-b84b-65a5c09a5030" />
+<img width="945" height="594" alt="image" src="https://github.com/user-attachments/assets/0b725104-3007-4062-8110-ed49f07da7d0" />
+
+
 La formula centrata ha ordine secondo:
 ```math
 f'(x_0) \approx \frac{f(x_0 + h) - f(x_0 - h)}{2h} + \mathcal{O}(h^2).
@@ -46,11 +53,15 @@ La “$\mathcal{O}(\cdot)$” indica il termine d’errore asintotico.
 [00:45] La lista prosegue con variabili intermedie, cioè i passi indispensabili per determinare gli output, che sono le ultime variabili calcolate nella lista di Wengert. In termini formali, la lista ha tre blocchi: input (prime variabili $v$), variabili intermedie (trasformazioni elementari), e output (ultime variabili $v$ che forniscono il valore della funzione). Un esempio rende evidente il meccanismo.
 ## Esempio di funzione e costruzione della lista di Wengert
 [01:20] Si consideri la funzione $f(x_1, x_2) = \ln(x_1) + x_1 x_2$. La lista di Wengert inizia con $v_{-1} = x_1$ e $v_0 = x_2$. Si possono considerare in seguito valori specifici, ad esempio $x_1 = 1$ e $x_2 = 2$, ma per ora si definisce la struttura generale.
+<img width="1007" height="475" alt="image" src="https://github.com/user-attachments/assets/34bd9792-3d5b-4fd8-b1ad-a02600e09193" />
+
 [02:00] La parte intermedia introduce $v_1$, $v_2$, $v_3$:
 - $v_1 = \ln(v_{-1})$, calcolo del logaritmo naturale di $x_1$.
 - $v_2 = v_{-1} \cdot v_0$, prodotto $x_1 x_2$.
 - $v_3 = v_1 + v_2$, somma dei due contributi.
 L’output finale è $y = v_3$. Gli input sono $v_{-1}$ e $v_0$, le variabili intermedie $v_1$ e $v_2$, e l’output $v_3$. La scomposizione è utile perché di funzioni elementari si conoscono facilmente le derivate: ad esempio, la derivata di $\ln$ è $1/x$.
+<img width="819" height="461" alt="image" src="https://github.com/user-attachments/assets/9e675d54-ffe1-4bc0-b44c-071efe520799" />
+
 [02:35] La disponibilità di un “dizionario” di funzioni elementari e derivate, insieme alle regole di somma e prodotto, consente di calcolare derivate di funzioni composte applicando sistematicamente la regola della catena. La regola della catena stabilisce come derivare funzioni composte in base alle derivate dei singoli passi.
 ## Grafi computazionali e derivate sui lati
 [03:20] Un’altra rappresentazione è il grafo computazionale, equivalente alla lista di Wengert, con tre parti: input, calcolo delle variabili intermedie, output. Qui $x_1$ entra nel logaritmo e nel prodotto con $x_2$; i risultati vengono sommati per ottenere l’output. I “nodi” rappresentano variabili o operazioni; gli “archi” rappresentano dipendenze.

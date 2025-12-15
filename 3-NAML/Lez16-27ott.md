@@ -9,6 +9,9 @@
 [01:04] Formalmente, l'output del percettrone è definito come:
 - **0** se la somma ponderata è minore o uguale alla soglia.
 - **1** se la somma ponderata è maggiore della soglia.
+
+<img width="462" height="499" alt="image" src="https://github.com/user-attachments/assets/799c44be-cb4b-4b09-ac46-73fd3ff02736" />
+
 ### Formulazione Moderna con Pesi e Bias
 [01:16] Questa è la formulazione originale. Attualmente, l'uso di una soglia esplicita è stato abbandonato. Il percettrone viene descritto in termini di pesi e di un altro parametro, il **bias**. Questo termine sarà ricorrente anche nel contesto di reti neurali più generali.
 [01:31] Dal punto di vista pratico, la somma ponderata viene espressa come il prodotto scalare tra un vettore di pesi $w$ e il vettore di input $x$.
@@ -22,6 +25,8 @@
 \end{cases}
 ```
 Questa è la formulazione comunemente utilizzata nella pratica.
+<img width="655" height="256" alt="image" src="https://github.com/user-attachments/assets/e6dc7219-3602-475c-9fa8-9d765fce3984" />
+
 [01:53] Il significato del bias è complementare a quello dei pesi. Mentre i pesi determinano l'importanza relativa di ciascun input, il bias indica quanto sia facile per il percettrone produrre un output pari a 1.
 [02:01] L'espressione "attivarsi" (in inglese, *to fire*) viene utilizzata in questo contesto perché, storicamente, il percettrone e l'intera architettura delle reti neurali sono stati sviluppati cercando di mimare il comportamento dei neuroni biologici.
 [02:10] I neuroni nel cervello, a livello chimico, si attivano o meno a seconda del superamento di una certa soglia. Il bias, quindi, è una misura di quanto sia facile per il neurone artificiale raggiungere lo stato di attivazione (output 1).
@@ -65,6 +70,8 @@ Questa è la formulazione comunemente utilizzata nella pratica.
 ```math
 \lim_{x \to +\infty} \sigma(x) = 1
 ```
+<img width="558" height="301" alt="image" src="https://github.com/user-attachments/assets/66f7e318-c331-430d-8384-0f5de5feb385" />
+
 [06:58] Una funzione con un andamento a "S" è un esempio di funzione sigmoidale. Esistono molte funzioni con questo comportamento, e questa definizione sarà ripresa nella parte finale del corso, quando si tratterà il teorema di approssimazione universale per le reti neurali.
 [07:12] Per ora, ci concentriamo sulla funzione sigmoide. È un'istanza particolare di questa classe di funzioni, e l'idea è di avere una funzione che si comporti in modo simile al percettrone.
 [07:21] Si mantiene la stessa struttura di base: un certo numero di input $x_1, \dots, x_n$, i pesi corrispondenti e il bias.
@@ -86,6 +93,8 @@ dove $z$ è la variabile definita in precedenza.
 [08:40] Per eseguire questa minimizzazione, si utilizzano solitamente algoritmi basati sulla discesa del gradiente, che richiedono il calcolo delle derivate.
 [08:48] Grazie alla continuità della funzione sigmoide, l'applicazione di tali algoritmi diventa possibile e affidabile.
 ### Struttura Generale di una Rete Neurale
+<img width="788" height="488" alt="image" src="https://github.com/user-attachments/assets/c9e88756-e780-4ca0-aff9-5b663c987a19" />
+
 [08:56] Verrà ora descritta la struttura generica di una rete neurale. In un'architettura classica, si distinguono tre tipi di strati (*layer*).
 [09:04] 1.  **Strato di Input (Input Layer)**: È il primo strato della rete. È composto da un numero di neuroni pari al numero di caratteristiche (*features*) dell'input.
 [09:12] 2.  **Strato di Output (Output Layer)**: È l'ultimo strato e produce l'output finale della rete. Può essere composto da un solo neurone o da più neuroni.
@@ -98,7 +107,10 @@ dove $z$ è la variabile definita in precedenza.
 - **Definizione di Rete Completamente Connessa**: Significa che ogni neurone in uno strato $L$ è connesso a ogni neurone dello strato successivo $L+1$.
 [10:09] Un'altra osservazione riguarda il flusso delle informazioni. Questa rete è detta **feedforward**.
 - **Definizione di Rete Feedforward**: L'informazione si propaga in una sola direzione, dallo strato di input a quello di output, come indicato dalle frecce nel diagramma.
-[10:17] Per ora, non si considerano architetture più complesse, come quelle con cicli chiusi, note come **reti neurali ricorrenti** (*recurrent neural networks*), o altre tipologie. L'attenzione è focalizzata sull'architettura più classica.
+[10:17] Per ora, non si considerano architetture più complesse, come quelle con cicli chiusi, note come **reti neurali ricorrenti** (*recurrent neural networks*), o altre tipologie.
+<img width="555" height="458" alt="image" src="https://github.com/user-attachments/assets/1ca61fe6-9e29-46dc-8e88-c95c0a2f060a" />
+
+L'attenzione è focalizzata sull'architettura più classica.
 [10:31] In sintesi, il percettrone non è adatto per l'apprendimento; questo limite è stato superato introducendo la funzione sigmoide. È stata poi fornita un'introduzione generale alla terminologia usata per descrivere l'architettura di una rete neurale.
 ## Capitolo 4: Formalizzazione Matematica e Backpropagation
 ### Notazione per Pesi, Bias e Attivazioni
@@ -111,7 +123,7 @@ dove $z$ è la variabile definita in precedenza.
 [11:35] - **Attivazione $a_j^{(L)}$**: È una variabile associata a ciascun neurone, che rappresenta il suo output.
 [11:46] La sua definizione è la seguente:
 ```math
-a_j^{(L)} = \sigma \left( \sum_k W_{jk}^{(L)} a_k^{(L-1)} + b_j^{(L)} \right)
+a_j^{(L)} = \sigma \left( \sum_k (W_{jk}^{(L)}*a_k^{(L-1)}) + b_j^{(L)} \right)
 ```
 In pratica, l'attivazione è il risultato dell'applicazione della funzione di attivazione $\sigma$ (per ora, la sigmoide) alla somma ponderata degli input provenienti dallo strato precedente, più il bias.
 [12:01] La variabile $\sigma$ è la **funzione di attivazione**.
@@ -346,13 +358,20 @@ z_j^l = \sum_i w_{ji}^l a_i^{l-1} + b_j^l
 [00:51] Tuttavia, presenta un limite importante: essendo lineare, la composizione di più funzioni lineari rimane sempre una funzione lineare.
 [00:57] Questo significa che, indipendentemente dal numero di strati (layer) o di neuroni utilizzati, la rete neurale nel suo complesso si comporterà sempre come un modello lineare.
 [01:04] Pertanto, se si desidera modellare un fenomeno con una relazione input-output fortemente non lineare, l'uso di una funzione di attivazione lineare non consentirà di raggiungere l'obiettivo.
+<img width="471" height="478" alt="image" src="https://github.com/user-attachments/assets/58399bb6-dc94-4087-8784-cd31d408869a" />
+
 ### Funzioni di Attivazione Sigmoidali
+<img width="474" height="475" alt="image" src="https://github.com/user-attachments/assets/319474d1-af46-42ba-b3a3-56fd8a63e929" />
+
 [01:11] La funzione sigmoide, già considerata in precedenza, presenta alcuni svantaggi. Il primo è il problema del "vanishing gradient", che si manifesta quando i valori di input sono molto grandi o molto piccoli, portando la derivata a zero.
 [01:16] Un altro svantaggio è che non è centrata sullo zero ("not zero-centered"). Il suo valore per un input nullo è 0.5, non 0.
 [01:20] Questo può introdurre una distorsione (bias) verso un particolare segno dei pesi durante l'addestramento, rendendola non sempre la scelta ottimale.
 [01:26] D'altra parte, poiché il suo output è compreso nell'intervallo $[0, 1]$, può essere interpretato come una probabilità.
 [01:30] Ad esempio, se utilizzata nello strato di output con un singolo neurone, può fornire la probabilità che l'output appartenga a una determinata classe (es. "gatto" o "non gatto").
-[01:37] Una funzione simile alla sigmoide è la tangente iperbolica (`tanh`). Non è una funzione sigmoide in senso stretto, poiché per $x$ che tende a meno infinito, la funzione tende a -1.
+[01:37] Una funzione simile alla sigmoide è la tangente iperbolica (`tanh`).
+<img width="488" height="458" alt="image" src="https://github.com/user-attachments/assets/74249aa1-2e06-4ee7-ab26-c3bc79485633" />
+
+Non è una funzione sigmoide in senso stretto, poiché per $x$ che tende a meno infinito, la funzione tende a -1.
 [01:44] Il suo vantaggio principale è di essere centrata sullo zero ("zero-centered"), il che significa che durante la procedura di minimizzazione non si introduce una distorsione sistematica verso un segno specifico per i pesi.
 [01:52] Questo aspetto può essere vantaggioso in determinate situazioni.
 [01:55] Poiché il suo andamento è molto simile a quello della sigmoide, soffre anch'essa del problema del "vanishing gradient" per valori di input molto alti o molto bassi.
@@ -364,6 +383,8 @@ z_j^l = \sum_i w_{ji}^l a_i^{l-1} + b_j^l
 ```math
 f(x) = \max(0, x)
 ```
+<img width="463" height="485" alt="image" src="https://github.com/user-attachments/assets/a49a1d25-2eb9-4aed-b7c1-3afb67c6dd73" />
+
 Questa funzione è composta da due regioni: per input negativi, l'output è zero; per input positivi, l'output è uguale all'input stesso.
 [02:18] In ciascuna regione la funzione è lineare, ma il suo comportamento complessivo è non lineare.
 [02:23] A differenza della funzione lineare semplice, la composizione di più funzioni ReLU consente alla rete di apprendere comportamenti non lineari, rendendola molto più flessibile.
@@ -376,6 +397,8 @@ Questa funzione è composta da due regioni: per input negativi, l'output è zero
 ```math
 f(x) = \begin{cases} x & \text{se } x > 0 \\ 0.01x & \text{se } x \le 0 \end{cases}
 ```
+<img width="498" height="488" alt="image" src="https://github.com/user-attachments/assets/452fc282-0e36-45a4-803f-27f3cf756090" />
+
 [03:02] L'idea è che la presenza di una pendenza, seppur minima, anche nella regione negativa, consente alla rete di continuare ad apprendere (anche se molto lentamente) qualora i neuroni si trovino ad operare in questa regione.
 [03:10] Non esiste una regola precisa che indichi quando usare la ReLU o la Leaky ReLU. La scelta della funzione migliore è spesso il risultato di un processo empirico di tipo "trial and error" (tentativi ed errori).
 [03:20] È possibile estendere ulteriormente il concetto della Leaky ReLU. Invece di scegliere a priori il valore della pendenza per gli input negativi, si può trattare questo valore come un parametro da apprendere.
@@ -383,6 +406,8 @@ f(x) = \begin{cases} x & \text{se } x > 0 \\ 0.01x & \text{se } x \le 0 \end{cas
 ```math
 f(x) = \begin{cases} x & \text{se } x > 0 \\ \alpha x & \text{se } x \le 0 \end{cases}
 ```
+<img width="443" height="488" alt="image" src="https://github.com/user-attachments/assets/e5ff0b02-1278-40be-b606-3abd2912e8ff" />
+
 [03:28] In questo caso, il coefficiente $\alpha$ diventa un parametro libero che viene ottimizzato durante il processo di minimizzazione, insieme ai pesi della rete.
 [03:34] In altre parole, si aggiungono ulteriori parametri al modello con la speranza di migliorarne le prestazioni.
 [03:39] Un potenziale svantaggio è che l'aumento del numero di parametri incrementa la complessità complessiva del modello.
@@ -395,6 +420,8 @@ f(x) = \begin{cases} x & \text{se } x > 0 \\ \alpha x & \text{se } x \le 0 \end{
 ```math
 f(x) = \begin{cases} x & \text{se } x > 0 \\ \alpha (e^x - 1) & \text{se } x \le 0 \end{cases}
 ```
+<img width="468" height="491" alt="image" src="https://github.com/user-attachments/assets/8965ae80-452a-4ccd-89de-0c9fcb189b03" />
+
 dove $\alpha$ è un parametro che controlla la pendenza per gli input negativi.
 [04:01] Anche in questo caso, $\alpha$ è un iperparametro che può essere sintonizzato prima dell'addestramento o ottimizzato durante il processo stesso.
 [04:06] Aggiungendo un ulteriore parametro, $\lambda$, si ottiene la SELU (Scaled Exponential Linear Unit).
@@ -402,6 +429,8 @@ dove $\alpha$ è un parametro che controlla la pendenza per gli input negativi.
 ```math
 f(x) = \lambda \begin{cases} x & \text{se } x > 0 \\ \alpha (e^x - 1) & \text{se } x \le 0 \end{cases}
 ```
+<img width="488" height="489" alt="image" src="https://github.com/user-attachments/assets/c86f3866-131e-427e-b6bc-256135b417a0" />
+
 In questo caso, i valori di $\lambda$ e $\alpha$ sono scelti a priori.
 [04:14] Questa funzione si dimostra particolarmente efficace se abbinata a una specifica inizializzazione della distribuzione dei pesi della rete.
 [04:21] Nella pratica, tuttavia, la SELU non è molto utilizzata.
@@ -411,6 +440,8 @@ In questo caso, i valori di $\lambda$ e $\alpha$ sono scelti a priori.
 ```math
 y_i = \frac{e^{x_i}}{\sum_{j} e^{x_j}}
 ```
+<img width="579" height="283" alt="image" src="https://github.com/user-attachments/assets/2b1f7ccc-4a37-47ce-922b-acf145d6cb52" />
+
 [04:30] L'idea è trasformare un vettore di valori reali (ad esempio, le attivazioni dell'ultimo strato) in un vettore di probabilità.
 [04:34] Come si può notare dalla formula, al denominatore c'è la somma degli esponenziali di tutte le componenti del vettore di input, mentre al numeratore c'è l'esponenziale di una singola componente.
 [04:40] Ad esempio, un vettore di input $[2, 1, 0.1]$ viene trasformato in un vettore di output come $[0.7, 0.2, 0.1]$, i cui elementi sommano a 1 e possono essere interpretati come probabilità.
@@ -419,11 +450,15 @@ y_i = \frac{e^{x_i}}{\sum_{j} e^{x_j}}
 ```math
 f(x) = x \cdot \sigma(x) = \frac{x}{1 + e^{-x}}
 ```
+<img width="467" height="462" alt="image" src="https://github.com/user-attachments/assets/b9c084d1-6716-484f-a37b-a8ecd9126a65" />
+
 [05:03] I vantaggi di questa funzione sono stati dimostrati a livello pratico: le sue prestazioni sono spesso superiori a quelle della ReLU, in particolare nel caso di reti molto profonde (very deep network).
 [05:10] Questa funzione di attivazione è stata sviluppata da Google ed è utilizzata nell'architettura chiamata "EfficientNet".
 [05:18] Lo svantaggio principale è che, coinvolgendo la funzione sigmoide, può essere computazionalmente più costosa rispetto ad altre funzioni.
 [05:22] D'altra parte, possiede proprietà interessanti, tra cui la capacità di evitare il problema della "dying ReLU".
 [05:26] Un'altra variante è la funzione Mish.
+<img width="457" height="484" alt="image" src="https://github.com/user-attachments/assets/8d2b270f-61fb-4945-abd3-731e33433b45" />
+
 [05:28] È importante sottolineare che non esistono prove teoriche definitive che dimostrino la superiorità di una funzione rispetto a un'altra. La scelta si basa principalmente sull'esperienza e sulle applicazioni pratiche.
 [05:34] Ad esempio, in compiti di "object detection" (rilevamento di oggetti) in tempo reale, la funzione Mish è comunemente utilizzata e si è dimostrata superiore ad altre funzioni disponibili.
 [05:42] Il motivo di questa superiorità rimane una questione aperta.
