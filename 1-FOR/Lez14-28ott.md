@@ -176,7 +176,7 @@ Vincoli di capacità:
 Il flusso su ogni arco non può superare la capacità massima disponibile.
 ```
 
-**Nodo dummy**: Se quantità destinazioni incognite, aggiungi T con archi da destinazioni
+**Nodo dummy**: Se quantità destinazioni incognite, aggiungi archi da destinazioni i -> a T (fa da pozzo). Metti su questi archi capacità = +∞ (o molto grande) e costo = 0.
 
 ## 6. Riduzioni a Min Cost Flow
 
