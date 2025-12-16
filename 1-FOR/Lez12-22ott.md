@@ -195,7 +195,7 @@ Aggiornamento:
 
 2. REPEAT:
    a) Costruisci G_R(x)
-   b) Graph Search S → T in G_R
+   b) Graph Search S → T in G_R (qualsiasi algoritmo di graph search (DFS, BFS))
    c) IF percorso P trovato:
       - θ = min capacità residue su P
       - Aggiorna flussi lungo P
@@ -209,8 +209,8 @@ Aggiornamento:
 θ = min{r(i,j) : (i,j) ∈ P}
 
 Per ogni (i,j) in P:
-  Se verde: x(i,j) += θ
-  Se rosso: x(j,i) -= θ (inverso!)
+  Se verde: x(i,j) ← x(i,j) + θ
+  Se rosso: x(j,i) ← x(j,i) − θ (inverso!)
 ```
 
 **Correttezza**: Quando termina (no percorso in G_R):
