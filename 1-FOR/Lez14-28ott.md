@@ -180,37 +180,80 @@ Il flusso su ogni arco non può superare la capacità massima disponibile.
 
 ## 6. Riduzioni a Min Cost Flow
 
-### Max Flow → Min Cost Flow
+# Riduzioni a Minimum Cost Flow (MCF)
 
-**Trucco**: Aggiungi arco **T→S**
-```
-Bilanci: tutti = 0
-Costi: originali = 0, c_TS = -1
-Capacità: originali + u_TS = +∞
-```
+Il **Minimum Cost Flow** è un modello generale che permette di risolvere
+diversi problemi classici (Max Flow, Shortest Path, Shortest Path Tree)
+modificando **bilanci, costi e capacità**.
 
-**Logica**: Massimizzare flusso su T→S (costo negativo) = max flow
+---
 
-### Shortest Path → Min Cost Flow
+## 1️⃣ Max Flow → Minimum Cost Flow
 
-**Bilanci**:
-```
-b_S = -1 (esce 1 unità)
-b_T = +1 (arriva 1 unità)
-altri = 0
-```
+### Idea
+Trasformare il problema di **massimizzazione del flusso** in uno di
+**minimizzazione del costo**.
 
-**Costi**: originali, **no capacità**
+### Costruzione
+- Aggiungi un arco **T → S**
+- Bilanci:  
+  - tutti i nodi hanno **b = 0**
+- Costi:  
+  - archi originali: **0**
+  - arco T → S: **−1**
+- Capacità:  
+  - archi originali: come dato
+  - arco T → S: **∞**
 
-### Shortest Path Tree → Min Cost Flow
+### Perché funziona
+Ogni unità di flusso che passa su **T → S** riduce il costo totale.  
+👉 Minimizzare il costo equivale a **spingere più flusso possibile**, cioè trovare il **max flow**.
 
-**Per tutti i cammini da S**:
-```
-b_S = -(n-1) (escono n-1 unità)
-b_i = +1 ∀i≠S (arriva 1 unità)
-```
+---
 
-**Flusso x_ij**: Numero di cammini che usano arco (i,j)
+## 2️⃣ Shortest Path → Minimum Cost Flow
+
+### Idea
+Trovare il cammino minimo equivale a mandare **1 unità di flusso al costo minimo**.
+
+### Costruzione
+- Bilanci:
+  - **b_S = −1** (S manda 1 unità)
+  - **b_T = +1** (T riceve 1 unità)
+  - tutti gli altri nodi: **b = 0**
+- Costi:  
+  - uguali ai pesi originali degli archi
+- Capacità:  
+  - non rilevanti (o molto grandi)
+
+### Risultato
+Il flusso sceglie il percorso con **costo totale minimo** da S a T.  
+👉 è esattamente lo **shortest path**.
+
+---
+
+## 3️⃣ Shortest Path Tree → Minimum Cost Flow
+
+### Idea
+Calcolare in un solo modello i cammini minimi da S verso **tutti i nodi**.
+
+### Costruzione
+- Bilanci:
+  - **b_S = −(n − 1)** (S manda n−1 unità)
+  - **b_i = +1** per ogni nodo \(i ≠ S\)
+- Costi:  
+  - uguali ai pesi originali degli archi
+
+### Interpretazione del flusso
+- **x_ij** indica quante volte l’arco (i,j) è usato nei cammini minimi da S
+- la struttura del flusso descrive lo **Shortest Path Tree**
+
+---
+
+## 🔑 Idea chiave da ricordare
+
+> **Max Flow, Shortest Path e Shortest Path Tree sono tutti casi particolari del Minimum Cost Flow**, ottenuti scegliendo opportunamente bilanci, costi e capacità.
+
 
 ## 7. Intro Programmazione Lineare
 
