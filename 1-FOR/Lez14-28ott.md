@@ -161,7 +161,8 @@ S ───→ 1
 
 **Problema**:
 ```
-min Σ c_ij · x_ij (si vuole minimizzare il costo totale del flusso, dove c_ij è il costo unitario e x_ij è la quantità di flusso sull’arco (i,j)).
+min Σ c_ij · x_ij (si vuole minimizzare il costo totale del flusso, dove c_ij è il costo unitario 
+e x_ij è la quantità di flusso sull’arco (i,j))
 
 Vincoli di bilancio:
 Σ x_ji − Σ x_ij = b_i   ∀ i
