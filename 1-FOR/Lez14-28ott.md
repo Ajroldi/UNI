@@ -60,6 +60,9 @@ S → [Feste] → [Serate] → T
 
 **NB**: 1 unità di flusso = 1 assegnamento valido
 
+x_ij = 1 se e solo se il lavoratore i è assegnato al lavoro j,
+x_ij = 0 altrimenti.
+
 **Matching**: Sottoinsieme M di archi dove nessuna coppia condivide nodi
 
 **Formulazione**:
