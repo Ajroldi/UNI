@@ -161,11 +161,18 @@ S ───→ 1
 
 **Problema**:
 ```
-min Σ c_ij · x_ij
+min Σ c_ij · x_ij (si vuole minimizzare il costo totale del flusso, dove c_ij è il costo unitario e x_ij è la quantità di flusso sull’arco (i,j)).
 
-s.t.:
-  Σ x_ji - Σ x_ij = b_i  ∀i (bilancio)
-  0 ≤ x_ij ≤ u_ij        ∀(i,j) (capacità)
+Vincoli di bilancio:
+Σ x_ji − Σ x_ij = b_i   ∀ i
+Ogni nodo deve rispettare il proprio bilancio:
+b_i > 0 nodo che richiede flusso,
+b_i < 0 nodo che fornisce flusso,
+b_i = 0 nodo di transito.
+
+Vincoli di capacità:
+0 ≤ x_ij ≤ u_ij   ∀ (i,j)
+Il flusso su ogni arco non può superare la capacità massima disponibile.
 ```
 
 **Nodo dummy**: Se quantità destinazioni incognite, aggiungi T con archi da destinazioni
