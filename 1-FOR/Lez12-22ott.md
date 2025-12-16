@@ -158,7 +158,7 @@ F ≤ U(N_S, N_T)  per ogni taglio
 **Archi verdi A⁺** (push forward):
 ```
 (i,j) ∈ A⁺ se x(i,j) < u(i,j)
-Posso aumentare il flusso
+Posso aumentare il flusso (l’arco non è saturo)
 ```
 
 **Archi rossi A⁻** (pull back):
@@ -169,8 +169,8 @@ Posso diminuire il flusso (arco inverso!)
 
 **Capacità residua**:
 ```
-Verde: r(i,j) = u(i,j) - x(i,j)
-Rosso: r(j,i) = x(i,j)
+Verde: r(i,j) = u(i,j) - x(i,j) = quanto flusso puoi ancora aggiungere
+Rosso: r(j,i) = x(i,j) = puoi togliere flusso cioè stai “annullando” una scelta precedente
 ```
 
 **Cammino aumentante**: S → T nel grafo residuo
