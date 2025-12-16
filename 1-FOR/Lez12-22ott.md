@@ -47,7 +47,7 @@
 - Job assignment
 
 ## 4. Maximum Flow Problem
-
+è un problema globale (non locale), trasformando il problema da una scelta di percorsi a una distribuzione globale del flusso nella rete, con l’obiettivo di massimizzare il flusso totale.
 **Input**:
 - Grafo G = (N, A)
 - Source S, Sink T
@@ -64,7 +64,7 @@
    (entrante = uscente)
 ```
 
-**Funzione obiettivo** (equivalenti):
+**Funzione obiettivo** (equivalenti = sono uguali grazie alla conservazione del flusso):
 ```
 max Σ x(j,T)    (flusso entrante in T)
 max Σ x(S,j)    (flusso uscente da S)
