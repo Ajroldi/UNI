@@ -130,7 +130,7 @@ S ───→ 1
 
 ## 5. Minimum Cost Flow
 
-**Motivazione**: Combinare flusso + costo
+**Motivazione**: Combinare flusso + costo, cioè consiste nel spostare flusso, rispettando le capacità, spendendo il meno possibile. Ogni nodo deve ricevere o mandare la quantità richiesta e il costo totale del trasporto va minimizzato.
 
 | Problema | Flusso | Costo |
 |----------|--------|-------|
