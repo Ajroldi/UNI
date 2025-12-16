@@ -48,6 +48,7 @@
 
 ## 4. Maximum Flow Problem
 è un problema globale (non locale), trasformando il problema da una scelta di percorsi a una distribuzione globale del flusso nella rete, con l’obiettivo di massimizzare il flusso totale.
+
 **Input**:
 - Grafo G = (N, A)
 - Source S, Sink T
