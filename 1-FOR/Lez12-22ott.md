@@ -121,7 +121,7 @@ F < Σ p_j → ❌ Non fattibile
 
 ## 7. Minimum Cut Problem
 
-**Scenario duale**: Terrorista vuole interrompere flusso
+**Scenario duale**: Terrorista vuole interrompere flusso (vuole interrompere completamente il flusso con il minimo sforzo possibile, cioè bloccare pochi archi con capacità totale minima)
 
 **Taglio (S,T)-cut**: Partizione N = N_S ∪ N_T
 - S ∈ N_S, T ∈ N_T
