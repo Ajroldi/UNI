@@ -27,7 +27,7 @@
 
 **Tempi**: 1, 2, 5, 10 minuti
 
-**Richiesta**: Modellare come shortest path su grafo opportuno (usare programmazione dinamica)
+**Richiesta**: Modellare come shortest path su grafo opportuno (usare programmazione dinamica = per risolvere problemi complessi scomponendoli in sottoproblemi più piccoli, risolvendo ciascun sottoproblema una sola volta e memorizzando i risultati per evitare calcoli ripetuti)
 
 ## 3. Problemi di Flusso - Novità
 
