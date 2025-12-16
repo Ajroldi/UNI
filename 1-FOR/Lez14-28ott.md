@@ -58,6 +58,8 @@ S → [Feste] → [Serate] → T
 
 **Problema**: Assegnare lavoratori a lavori (1-a-1)
 
+**NB**: 1 unità di flusso = 1 assegnamento valido
+
 **Matching**: Sottoinsieme M di archi dove nessuna coppia condivide nodi
 
 **Formulazione**:
@@ -65,8 +67,8 @@ S → [Feste] → [Serate] → T
 max Σ x_ij
 
 Vincoli:
-Σ x_ij ≤ 1  ∀ lavoratore i
-Σ x_ij ≤ 1  ∀ lavoro j
+Σj x_ij ≤ 1  ∀ lavoratore i (un lavoro per lavoratore)
+Σi x_ij ≤ 1  ∀ lavoro j (un lavoratore per lavoro)
 ```
 
 **Riduzione a Max Flow**:
