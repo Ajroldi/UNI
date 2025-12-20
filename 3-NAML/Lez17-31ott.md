@@ -16,15 +16,53 @@ Di seguito è riportata la traduzione e la rielaborazione strutturata della tras
 3.  `rating`: la valutazione, un numero intero da 1 a 5.
 4.  `timestamp`: il momento in cui l'utente ha inserito la valutazione. Quest'ultima informazione non verrà utilizzata nel modello, ma è presente nel dataset.
 [02:29] Si inizia importando le librerie necessarie. Verranno utilizzate `pandas` per leggere il file CSV, `numpy` per le operazioni numeriche e alcuni moduli di `scipy` che si vedranno in seguito.
+
+```python
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.sparse import csr_matrix
+from scipy.stats import pearsonr
+```
+
 [02:41] La lettura del dataset è il primo passo operativo. In un contesto d'esame, questa fase è solitamente già fornita.
+
+```python
+dataset = pd.read_csv(
+    "./movielens.csv",
+    sep="\t",
+    header=None,
+    names=["user_id", "item_id", "rating", "timestamp"],
+)
+dataset
+```
+
 [02:49] Una volta caricato, il dataset si presenta come un `DataFrame` di `pandas`. Il notebook Jupyter offre una visualizzazione tabellare simile a un foglio di calcolo, con colonne nominate e righe indicizzate.
 [03:00] Ad esempio, la prima riga mostra che l'utente con ID 196 ha assegnato al film con ID 242 una valutazione di 3 in un determinato istante temporale.
 ## Estrazione delle Dimensioni del Dataset
 [03:08] Il passo successivo è verificare le dimensioni del problema: quanti utenti, film e valutazioni totali ci sono.
 [03:14] Per contare il numero di utenti unici, si utilizza la funzione `numpy.unique` sulla colonna degli ID utente. Questa funzione restituisce un array contenente tutti gli ID univoci.
-[03:22] Il numero di utenti (`n\_users`) è quindi la dimensione (`size`) di questo array di ID unici.
-[03:29] Analogamente, per determinare il numero di film (`n\_movies`), si applica `numpy.unique` alla colonna degli ID dei film e se ne ottiene la dimensione.
-[03:39] Il numero totale di valutazioni (`n\_ratings`) corrisponde semplicemente al numero di righe del `DataFrame`.
+[03:22] Il numero di utenti (`n_users`) è quindi la dimensione (`size`) di questo array di ID unici.
+[03:29] Analogamente, per determinare il numero di film (`n_movies`), si applica `numpy.unique` alla colonna degli ID dei film e se ne ottiene la dimensione.
+[03:39] Il numero totale di valutazioni (`n_ratings`) corrisponde semplicemente al numero di righe del `DataFrame`.
+
+```python
+n_people = np.unique(dataset.user_id).size
+n_movies = np.unique(dataset.item_id).size
+n_ratings = len(dataset)
+
+print(f"{n_people} people")
+print(f"{n_movies} movies")
+print(f"{n_ratings} ratings")
+```
+
+Output:
+```
+943 people
+1682 movies
+100000 ratings
+```
+
 [03:48] I risultati ottenuti confermano le informazioni fornite nella descrizione del dataset: il numero di utenti, film e valutazioni corrisponde a quanto atteso. Eseguire questo doppio controllo è una buona pratica per assicurarsi che il caricamento dei dati sia avvenuto correttamente.
 ## Pre-elaborazione dei Dati: Mescolamento (Shuffling)
 [04:05] Si introduce ora un passaggio fondamentale quando si lavora con dataset realistici, non visto nel laboratorio precedente: il mescolamento (*shuffling*) dei dati.
@@ -34,7 +72,17 @@ Di seguito è riportata la traduzione e la rielaborazione strutturata della tras
 [04:48] Per garantire che l'algoritmo venga addestrato e testato su un campione rappresentativo, si vuole che le valutazioni di uno stesso utente siano distribuite casualmente tra training e test. Questo aumenta l'entropia del dataset e rompe le dipendenze legate all'ordine di inserimento.
 [05:06] Per eseguire lo shuffling, per prima cosa si imposta un seme casuale (*random seed*) per garantire la riproducibilità dei risultati. Successivamente, si crea un array di indici da 0 al numero totale di valutazioni (100.000).
 [05:16] La funzione `numpy.random.shuffle` permuta casualmente questo array di indici.
-[05:25] Si utilizza quindi questo array di indici permutati per riordinare le righe del `DataFrame`. L'indicizzazione tramite un array di indici (es. `data[shuffled\_indices]`) permette di riorganizzare le righe secondo l'ordine specificato, ottenendo così un mescolamento completo del dataset.
+[05:25] Si utilizza quindi questo array di indici permutati per riordinare le righe del `DataFrame`. L'indicizzazione tramite un array di indici (es. `data[shuffled_indices]`) permette di riorganizzare le righe secondo l'ordine specificato, ottenendo così un mescolamento completo del dataset.
+
+```python
+np.random.seed(1)  # per la riproducibilità
+
+idxs = np.arange(n_ratings)
+np.random.shuffle(idxs)
+rows_dupes = dataset.user_id[idxs]
+cols_dupes = dataset.item_id[idxs]
+vals = dataset.rating[idxs]
+```
 ## Estrazione e Pulizia degli Indici
 [05:41] Una volta mescolate le righe, si estraggono le colonne di interesse:
 -   `rows`: gli ID degli utenti.
@@ -50,21 +98,48 @@ Di seguito è riportata la traduzione e la rielaborazione strutturata della tras
 [06:38] Ad esempio, si avrebbe una riga per l'utente 0, ma anche per gli utenti 1 e 2 (che non esistono nel mini-dataset) e una per l'utente 3. Similmente, si avrebbe una colonna per il film 0 (non valutato), una per il film 1 e una per il film 2.
 [06:47] Questo genera righe e colonne piene di zeri, che non portano alcuna informazione utile. Non ha senso fare inferenza su un film che nessuno ha visto o su un utente che non ha espresso valutazioni.
 [07:06] Si vogliono quindi eliminare questi "buchi" negli indici, compattandoli.
-[07:13] Per questo esercizio, è sufficiente sapere che esiste una funzione che esegue questa compattazione. Non si entrerà nei dettagli implementativi, ma la funzione `numpy.unique`, con l'opzione `return\_inverse=True`, permette di mappare gli indici originali (sparsi) a un nuovo insieme di indici contigui (compatti).
+[07:13] Per questo esercizio, è sufficiente sapere che esiste una funzione che esegue questa compattazione. Non si entrerà nei dettagli implementativi, ma la funzione `numpy.unique`, con l'opzione `return_inverse=True`, permette di mappare gli indici originali (sparsi) a un nuovo insieme di indici contigui (compatti).
+
+```python
+_, rows = np.unique(rows_dupes, return_inverse=True)
+_, cols = np.unique(cols_dupes, return_inverse=True)
+
+print(rows.min(), rows.max(), n_people)
+print(cols.min(), cols.max(), n_movies)
+```
+
 [07:30] In pratica, questo passaggio trasforma i vettori di indici `rows` e `cols` in modo da eliminare le righe e le colonne completamente vuote dalla matrice finale.
 ## Suddivisione in Training e Test Set
 [07:44] Ora che gli indici sono stati puliti e compattati, si può procedere con la suddivisione del dataset in training e test.
 [07:50] Si stabilisce che il training set conterrà l'80% delle valutazioni. Si calcola il numero di campioni per il training moltiplicando il numero totale di valutazioni per 0.8 e arrotondando il risultato.
 [08:02] Poiché il dataset è stato mescolato, si può semplicemente prendere il primo 80% dei dati per il training e il restante 20% per il test.
+
+```python
+training_data = int(0.8 * n_ratings)  # usa l'80% dei dati come training
+
+rows_train = rows[:training_data]
+cols_train = cols[:training_data]
+vals_train = vals[:training_data]
+rows_test = rows[training_data:]
+cols_test = cols[training_data:]
+vals_test = vals[training_data:]
+```
+
 [08:06] Utilizzando lo slicing degli array, si selezionano gli elementi da 0 fino al numero di campioni di training per il set di addestramento.
 [08:15] Il set di test sarà composto da tutti gli elementi a partire dall'indice finale del training set fino alla fine dell'array.
 [08:23] Al termine di questo passaggio, si ottengono sei vettori: una tripletta (righe, colonne, valori) per il training e una tripletta analoga per il test.
 ## Costruzione della Matrice delle Valutazioni
 [08:32] Il passo successivo è trasformare queste triplette di dati in una matrice. La libreria `scipy` offre una funzione specifica per questo scopo, ottimizzata per matrici con molti zeri, note come matrici sparse.
-[08:45] La funzione `scipy.sparse.csr\_matrix` prende in input la tripletta (valori, (indici di riga, indici di colonna)) e costruisce una matrice sparsa.
+[08:45] La funzione `scipy.sparse.csr_matrix` prende in input la tripletta (valori, (indici di riga, indici di colonna)) e costruisce una matrice sparsa.
 [08:56] In questa matrice, l'elemento $(i, j)$ conterrà la valutazione corrispondente se la coppia (utente $i$, film $j$) è presente nel dataset; altrimenti, l'elemento sarà zero.
+
+```python
+X_sparse = csr_matrix((vals_train, (rows_train, cols_train)), shape=(n_people, n_movies))
+X_full = X_sparse.toarray()
+```
+
 [09:06] Infine, per le operazioni successive, si converte questa matrice sparsa (che memorizza implicitamente gli zeri) in una matrice densa (`full matrix`), dove gli zeri sono rappresentati esplicitamente.
-[09:15] La matrice risultante, `X\_full`, conterrà molti zeri, poiché la maggior parte delle coppie utente-film non ha una valutazione associata. Tuttavia, grazie al passaggio di pulizia precedente, si è sicuri che non ci siano righe o colonne interamente nulle.
+[09:15] La matrice risultante, `X_full`, conterrà molti zeri, poiché la maggior parte delle coppie utente-film non ha una valutazione associata. Tuttavia, grazie al passaggio di pulizia precedente, si è sicuri che non ci siano righe o colonne interamente nulle.
 ## Compito 1: Implementazione di un Sistema di Raccomandazione Banale (Baseline)
 [09:27] Ora inizia la parte pratica da implementare. Il primo compito è creare un sistema di raccomandazione banale (*Trivial Recommender System*).
 [09:33] Quando si sviluppa un nuovo modello di machine learning, è una buona pratica confrontarlo con una baseline, ovvero un modello molto semplice. Questo serve a verificare che il modello più sofisticato offra un reale vantaggio.
@@ -103,30 +178,81 @@ Di seguito è riportata la traduzione e la rielaborazione strutturata della tras
 [12:47] Infine, opzionalmente, si può visualizzare l'andamento dell'RMSE e del coefficiente di correlazione nel corso delle iterazioni.
 [12:55] Per completare questi compiti sono previsti 20 minuti.
 ## Soluzione Compito 1: Predittore Banale
-[13:26] Si analizza la soluzione del primo compito. L'obiettivo è produrre un vettore, `vals\_trivial`, contenente le predizioni per ogni campione del test set. Questo vettore avrà una dimensione pari al numero di campioni di test (20.000).
-[13:37] Ogni elemento di questo vettore è una predizione per una specifica coppia (utente, film), definita dai vettori `row\_test` e `col\_test`.
+[13:26] Si analizza la soluzione del primo compito. L'obiettivo è produrre un vettore, `vals_trivial`, contenente le predizioni per ogni campione del test set. Questo vettore avrà una dimensione pari al numero di campioni di test (20.000).
+[13:37] Ogni elemento di questo vettore è una predizione per una specifica coppia (utente, film), definita dai vettori `row_test` e `col_test`.
 [13:48] Il processo si svolge in due fasi. La prima è calcolare la valutazione media per ogni utente. Un modo diretto, ma computazionalmente meno efficiente, è usare un ciclo `for`.
-[14:02] Si inizializza un vettore vuoto, `average\_rating`, con una dimensione pari al numero di utenti (`n\_people`).
+[14:02] Si inizializza un vettore vuoto, `average_rating`, con una dimensione pari al numero di utenti (`n_people`).
+
+**Approccio 1: Ciclo for con matrice**
+```python
+average_rating = np.zeros(n_people)
+for i in range(n_people):
+    row = X_full[i, :]
+    sum_ratings = row.sum()
+    count_ratings = (row > 0).sum()
+    average_rating[i] = sum_ratings / count_ratings
+```
+
 [14:17] Successivamente, si itera su ogni utente `i` da 0 al numero totale di utenti.
-[14:24] Per ogni utente `i`, si estrae la riga corrispondente dalla matrice `X\_full`.
+[14:24] Per ogni utente `i`, si estrae la riga corrispondente dalla matrice `X_full`.
 [14:32] Si sommano tutti gli elementi di questa riga.
 [14:36] Per calcolare la media, si deve dividere questa somma per il numero di valutazioni non nulle. Per contare queste valutazioni, si può creare una maschera booleana verificando dove gli elementi della riga sono maggiori di zero.
 [14:45] Sommando questa maschera booleana (dove `True` vale 1 e `False` vale 0), si ottiene il numero di elementi non nulli.
 [15:00] La valutazione media per l'utente `i` è quindi il rapporto tra la somma delle sue valutazioni e il numero di film che ha valutato.
+
+**Approccio 2: Vettorizzato con triplette**
+```python
+average_rating = np.zeros(n_people)
+for i in range(n_people):
+    mask = (rows_train == i)
+    average_rating[i] = vals_train[mask].mean()
+```
+
 [15:10] Un approccio alternativo e più pulito consiste nell'utilizzare direttamente i vettori delle triplette (righe, colonne, valori) del training set.
-[15:20] Per calcolare la media per l'utente `i`, si filtra il vettore `vals\_train` usando una maschera booleana. La maschera è `True` dove l'ID utente in `row\_trains` è uguale a `i`.
-[15:33] Applicando questa maschera a `vals\_train`, si estraggono solo le valutazioni dell'utente `i`.
+[15:20] Per calcolare la media per l'utente `i`, si filtra il vettore `vals_train` usando una maschera booleana. La maschera è `True` dove l'ID utente in `row_trains` è uguale a `i`.
+[15:33] Applicando questa maschera a `vals_train`, si estraggono solo le valutazioni dell'utente `i`.
 [15:45] A questo punto, si può calcolare direttamente la media (`.mean()`) di questi valori.
 [16:00] Verificando, si può notare che entrambi i metodi producono lo stesso risultato, confermando la correttezza di entrambi gli approcci.
-[16:15] Una volta ottenuto il vettore `average\_rating` (con una valutazione media per ogni utente), lo si deve usare per generare le predizioni sul test set.
+[16:15] Una volta ottenuto il vettore `average_rating` (con una valutazione media per ogni utente), lo si deve usare per generare le predizioni sul test set.
 [16:22] Il modello banale predice un valore che dipende solo dall'utente, non dal film.
-[16:35] Per ottenere il vettore `vals\_trivial`, si può usare un'indicizzazione avanzata. Il vettore `row\_test` contiene gli ID degli utenti per ogni campione di test. Usando `average\_rating[row\_test]`, si associa a ogni campione di test la valutazione media dell'utente corrispondente.
-[16:55] In modo più esplicito (verboso), si potrebbe inizializzare un vettore vuoto `vals\_trivial` e iterare su ogni campione del test set.
-[17:02] Per ogni campione `i`, si estrae l'ID dell'utente (`userId = row\_test[i]`) e l'ID del film (`movieId = col\_test[i]`).
+[16:35] Per ottenere il vettore `vals_trivial`, si può usare un'indicizzazione avanzata. Il vettore `row_test` contiene gli ID degli utenti per ogni campione di test. Usando `average_rating[row_test]`, si associa a ogni campione di test la valutazione media dell'utente corrispondente.
+
+```python
+# Predizioni usando indicizzazione vettorizzata
+vals_trivial = average_rating[rows_test]
+
+# Approccio alternativo più esplicito (verboso)
+vals_trivial = np.zeros(len(rows_test))
+for i in range(len(rows_test)):
+    userId = rows_test[i]
+    movieId = cols_test[i]  # non usato in questo modello
+    vals_trivial[i] = average_rating[userId]
+```
+
+[16:55] In modo più esplicito (verboso), si potrebbe inizializzare un vettore vuoto `vals_trivial` e iterare su ogni campione del test set.
+[17:02] Per ogni campione `i`, si estrae l'ID dell'utente (`userId = row_test[i]`) e l'ID del film (`movieId = col_test[i]`).
 [17:10] La predizione per questa coppia è semplicemente la valutazione media per `userId`, ignorando completamente `movieId`.
-[17:20] Questo valore viene quindi assegnato all'i-esimo elemento di `vals\_trivial`. L'indicizzazione avanzata `average\_rating[row\_test]` è una versione vettorizzata e più efficiente di questo ciclo.
-[17:50] Infine, per calcolare le metriche, si confrontano i valori predetti (`vals\_trivial`) con i valori reali del test set (`vals\_test`). L'errore è la discrepanza tra questi due vettori.
-[18:00] Una domanda sorge sulla corrispondenza degli indici: l'utente nella posizione 0 del vettore `average\_rating` corrisponde all'utente con ID 0? Sì, grazie al passaggio di pulizia e compattazione degli indici eseguito in precedenza, c'è una corrispondenza diretta tra l'indice dell'array e l'ID dell'entità (utente o film).
+[17:20] Questo valore viene quindi assegnato all'i-esimo elemento di `vals_trivial`. L'indicizzazione avanzata `average_rating[row_test]` è una versione vettorizzata e più efficiente di questo ciclo.
+
+**Calcolo delle metriche di valutazione:**
+```python
+errors_trivial = vals_test - vals_trivial
+
+# Calcolo RMSE e correlazione di Pearson
+RMSE_trivial = np.sqrt(np.mean(errors_trivial**2))
+rho_trivial = pearsonr(vals_test, vals_trivial)[0]
+print(f"RMSE: {RMSE_trivial:1.3f}")
+print(f"rho : {rho_trivial:1.3f}")
+```
+
+Output:
+```
+RMSE: 1.033
+rho : 0.344
+```
+
+[17:50] Infine, per calcolare le metriche, si confrontano i valori predetti (`vals_trivial`) con i valori reali del test set (`vals_test`). L'errore è la discrepanza tra questi due vettori.
+[18:00] Una domanda sorge sulla corrispondenza degli indici: l'utente nella posizione 0 del vettore `average_rating` corrisponde all'utente con ID 0? Sì, grazie al passaggio di pulizia e compattazione degli indici eseguito in precedenza, c'è una corrispondenza diretta tra l'indice dell'array e l'ID dell'entità (utente o film).
 ## Confronto tra Sintassi: Groupby e Ciclo For
 [00:00] L'operazione eseguita con la sintassi `groupby` è semanticamente identica a quella realizzata tramite un ciclo `for`. Sebbene la sintassi sia differente, l'azione sottostante è la medesima.
 [00:05] Ad esempio, se si considera che la predizione sia un determinato valore e l'ID utente un altro, la riga di codice che utilizza `groupby` compie la stessa operazione di un ciclo `for` esplicito.
@@ -142,6 +268,8 @@ Di seguito è riportata la traduzione e la rielaborazione strutturata della tras
 [00:34] I risultati per il predittore banale sono i seguenti:
 *   **RMSE**: circa 1
 *   **Correlazione**: 0.3
+
+Questi valori rappresentano il benchmark minimo che l'algoritmo SVT deve superare per essere considerato efficace.
 [00:38] Un valore di correlazione di 0.3 indica una correlazione debole ma positiva. Questo stesso indice era stato utilizzato anche per il PageRank, ottenendo in quel caso risultati migliori.
 ## Introduzione all'Algoritmo SVT (Singular Value Thresholding)
 [00:43] Si passa ora all'implementazione dell'algoritmo SVT (Singular Value Thresholding).
@@ -152,27 +280,86 @@ Di seguito è riportata la traduzione e la rielaborazione strutturata della tras
 [00:51] La soglia, in particolare, è un iperparametro che richiede una calibrazione specifica per ogni problema (tuning). In questo caso, viene fornito un valore di 100, che è stato precedentemente testato e si è dimostrato efficace.
 [00:58] In un contesto reale, sarebbe necessario variare leggermente i parametri per osservare quali combinazioni funzionano meglio.
 ## Implementazione dell'Algoritmo SVT: Passaggi Chiave
-[01:02] L'implementazione dell'algoritmo inizia con il salvataggio di una copia della matrice `A`. Questa copia (`A\_old`) è necessaria per calcolare l'incremento, ovvero la differenza tra la matrice allo stato corrente e quella allo stato precedente, al fine di verificare la convergenza.
-[01:10] Successivamente, si applica la Decomposizione a Valori Singolari (SVD) alla matrice `A`, utilizzando la funzione `np.linalg.svd` con il parametro `full\_matrices=False`.
+[01:02] L'implementazione dell'algoritmo inizia con il salvataggio di una copia della matrice `A`. Questa copia (`A_old`) è necessaria per calcolare l'incremento, ovvero la differenza tra la matrice allo stato corrente e quella allo stato precedente, al fine di verificare la convergenza.
+
+```python
+n_max_iter = 100
+threshold = 100.0
+increment_tol = 1e-6
+
+RMSE_list = list()
+rho_list = list()
+
+A = X_full.copy()
+
+print("Iter | Increment |  RMSE |  Corr ")
+for i in range(n_max_iter):
+    # Salva la matrice corrente per calcolare l'incremento
+    A_old = A.copy()
+    
+    # 1. Decomposizione ai Valori Singolari (SVD)
+    U, S, Vt = np.linalg.svd(A, full_matrices=False)
+    
+    # 2. Hard Thresholding: mantieni solo valori singolari > threshold
+    S_thresholded = np.where(S > threshold, S, 0)
+    
+    # 3. Ricostruzione della matrice
+    A = U @ np.diag(S_thresholded) @ Vt
+    
+    # 4. Imponi i valori di training noti
+    A[rows_train, cols_train] = vals_train
+    
+    # 5. Calcola l'incremento (criterio di convergenza)
+    increment = np.linalg.norm(A - A_old, ord='fro')
+    
+    # Estrai le predizioni per il test set
+    vals_pred = A[rows_test, cols_test]
+    
+    # Calcola le metriche
+    errors = vals_test - vals_pred
+    RMSE = np.sqrt(np.mean(errors**2))
+    rho = pearsonr(vals_test, vals_pred)[0]
+    
+    RMSE_list.append(RMSE)
+    rho_list.append(rho)
+    
+    print(f"{i+1:04} | {increment:.3e} | {RMSE_list[-1]:1.3f} | {rho_list[-1]:1.3f}")
+    if increment < increment_tol:
+        break
+```
+
+Esempio di output:
+```
+Iter | Increment |  RMSE |  Corr 
+0001 | 7.849e+02 | 3.890 | 0.058
+0002 | 7.502e+02 | 1.883 | 0.339
+0003 | 5.233e+02 | 1.429 | 0.478
+...
+0020 | 6.234e+01 | 0.981 | 0.624
+...
+0050 | 1.245e+00 | 0.945 | 0.652
+```
+
+[01:10] Successivamente, si applica la Decomposizione a Valori Singolari (SVD) alla matrice `A`, utilizzando la funzione `np.linalg.svd` con il parametro `full_matrices=False`.
 [01:15] A questo punto, si applica il *thresholding*: i valori singolari inferiori alla soglia predefinita vengono impostati a zero.
-[01:19] La matrice `A` viene quindi ricostruita. La ricostruzione avviene moltiplicando la matrice `U` per i valori singolari modificati (`S\_l`).
+[01:19] La matrice `A` viene quindi ricostruita. La ricostruzione avviene moltiplicando la matrice `U` per i valori singolari modificati (`S_l`).
 ```math
 A = U \cdot S_l
 ```
 [01:22] Sebbene non sia il metodo più efficiente dal punto di vista computazionale, questa rappresentazione è la più chiara per comprendere il processo.
 [01:25] Annullando i valori singolari inferiori alla soglia, si eliminano i contributi delle componenti principali associate a quelle direzioni, conservando solo le informazioni ritenute più significative.
-[01:33] Un passaggio cruciale consiste nell'assicurarsi che, nelle posizioni in cui i dati sono noti (cioè nel set di addestramento), la matrice ricostruita corrisponda ai valori originali. Pertanto, per ogni componente $(i, j)$ nota, il valore corrispondente in `A` viene forzato ad essere uguale al valore corretto (`vals\_trained`).
-[01:44] Si calcola poi l'incremento tra l'iterazione corrente e la precedente utilizzando la norma di Frobenius della differenza tra la matrice `A` e la sua copia `A\_old`.
+[01:33] Un passaggio cruciale consiste nell'assicurarsi che, nelle posizioni in cui i dati sono noti (cioè nel set di addestramento), la matrice ricostruita corrisponda ai valori originali. Pertanto, per ogni componente $(i, j)$ nota, il valore corrispondente in `A` viene forzato ad essere uguale al valore corretto (`vals_trained`).
+[01:44] Si calcola poi l'incremento tra l'iterazione corrente e la precedente utilizzando la norma di Frobenius della differenza tra la matrice `A` e la sua copia `A_old`.
 ```math
 \text{incremento} = \| A - A_{\text{old}} \|_F
 ```
 *   **Norma di Frobenius**: È una norma matriciale definita come la radice quadrata della somma dei quadrati dei suoi elementi. Misura la "grandezza" complessiva della matrice.
 [01:50] Successivamente, si calcolano le predizioni del modello. I valori predetti sono estratti dalla matrice `A` ricostruita, in corrispondenza delle righe e delle colonne del set di test.
 [01:57] La matrice `A` risulterà ora "piena" (dense), poiché il processo di SVD e ricostruzione, eliminando alcuni valori singolari, modifica la struttura originale, trasformando gli zeri in valori non nulli.
-[02:04] L'errore viene calcolato come la differenza tra i valori reali del set di test (`vals\_test`) e i valori predetti.
+[02:04] L'errore viene calcolato come la differenza tra i valori reali del set di test (`vals_test`) e i valori predetti.
 [02:07] Infine, le metriche di valutazione vengono salvate in due liste:
-*   `rmse\_list`: Viene aggiunto il valore dell'RMSE, calcolato come `np.sqrt(np.mean(errors**2))`.
-*   `rho\_list`: Viene aggiunto il coefficiente di correlazione di Pearson tra i valori reali e quelli predetti.
+*   `rmse_list`: Viene aggiunto il valore dell'RMSE, calcolato come `np.sqrt(np.mean(errors**2))`.
+*   `rho_list`: Viene aggiunto il coefficiente di correlazione di Pearson tra i valori reali e quelli predetti.
 ## Analisi dei Risultati dell'Algoritmo SVT
 [02:13] L'esecuzione dell'algoritmo richiede del tempo. L'obiettivo è ottenere un risultato migliore rispetto al predittore banale.
 [02:17] Si ricorda che il predittore banale aveva un RMSE di circa 1 e una correlazione (rho) di circa 0.3.
@@ -183,12 +370,48 @@ A = U \cdot S_l
 ## Visualizzazione e Confronto dei Risultati
 [02:42] L'ultimo passaggio consiste nel visualizzare l'andamento storico dell'RMSE e del coefficiente di correlazione.
 [02:46] Viene creato un grafico con due subplot affiancati (due colonne, una riga).
+
+```python
+fig, ax = plt.subplots(1, 2, figsize=(12, 4))
+
+# Primo subplot: RMSE nel tempo
+ax[0].plot(RMSE_list, label='SVT Algorithm')
+ax[0].hlines(RMSE_trivial, 0, len(RMSE_list), 
+             colors='red', linestyles='dashed', 
+             label='Trivial Predictor')
+ax[0].set_xlabel('Iteration')
+ax[0].set_ylabel('RMSE')
+ax[0].set_title('Root Mean Squared Error')
+ax[0].legend()
+ax[0].grid(True, alpha=0.3)
+
+# Secondo subplot: Correlazione nel tempo
+ax[1].plot(rho_list, label='SVT Algorithm')
+ax[1].hlines(rho_trivial, 0, len(rho_list), 
+             colors='red', linestyles='dashed', 
+             label='Trivial Predictor')
+ax[1].set_xlabel('Iteration')
+ax[1].set_ylabel('Pearson Correlation')
+ax[1].set_title('Correlation Coefficient')
+ax[1].legend()
+ax[1].grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+```
+
 [02:50] Nel primo subplot (`ax[0]`), viene plottato l'andamento dell'RMSE nel tempo (numero di iterazioni).
 [02:53] Nel secondo subplot (`ax[1]`), viene plottato l'andamento del coefficiente di correlazione `rho`.
 [02:55] Per il confronto, i valori del predittore banale vengono rappresentati come una linea orizzontale, poiché si tratta di un singolo valore costante che non ha una cronologia di miglioramento.
-[02:59] La funzione `ax.hlines` (horizontal line) viene utilizzata per tracciare una linea orizzontale parallela all'asse x, con un'ordinata `y` pari al valore della metrica del predittore banale (es. `rmse\_trivial`).
+[02:59] La funzione `ax.hlines` (horizontal line) viene utilizzata per tracciare una linea orizzontale parallela all'asse x, con un'ordinata `y` pari al valore della metrica del predittore banale (es. `rmse_trivial`).
 [03:09] Il risultato finale mostra che, per quanto riguarda il coefficiente di correlazione, l'algoritmo SVT diventa rapidamente migliore del predittore banale, superando il valore di 0.3438 in poche iterazioni.
 [03:16] Tuttavia, per l'RMSE, il predittore banale si dimostra molto competitivo. L'algoritmo SVT riesce a scendere al di sotto del valore di riferimento del predittore banale solo verso la fine del processo e con un margine molto ridotto.
+
+![Confronto tra Baseline e SVT](img/lab04_svt_performance.png)
+
+![Convergenza dell'algoritmo SVT](img/lab04_svt_convergence.png)
+
+![Analisi distribuzione dati e predizioni](img/lab04_data_analysis.png)
 [03:22] Questo evidenzia l'importanza di utilizzare sempre un modello di base (baseline) come termine di paragone. Un modello molto semplice, come la media, può già fornire prestazioni notevoli, indicando che un algoritmo più complesso, pur migliorando il risultato, potrebbe non offrire un vantaggio così significativo.
 ## Applicazione alla Ricostruzione di Immagini: Algoritmo dalle Slide
 [03:33] Viene ora presentata un'implementazione rapida di un altro algoritmo, identico a quello mostrato nelle slide del corso, applicato alla ricostruzione di immagini.
@@ -256,17 +479,68 @@ A = U \cdot S_l
 ## Fondamenti di JAX
 ### Importazione delle librerie e API principali
 [02:01] L'utilizzo di JAX inizia con l'importazione della libreria stessa. Una delle caratteristiche principali di JAX è la sua API, molto simile a quella di NumPy, che viene convenzionalmente importata come `jnp`.
+
+```python
+import jax
+import jax.numpy as jnp
+import numpy as np
+from jax import lax
+import matplotlib.pyplot as plt
+```
+
 [02:08] Si importa quindi `jax` e il suo modulo `jax.numpy` con l'alias `jnp`. Per confronto e per alcune operazioni, si importa anche la libreria standard `numpy`.
 [02:14] Esiste anche un'API di livello inferiore, chiamata `LAX`, che è notevolmente più complessa. Sebbene l'API `jnp` verrà utilizzata per circa il 95% del tempo, alcuni aspetti di `LAX` verranno illustrati per dimostrare la potenza e la velocità che JAX può raggiungere grazie a questa interfaccia a basso livello.
 [02:38] Infine, si importa la libreria `matplotlib` per la visualizzazione grafica dei dati.
 ### Creazione e utilizzo degli array JAX
 [02:44] Per iniziare con un esempio pratico, si può utilizzare `jax.numpy` per creare un array. La funzione `linspace` viene usata per generare 1000 punti equispaziati tra 0 e 10.
+
+```python
+# La sintassi di JAX è molto simile a NumPy
+x_jnp = jnp.linspace(0, 10, 1000)
+y_jnp = 2 * jnp.sin(x_jnp) * jnp.cos(x_jnp)
+plt.plot(x_jnp, y_jnp)
+plt.show()
+```
+
 [02:52] Successivamente, si definisce una funzione matematica, come il prodotto di un seno e un coseno. Tutti gli array utilizzati in queste operazioni non sono array NumPy, ma array specifici di JAX.
 [03:10] L'utilizzo di questa API è molto intuitivo, poiché la sintassi è identica a quella di NumPy.
 [03:17] Analizzando un array creato con `jnp`, si nota che la sua struttura è molto simile a quella di un array NumPy, sebbene venga identificato semplicemente come `array`.
 ### Immutabilità degli array JAX
 [03:29] Una caratteristica peculiare e fondamentale di JAX è l'immutabilità dei suoi array. A differenza degli array NumPy, gli array JAX non possono essere modificati dopo la loro creazione.
 [03:38] Per illustrare questa differenza, si può creare un array NumPy di dimensione 10. È possibile accedere a un elemento, ad esempio quello in posizione 0, e assegnargli un nuovo valore, come 23. Questa operazione modifica l'array originale "in-place".
+
+**NumPy: Array mutabili**
+```python
+size = 10
+index = 0
+value = 23
+
+# In NumPy gli array sono mutabili
+x = np.arange(size)
+print(x)  # [0 1 2 3 4 5 6 7 8 9]
+x[index] = value
+print(x)  # [23 1 2 3 4 5 6 7 8 9]
+```
+
+**JAX: Array immutabili**
+```python
+# In JAX dobbiamo gestire array immutabili
+x = jnp.arange(size)
+print(x)
+# x[index] = value  # ERRORE! Non è permesso
+
+# Sintassi corretta per modificare un array JAX
+jax_array = jnp.zeros((3, 3), dtype=jnp.float32)
+updated_array = jax_array.at[1, :].set(1.0)
+
+print("array originale non modificato:\n", jax_array)
+print("array aggiornato:\n", updated_array)
+
+# Operazioni più complesse
+new_jax_array = jax_array.at[::2, 1:].add(7.0)
+print("array con aggiunta:\n", new_jax_array)
+```
+
 [03:53] In JAX, questo tipo di modifica diretta è impossibile. Non si può selezionare un elemento di un array e assegnargli un nuovo valore. Sebbene possa sembrare una limitazione, questa è una scelta di progettazione deliberata i cui vantaggi diventeranno chiari in seguito.
 [04:10] Per modificare un valore, è necessario creare un nuovo array. Questa operazione può apparire inefficiente, ma ha una sua logica nel contesto del funzionamento di JAX.
 [04:18] Ad esempio, si inizializza una matrice di zeri di dimensioni 3x3 con JAX. Per modificare una riga, come la prima (indice 1), e impostare tutti i suoi valori a 1, non si modifica la matrice originale.
@@ -278,6 +552,17 @@ A = U \cdot S_l
 ### Gestione dei numeri casuali
 [05:39] Un'altra differenza significativa rispetto a NumPy riguarda la gestione dei numeri casuali. In NumPy, si imposta un seme globale con `np.random.seed()` e tutte le successive chiamate a funzioni casuali dipenderanno da quel seme.
 [05:50] In JAX, l'approccio è diverso e più esplicito. È necessario creare una "chiave" (`key`) a partire da un seme numerico. Questa chiave deve poi essere passata come argomento a ogni funzione che genera numeri casuali.
+
+```python
+# JAX gestisce i numeri casuali in modo diverso
+seed = 0
+key = jax.random.PRNGKey(seed)
+
+# La chiave deve essere passata esplicitamente
+x = jax.random.normal(key, (10,))
+print(type(x), x)
+```
+
 [06:03] Il processo prevede quindi un passaggio aggiuntivo:
 1.  Si definisce un seme, ad esempio `seed = 0`.
 2.  Si crea una chiave usando `jax.random.PRNGKey(seed)`.
@@ -287,11 +572,34 @@ A = U \cdot S_l
 ### JAX e l'accelerazione hardware (CPU, GPU, TPU)
 [06:26] Un grande vantaggio di JAX è la sua capacità di essere "agnostico" rispetto all'acceleratore hardware. Il codice JAX può essere eseguito su CPU, GPU e TPU senza modifiche sostanziali.
 [06:35] È tuttavia cruciale essere consapevoli di dove risiedono i dati (cioè in quale memoria, della CPU o della GPU), poiché il trasferimento di dati tra questi dispositivi può essere un'operazione costosa in termini di tempo.
+
+```python
+size = 3000
+
+# I dati sono automaticamente spostati sull'acceleratore AI (GPU, TPU)
+x_jnp = jax.random.normal(key, (size, size), dtype=jnp.float32)
+x_np = np.random.normal(size=(size, size)).astype(np.float32)
+
+print("[1] GPU")
+%timeit jnp.dot(x_jnp, x_jnp.T).block_until_ready()  # su GPU - veloce
+
+print("[2] Pure numpy (CPU)")
+%timeit np.dot(x_np, x_np.T)  # su CPU - lento (NumPy usa solo CPU)
+
+print("[3] GPU + trasferimento dati")
+%timeit jnp.dot(x_np, x_np.T).block_until_ready()  # GPU con overhead di trasferimento
+
+# Trasferimento esplicito su GPU
+x_np_device = jax.device_put(x_np)
+print("[4] GPU + trasferimento esplicito pre-computazione")
+%timeit jnp.dot(x_np_device, x_np_device.T).block_until_ready()  # come [1]
+```
+
 [06:46] Per dimostrarlo, si analizzano diversi scenari di calcolo.
 [06:50] **Scenario 1: Tutto su GPU.** Si crea un array `x` con JAX. Di default, se una GPU è disponibile e configurata, questo array viene allocato sulla memoria della GPU. Si calcola il prodotto scalare tra l'array e la sua trasposta. Tutte le computazioni avvengono direttamente sulla GPU.
 [07:08] **Scenario 2: Tutto su CPU.** Si esegue la stessa operazione utilizzando NumPy. Poiché NumPy non può utilizzare la GPU, sia i dati che i calcoli rimangono sulla CPU.
 [07:20] **Scenario 3: Trasferimento implicito CPU -> GPU.** Si crea un array con NumPy (quindi sulla CPU). Successivamente, si utilizza una funzione JAX (come il prodotto scalare) su questo array. JAX, per eseguire il calcolo sulla GPU, deve prima copiare implicitamente i dati dalla memoria della CPU a quella della GPU. Questa operazione di copia introduce un overhead.
-[07:38] **Scenario 4: Trasferimento esplicito CPU -> GPU.** È possibile gestire il trasferimento dei dati in modo esplicito. Si può forzare lo spostamento di un array dalla CPU alla GPU utilizzando la funzione `jax.device\_put`. Successivamente, si esegue il calcolo JAX sui dati che sono già stati trasferiti sulla GPU. Questo approccio è concettualmente simile allo scenario 1, ma rende esplicito il momento del trasferimento di memoria.
+[07:38] **Scenario 4: Trasferimento esplicito CPU -> GPU.** È possibile gestire il trasferimento dei dati in modo esplicito. Si può forzare lo spostamento di un array dalla CPU alla GPU utilizzando la funzione `jax.device_put`. Successivamente, si esegue il calcolo JAX sui dati che sono già stati trasferiti sulla GPU. Questo approccio è concettualmente simile allo scenario 1, ma rende esplicito il momento del trasferimento di memoria.
 ### Analisi delle performance
 [08:00] I risultati dei test di performance mostrano differenze significative:
 -   **Tutto su GPU:** L'operazione richiede circa 15 millisecondi.
@@ -302,6 +610,43 @@ A = U \cdot S_l
 ### Compilazione Just-In-Time (JIT)
 [08:34] Un altro componente fondamentale di JAX è la compilazione JIT (Just-In-Time), accessibile tramite la funzione `jax.jit`.
 [08:39] Questa funzione ottimizza il codice Python. La prima volta che una funzione "jittata" viene eseguita, JAX analizza le operazioni che compie e la compila in una versione ottimizzata e molto più veloce per le esecuzioni successive.
+
+```python
+def visualize_fn(fn, l=-10, r=10, n=1000):
+    x = np.linspace(l, r, num=n)
+    y = fn(x)
+    plt.plot(x, y)
+    plt.show()
+
+# Definisci una funzione (SELU è una funzione di attivazione)
+def selu(x, alpha=1.67, lmbda=1.05):
+    return lmbda * jnp.where(x > 0, x, alpha * jnp.exp(x) - alpha)
+
+# Compila la funzione con JIT
+selu_jit = jax.jit(selu)
+
+# Visualizza SELU
+visualize_fn(selu)
+```
+
+![Funzione di attivazione SELU](img/lab04_jax_selu.png)
+
+```python
+# Benchmark non-jit vs jit
+data = jax.random.normal(key, (1000000,))
+
+print('versione non-jit:')
+%timeit selu(data).block_until_ready()
+print('versione jit:')
+%timeit selu_jit(data).block_until_ready()
+```
+
+Risultati tipici:
+```
+versione non-jit: ~50 ms
+versione jit: ~5 ms (10x più veloce)
+```
+
 [08:53] Si definisce una funzione di visualizzazione e una funzione `selu` (Scaled Exponential Linear Unit), una funzione di attivazione comune nelle reti neurali, la cui definizione è moderatamente complessa.
 [09:05] Per ottimizzare una funzione con JIT, si passa la funzione stessa a `jax.jit`.
 ```math
@@ -320,6 +665,22 @@ A = U \cdot S_l
 \text{funzione\_gradiente} = \text{jax.grad}(f)
 ```
 [10:51] È possibile specificare rispetto a quale argomento calcolare il gradiente utilizzando il parametro opzionale `argnums`.
+
+```python
+x = 1.0  # input di esempio
+
+f = lambda x: x**2 + x + 4  # polinomio di secondo grado
+visualize_fn(f, l=-1, r=2, n=100)
+
+# Calcola derivate di vari ordini
+dfdx = jax.grad(f)      # 2*x + 1 (derivata prima)
+d2fdx = jax.grad(dfdx)  # 2 (derivata seconda)
+d3fdx = jax.grad(d2fdx) # 0 (derivata terza)
+
+print(f(x), dfdx(x), d2fdx(x), d3fdx(x))
+# Output: 6.0, 3.0, 2.0, 0.0
+```
+
 [10:57] Si consideri come esempio una funzione parabolica $f(x) = x^2$. Si può usare `jax.grad` per ottenere la sua derivata prima.
 [11:06] Una delle grandi potenzialità di JAX è la possibilità di comporre `grad` ricorsivamente per calcolare derivate di ordine superiore (seconda, terza, ecc.) in modo efficiente e robusto.
 ```math
@@ -330,10 +691,63 @@ A = U \cdot S_l
 \end{align*}
 ```
 [11:13] Questa capacità di comporre l'operatore di gradiente ripetutamente è una delle caratteristiche che rendono JAX più potente di altre librerie.
+
+![Gradienti con JAX](img/lab04_jax_gradient.png)
+
+![Gestione del gradiente nel valore assoluto](img/lab04_jax_abs_gradient.png)
 [11:23] Se la funzione ha un solo argomento, `grad` calcola automaticamente la derivata rispetto a quell'unico input.
 ### Jacobiano e Hessiano per funzioni vettoriali
 [11:30] Se una funzione ha più di un input, come una funzione $f(x, y)$, il concetto di gradiente si estende. Si possono calcolare le derivate parziali rispetto a ciascun componente.
 [11:39] Il gradiente di una funzione a valori vettoriali non è più uno scalare, ma un vettore (il Jacobiano). Il gradiente del gradiente diventa una matrice (l'Hessiano), che contiene tutte le derivate parziali seconde.
+
+```python
+f = lambda x, y: x**2 + y**2  # semplice paraboloide
+
+# Derivate:
+# df/dx = 2x
+# df/dy = 2y
+# Jacobiano J = [df/dx, df/dy]
+
+# Derivate seconde:
+# d2f/dx2 = 2
+# d2f/dy2 = 2
+# d2f/dxdy = 0
+# Hessiano H = [[d2f/dx2, d2f/dxdy], [d2f/dydx, d2f/dy2]]
+
+def eval_hessian(f):
+    return jax.jit(jax.jacfwd(jax.jacrev(f, argnums=(0, 1)), argnums=(0, 1)))
+
+jacobian = jax.jacrev(f, argnums=(0, 1))(1.0, 1.0)
+hessian = eval_hessian(f)(1.0, 1.0)
+print(f"Jacobian = {np.asarray(jacobian)}")
+print(f"Hessian = {np.asarray(hessian)}")
+
+# Output:
+# Jacobian = [2. 2.]
+# Hessian = [[2. 0.]
+#            [0. 2.]]
+```
+
+**Funzione con array come input:**
+```python
+# La funzione può lavorare con array come input
+f = lambda x: x[0] * x[0] + x[1] * x[1]
+
+def eval_hessian(f):
+    return jax.jit(jax.jacfwd(jax.jacrev(f)))
+
+x0 = jnp.array([2.0, 1.0])
+jacobian = jax.jacrev(f)(x0)
+hessian = eval_hessian(f)(x0)
+print(f"Jacobian = {np.asarray(jacobian)}")
+print(f"Hessian = {np.asarray(hessian)}")
+
+# Output:
+# Jacobian = [4. 2.]
+# Hessian = [[2. 0.]
+#            [0. 2.]]
+```
+
 [11:53] Per calcolare queste quantità, invece di `grad`, si utilizza la funzione `jax.jacobian`.
 [12:02] JAX offre due implementazioni per il calcolo del Jacobiano: `jacfwd` (forward-mode) e `jacrev` (reverse-mode).
     - **Differenziazione automatica forward-mode (`jacfwd`)**: Più efficiente per matrici Jacobiane "alte" (più righe che colonne).
@@ -347,6 +761,18 @@ A = U \cdot S_l
 ### Gestione delle funzioni non differenziabili
 [13:21] È interessante analizzare come JAX gestisce le funzioni non differenziabili, come la funzione valore assoluto, $f(x) = |x|$, che non è differenziabile in $x=0$.
 [13:30] JAX adotta un approccio pragmatico. Invece di restituire un errore o un valore non utilizzabile (come `NaN`), prende una decisione definita per garantire la stabilità numerica del codice.
+
+```python
+# Caso limite: |x|, come lo gestisce JAX?
+f = lambda x: abs(x)
+visualize_fn(f)
+
+dfdx = jax.grad(f)
+print(f"dfdx(0.0)   = {dfdx(0.0)  :.17e}")    # Output: 1.0
+print(f"dfdx(+1e-5) = {dfdx(+1e-5):.17e}")  # Output: 1.0
+print(f"dfdx(-1e-5) = {dfdx(-1e-5):.17e}")  # Output: -1.0
+```
+
 [13:38] Per verificare questo comportamento, si può definire la funzione valore assoluto e calcolarne il gradiente.
 [13:45] Valutando il gradiente in punti vicini a zero, si osserva che:
 -   Per un valore leggermente positivo, il gradiente è `1`.
@@ -359,18 +785,62 @@ A = U \cdot S_l
 [14:21] La scrittura di codice vettorizzato è cruciale per evitare i cicli `for` espliciti in Python, che sono notoriamente lenti. `vmap` trasforma un ciclo `for` in un'operazione che si comporta come codice compilato e vettorizzato, rendendolo estremamente efficiente.
 ### Esempio pratico di `vmap`
 [14:38] Si definisce una funzione arbitraria, ad esempio un "prodotto scalare personalizzato" che calcola il prodotto scalare tra due vettori e ne eleva al quadrato il risultato.
+
+```python
+def custom_dot(x, y):
+    return jnp.dot(x, y) ** 2
+
+# Approccio ingenuo: ciclo for esplicito
+def naive_custom_dot(x_batched, y_batched):
+    return jnp.stack([
+        custom_dot(v1, v2)
+        for v1, v2 in zip(x_batched, y_batched)
+    ])
+
+# Approccio con JIT
+@jax.jit
+def jit_naive_custom_dot(x_batched, y_batched):
+    return jnp.stack([
+        custom_dot(v1, v2)
+        for v1, v2 in zip(x_batched, y_batched)
+    ])
+
+# Approccio vettorizzato con vmap
+batched_custom_dot = jax.vmap(custom_dot, in_axes=[0, 0])
+
+# Approccio ottimale: vmap + JIT
+jit_batched_custom_dot = jax.jit(jax.vmap(custom_dot, in_axes=[0, 0]))
+
+# Dati di test
+x = jnp.asarray(np.random.rand(1000, 50))
+y = jnp.asarray(np.random.rand(1000, 50))
+
+# Confronto performance
+print("Naive (ciclo for)")
+%timeit naive_custom_dot(x, y)  # ~500 ms
+
+print("Vectorized (vmap)")
+%timeit batched_custom_dot(x, y)  # ~1 ms
+
+print("JIT (solo jit)")
+%timeit jit_naive_custom_dot(x, y)  # ~1 ms
+
+print("Vectorized + JIT (ottimale)")
+%timeit jit_batched_custom_dot(x, y)  # ~0.1 ms (5000x più veloce!)
+```
+
 [14:51] Si supponga di avere due matrici, `X` e `Y`, e di voler applicare questa funzione a ogni coppia di righe corrispondenti delle due matrici. Questo è un pattern comune, ad esempio, nell'elaborazione di un dataset, dove ogni riga rappresenta un campione di dati.
 [15:07] **Approccio ingenuo:** Si utilizza un ciclo `for` in Python per iterare su ogni riga delle matrici e applicare la funzione. Questo approccio sarà lento.
 [15:26] **Prima ottimizzazione (JIT):** Una prima idea è compilare la funzione che contiene il ciclo `for` con JIT. Questo si può fare usando la sintassi del decoratore `@jax.jit` sopra la definizione della funzione.
-[15:38] Il decoratore `@` è una scorciatoia sintattica. Scrivere `@jax.jit` sopra una funzione `mia\_funzione` è equivalente a scrivere `mia\_funzione = jax.jit(mia\_funzione)` dopo la sua definizione.
+[15:38] Il decoratore `@` è una scorciatoia sintattica. Scrivere `@jax.jit` sopra una funzione `mia_funzione` è equivalente a scrivere `mia_funzione = jax.jit(mia_funzione)` dopo la sua definizione.
 [15:55] La compilazione JIT del ciclo migliorerà le performance rispetto alla versione ingenua.
 [16:01] **Seconda ottimizzazione (`vmap`):** Si può fare di meglio usando `vmap`. `vmap` agisce come un ciclo `for` implicito e ottimizzato.
 [16:06] A `vmap` si passano due argomenti principali:
 1.  La funzione da applicare.
-2.  Un argomento `in\_axes` che specifica su quali assi degli input la funzione deve essere "mappata" (iterata).
-[16:14] Ad esempio, `in\_axes=(0, 0)` significa che si vuole applicare la funzione iternado lungo l'asse 0 (le righe) del primo argomento e l'asse 0 del secondo argomento. `vmap` restituisce una nuova funzione vettorizzata.
+2.  Un argomento `in_axes` che specifica su quali assi degli input la funzione deve essere "mappata" (iterata).
+[16:14] Ad esempio, `in_axes=(0, 0)` significa che si vuole applicare la funzione iterando lungo l'asse 0 (le righe) del primo argomento e l'asse 0 del secondo argomento. `vmap` restituisce una nuova funzione vettorizzata.
 [16:40] **Terza ottimizzazione (JIT + `vmap`):** L'approccio migliore consiste nel combinare `vmap` e JIT. Si applica prima `vmap` per creare un ciclo for ottimizzato e poi si compila la funzione risultante con JIT. Questo garantisce le massime performance.
-[17:00] L'argomento `in\_axes` è una sequenza di interi la cui lunghezza corrisponde al numero di argomenti della funzione. Ogni intero indica l'asse su cui iterare per l'argomento corrispondente.
+[17:00] L'argomento `in_axes` è una sequenza di interi la cui lunghezza corrisponde al numero di argomenti della funzione. Ogni intero indica l'asse su cui iterare per l'argomento corrispondente.
 [17:18] Questo meccanismo è un'estensione del concetto di `axis` presente in funzioni NumPy come `min` o `sum`, ma generalizzato a qualsiasi funzione definita dall'utente.
 ### Analisi delle performance con `vmap`
 [17:34] I risultati del confronto tra i diversi approcci sono impressionanti:
@@ -426,6 +896,10 @@ A = U \cdot S_l
 [03:09] Il secondo punto chiave è che, durante la seconda chiamata alla funzione, le istruzioni di stampa non vengono più eseguite e i tracer non appaiono.
 [03:13] La compilazione JIT si svolge in due fasi:
 1.  **Tracciamento (Tracing)**: Durante la prima chiamata, la funzione viene tracciata. Questa operazione avviene una sola volta per una data combinazione di forma e tipo degli input.
+
+![Confronto prestazioni tra metodi](img/lab04_jax_performance.png)
+
+![Prestazioni CPU vs GPU](img/lab04_jax_cpu_gpu.png)
 2.  **Compilazione e Ottimizzazione**: Una volta tracciata, la funzione viene compilata in una versione ottimizzata. Durante questo processo, tutti gli **effetti collaterali** vengono rimossi.
 > **Effetto Collaterale (Side Effect)**: Qualsiasi interazione di una funzione con uno stato esterno al suo ambito, come la stampa a schermo, la modifica di variabili globali o la lettura/scrittura di file.
 [03:21] Vengono conservate solo le operazioni strettamente necessarie al calcolo del risultato.
@@ -472,6 +946,28 @@ A = U \cdot S_l
 > 2.  Restituisce sempre lo stesso output se invocata con gli stessi input. Non ha effetti collaterali.
 ### Problemi con le Funzioni Impure e JIT
 [07:07] Si consideri una variabile globale `g` inizializzata a `0` e una funzione che somma il suo argomento `x` a `g`.
+
+```python
+g = 0.0
+
+def impure_uses_globals(x):
+    return x + g  # Viola entrambe le condizioni di purezza!
+
+# JAX cattura il valore della variabile globale durante la prima esecuzione
+print("Prima chiamata: ", jax.jit(impure_uses_globals)(4.0))  # Output: 4.0
+
+# Aggiorniamo la variabile globale!
+g = 10.0
+
+# Le esecuzioni successive possono silenziosamente usare il valore cachato
+print("Seconda chiamata: ", jax.jit(impure_uses_globals)(5.0))  # Output: 5.0 (non 15.0!)
+
+# JAX ri-esegue la funzione Python quando il tipo o la forma cambiano
+# Questo finirà per leggere l'ultimo valore della globale
+print("Terza chiamata, tipo diverso: ", 
+      jax.jit(impure_uses_globals)(jnp.array([4.0])))  # Output: [14.0]
+```
+
 [07:12] Questa funzione è **impura** perché il suo risultato dipende da `g`, una variabile esterna al suo scope (ambito).
 [07:21] Quando si compila una funzione impura con `jit`, JAX "congela" il valore delle variabili esterne al momento della prima compilazione.
 [07:27] Se si compila la funzione e la si chiama con `x = 4`, il risultato sarà `4 + 0 = 4`.
@@ -487,11 +983,53 @@ A = U \cdot S_l
 ## Gestione dei Numeri Casuali in JAX
 ### Il Modello a Stato di NumPy
 [08:34] Per comprendere l'approccio di JAX alla generazione di numeri casuali, è utile analizzare prima il funzionamento di NumPy.
+
+```python
+# NumPy - Il PRNG è stateful (mantiene uno stato)!
+seed = 0
+np.random.seed(seed)
+
+rng_state = np.random.get_state()
+print("stato random numpy", rng_state[2:])
+
+print("Un numero casuale", np.random.random())  # 0.5488135...
+rng_state = np.random.get_state()
+print("stato random numpy", rng_state[2:])  # Lo stato è cambiato!
+
+print("Un numero casuale", np.random.random())  # 0.7151893...
+rng_state = np.random.get_state()
+print("stato random numpy", rng_state[2:])  # Lo stato è cambiato ancora!
+```
+
 [08:39] In NumPy, si imposta un `seed` (seme) iniziale. Dietro le quinte, NumPy mantiene uno **stato** globale, un numero che tiene traccia del punto corrente nella sequenza del generatore di numeri casuali.
 [08:49] Ogni volta che si chiama una funzione per generare un numero casuale (es. `numpy.random.rand`), NumPy aggiorna implicitamente questo stato interno per produrre un nuovo valore.
-[08:58] È possibile ispezionare questo stato con la funzione `get\_state()`. Dopo aver impostato il seed, lo stato ha un certo valore. Dopo aver generato un numero casuale, si può osservare che lo stato è cambiato.
+[08:58] È possibile ispezionare questo stato con la funzione `get_state()`. Dopo aver impostato il seed, lo stato ha un certo valore. Dopo aver generato un numero casuale, si può osservare che lo stato è cambiato.
 ### L'Approccio Funzionale Puro di JAX
 [09:08] Il problema del modello di NumPy è che le sue funzioni di generazione casuale sono **impure**: dipendono e modificano uno stato globale esterno, proprio come la variabile `g` nell'esempio precedente.
+
+```python
+# Le funzioni random di JAX NON possono modificare lo stato del PRNG!
+key = jax.random.PRNGKey(seed)
+print("stato JAX rng", key)  # la key definisce lo stato (2 unsigned int32)
+
+# Campiona chiamando la stessa funzione due volte
+print("Un numero casuale", jax.random.normal(key, shape=(1,)))
+print("stato JAX rng", key)  # Verifica che lo stato NON è cambiato
+
+print("Un numero casuale", jax.random.normal(key, shape=(1,)))
+print("stato JAX rng", key)  # Stesso risultato! Stessa key = stesso numero!
+```
+
+**Soluzione: Split della key**
+```python
+# Soluzione? -> Dividi (split) ogni volta che hai bisogno di un numero pseudocasuale
+print("vecchia key", key)
+key, subkey = jax.random.split(key, 2)
+normal_pseudorandom = jax.random.normal(subkey, shape=(1,))
+print("    \---SPLIT --> nuova key   ", key)
+print("             \--> nuova subkey", subkey, "--> normal", normal_pseudorandom)
+```
+
 [09:17] JAX, basandosi interamente sul paradigma delle funzioni pure, non può adottare questo tipo di implementazione.
 [09:24] Per questo motivo, JAX utilizza una sintassi apparentemente più complessa, in cui la gestione dello stato del generatore di numeri casuali è esplicita e manuale.
 [09:28] La `key` (chiave) che viene passata alle funzioni `jax.random` è l'equivalente dello stato del generatore di NumPy.
@@ -516,12 +1054,44 @@ A = U \cdot S_l
 ## Interazione tra `grad`, `jit` e Strutture di Controllo
 ### `grad` e le Clausole `if-else`
 [11:16] Se si desidera calcolare il gradiente di una funzione (`grad`) che contiene clausole `if-else`, non ci sono problemi. JAX è in grado di gestire correttamente la differenziazione attraverso i rami condizionali.
+
+```python
+# Python control flow + grad() -> tutto ok
+def f(x):
+    if x < 3:
+        return 3.0 * x**2
+    else:
+        return -4 * x
+
+x = np.linspace(-10, 10, 1000)
+y = [f(el) for el in x]
+
+print(jax.grad(f)(2.0))  # ok! Output: 12.0
+print(jax.grad(f)(4.0))  # ok! Output: -4.0
+```
+
 ### Composizione di `jit` e `grad`
 [11:21] Tuttavia, se si compongono `jit` e `grad` per ottenere un calcolo del gradiente più veloce, le clausole `if-else` tornano a essere un problema.
 [11:27] Come spiegato in precedenza, `jit` non può gestire strutture di controllo che dipendono dai valori degli input, a causa della necessità di un tracciamento statico.
 [11:32] Il tentativo di applicare `jit` a una funzione con `if-else` (anche se destinata a `grad`) genererà un errore.
+
 ### Soluzione: `jax.numpy.where`
 [11:36] La soluzione consiste nell'utilizzare la funzione `jax.numpy.where` al posto delle clausole `if-else`.
+
+```python
+# Soluzione: usa jax.numpy.where invece di if-else
+def f(x):
+    return jnp.where(x < 3.0, 3.0 * x**2, -4 * x)
+
+f_jit = jax.jit(f)
+fgrad_jit = jax.jit(jax.grad(f))
+
+print(f_jit(2.0))        # Output: 12.0
+print(f_jit(4.0))        # Output: -16.0
+print(fgrad_jit(2.0))    # Output: 12.0 (gradiente)
+print(fgrad_jit(4.0))    # Output: -4.0 (gradiente)
+```
+
 [11:40] `where` è una versione vettorizzata del costrutto `if`. La sua sintassi è `where(condizione, x, y)`.
 [11:42] La funzione restituisce un array in cui, per ogni elemento, viene scelto il valore da `x` se la `condizione` è vera, altrimenti viene scelto il valore da `y`.
 [11:47] Questo approccio è compatibile con `jit` perché la forma (`shape`) dell'array risultante è sempre la stessa, indipendentemente dalla maschera booleana della condizione.
