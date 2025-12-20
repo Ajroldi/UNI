@@ -13,7 +13,12 @@ dove:
 ```math
 \frac{1}{T} \sum_{t=1}^{T} (f(x_t) - f(x^*)) \le \frac{\gamma}{2T} \sum_{t=1}^{T} ||\nabla f(x_t)||^2 + \frac{1}{2\gamma T} ||x_1 - x^*||^2
 ```
+<img width="578" height="276" alt="image" src="https://github.com/user-attachments/assets/8fc155a1-fd1b-48c5-af54-f65e17723078" />
+
 Questa relazione costituisce il punto di partenza per derivare risultati più specifici sulla convergenza, i quali si ottengono introducendo ipotesi aggiuntive sulla funzione obiettivo $f$.
+
+<img width="838" height="601" alt="image" src="https://github.com/user-attachments/assets/fa25e687-f66c-48ee-a92c-38cefcfa4027" />
+
 ### Caso 1: Funzione Convessa con Gradiente Limitatato
 #### Ipotesi e Tesi del Teorema
 [00:30] Il primo risultato si ottiene introducendo l'ipotesi che il gradiente della funzione sia limitato. Questa proprietà è anche nota come Lipschitzianità della funzione rispetto al gradiente.
