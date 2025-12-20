@@ -4,6 +4,8 @@
 [00:40] Si calcolano le derivate della funzione di costo rispetto ai pesi e ai bias della rete. Per l’ultimo strato, nelle formule del gradiente compare in modo cruciale la derivata della funzione di attivazione, indicata con $\sigma'(z)$. Quando $\sigma'(z)$ è piccola, l’attivazione risulta piatta e le derivate diventano piccole; il neurone contribuisce poco all’aggiornamento dei parametri.
 [01:10] Anche se l’errore è grande, se $\sigma'(z)$ è piccola, l’aggiornamento resta quasi bloccato a causa della piattezza dell’attivazione. Questa condizione ostacola la capacità di apprendimento della rete proprio dove sarebbe più necessario. Il fenomeno è noto come vanishing gradient e rallenta o impedisce la convergenza verso soluzioni utili.
 ## Funzione di costo quadratica e vanishing gradient
+<img width="555" height="647" alt="image" src="https://github.com/user-attachments/assets/eb4412dc-16e9-4b3b-8699-4ade0a5e529c" />
+
 [01:30] Si osserva graficamente il comportamento della funzione di costo quadratica rispetto all’uscita $a \in [0,1]$ quando il target è $y=1$. La funzione di costo è nulla quando $a=1$ e cresce man mano che $a$ si allontana da 1 verso 0, in accordo con l’idea di penalizzare errori maggiori.
 [01:55] Considerando la derivata rispetto all’uscita e assumendo una sigmoide come funzione di attivazione, anche se si è lontani dalla soluzione vera, la derivata può essere prossima a zero. Questo causa problemi nel calcolo del gradiente perché l’aggiornamento dei parametri diventa trascurabile, rallentando l’apprendimento.
 [02:15] Viene introdotta un’alternativa: la funzione di costo di tipo cross-entropy, rappresentata graficamente da curve rosse. Si rimanda il confronto dettagliato dopo aver derivato le proprietà analitiche, mostrando come la cross-entropy influenzi favorevolmente i gradienti.
@@ -63,6 +65,8 @@ poiché $\frac{\partial z}{\partial b}=1$ e gli altri fattori restano invariati.
 [06:45] L’overfitting si verifica quando il modello si adatta eccessivamente ai dati di training perdendo capacità di generalizzazione su dati nuovi. In termini intuitivi, invece di cogliere una relazione semplice attesa, il modello apprende un andamento troppo complesso che descrive fedelmente le fluttuazioni del training, risultando fuorviante sulle nuove osservazioni.
 [07:10] La stima su input non visti può discostarsi dal comportamento atteso. L’overfitting limita la generalizzazione del modello, ossia la sua applicabilità a esempi non utilizzati durante l’addestramento, riducendone l’utilità pratica.
 ## Rilevazione dell’overfitting tramite training e validation
+<img width="872" height="541" alt="image" src="https://github.com/user-attachments/assets/c4683e2e-1c49-4151-bd97-e90b0e48d646" />
+
 [07:30] Nella pratica si monitorano i valori della funzione di costo per epoca sia sul set di training sia su un set di validazione. Tipicamente il dataset è diviso in due sottoinsiemi: circa 70–80% per il training e 20–30% per la validazione, in modo da valutare il comportamento su dati non visti.
 [07:50] A ogni passo dell’addestramento si calcola la funzione di costo sul training set e, con gli stessi parametri correnti, si valuta la funzione di costo sul validation set. Un andamento tipico mostra che:
 - la curva di training decresce progressivamente;
@@ -128,6 +132,8 @@ dove $\mathrm{sgn}(w_j)$ è il segno di $w_j$; in $w_j=0$ si adotta un subgradie
 [00:00] L’obiettivo è trasformare l’ottimizzazione in un problema vincolato: si minimizza la funzione di costo imponendo che la soluzione appartenga alla palla unitaria in norma L2 oppure alla palla unitaria in norma L1. Il vincolo definisce l’insieme ammissibile delle soluzioni entro una regione geometrica specifica.
 [00:20] Per la palla unitaria L1, l’intersezione tra le curve di livello minime della funzione di costo e la regione vincolata tende a collocarsi in uno degli spigoli del “quadrato” (rombo) che rappresenta la palla L1. Questo induce sparsità, ossia molte componenti della soluzione diventano esattamente nulle. Per la palla unitaria L2, l’intersezione può trovarsi in qualunque punto del cerchio e non favorisce direttamente soluzioni sparse.
 [00:45] Il vincolo L1 promuove soluzioni con pochi coefficienti non nulli, mentre il vincolo L2 distribuisce la penalizzazione in modo uniforme su tutte le componenti, mantenendo la soluzione più “densa”. La differenza geometrica tra palla L1 (poliedrica, con spigoli) e palla L2 (sferica) guida la diversa natura delle soluzioni.
+<img width="951" height="514" alt="image" src="https://github.com/user-attachments/assets/6e0d7f8b-92f5-40ea-8f6a-3585e184e65f" />
+
 ## Dropout – Modifica strutturale della rete e media d’insieme
 [01:10] Il dropout è una tecnica pratica che introduce una forma di regolarizzazione modificando la rete neurale durante l’addestramento. Invece di intervenire sulla funzione di costo con penalizzazioni L1 o L2, si altera la struttura della rete in modo stocastico.
 [01:30] L’operazione consiste nel considerare tutti gli strati nascosti e annullare casualmente l’uscita di una percentuale di neuroni in ciascuno strato. Con probabilità $P=0{.}5$, si annulla l’uscita della metà dei neuroni dello strato. Si eseguono i passi di forward e backward e si aggiornano pesi e bias, ripetendo per tutte le iterazioni previste.
@@ -149,6 +155,8 @@ dove $n$ è il numero di ingressi e $\sigma_w$ la deviazione standard dei pesi i
 ```
 così $z$ tende a rimanere in una regione della funzione di attivazione non satura, attenuando il rischio di gradiente vaniscente.
 [05:20] Le librerie standard (TensorFlow, PyTorch, scikit-learn) offrono metodi di inizializzazione dei pesi che fissano la varianza iniziale in modo coerente con il numero di input, riducendo la probabilità di saturazione precoce.
+<img width="830" height="664" alt="image" src="https://github.com/user-attachments/assets/e97fa63b-b20c-4152-b89f-b80dd40072aa" />
+
 ## Iperparametri – Definizione e tuning operativo
 [05:45] Gli iperparametri sono parametri non ottimizzati durante l’addestramento e scelti a priori. Tra i principali: learning rate (spesso indicato con $\eta$ o $\gamma$), parametro di regolarizzazione $\lambda$, dimensione del mini-batch, numero di epoche e architettura della rete (numero di layer e neuroni per layer). Anche la scelta della funzione di attivazione influisce sensibilmente.
 [06:10] Non esiste una ricetta generale che garantisca valori ottimali; la selezione dipende dal problema e si effettua empiricamente. È utile una strategia progressiva per individuare combinazioni di iperparametri che garantiscano stabilità e buona convergenza della funzione di costo.
@@ -226,6 +234,8 @@ con $\gamma > 0$ step size o learning rate. L’aggiornamento diventa:
 ```math
 x_{t+1} \;=\; x_t - \gamma \,\nabla f(x_t).
 ```
+<img width="924" height="601" alt="image" src="https://github.com/user-attachments/assets/acac395f-7663-41fb-9b52-8f264e11fc07" />
+
 [12:55] La regola garantisce, per $\gamma$ sufficientemente piccolo e sotto ipotesi di regolarità, che $f(x_{t+1}) < f(x_t)$. La scelta di $\gamma$ determina velocità e stabilità: valori troppo grandi possono causare divergenza, valori troppo piccoli rendono la convergenza lenta.
 [13:15] La scelta della direzione del gradiente e della lunghezza del passo richiama metodi classici di ottimizzazione; si cerca un $\gamma$ che riduca $f$ lungo la direzione selezionata in modo efficace, bilanciando rapidità e monotonia della convergenza.
 [13:35] Rappresentazione qualitativa: si può immaginare la funzione in blu e gli spostamenti successivi come segmenti rossi che descrivono una sequenza di riduzioni della funzione di costo, indicando visivamente l’efficacia della discesa lungo il gradiente.
