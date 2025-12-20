@@ -1,3 +1,5 @@
+# Lab 10 | CNN for MNIST, Adversarial attacks
+
 # Capitolo 1: Introduzione al Laboratorio e Pre-elaborazione dei Dati
 ## Obiettivo e Strumenti del Laboratorio
 [00:00] Questo è l'ultimo laboratorio, durante il quale utilizzeremo un dataset già noto, quello del NIST, contenente cifre scritte a mano. L'obiettivo è costruire da zero una rete neurale per classificare queste cifre. A differenza dei laboratori precedenti, in cui abbiamo implementato tutto manualmente con JAX, oggi useremo alcune librerie specifiche sviluppate per JAX, che semplificano il processo.
@@ -37,6 +39,30 @@ Poiché si tratta di immagini in scala di grigi, avremo un solo canale.
 [05:53] Per migliorare la leggibilità, impostiamo il titolo di ogni subplot con l'etichetta corrispondente e disattiviamo gli assi per non mostrare i tick.
 [06:07] `sub` non è un comando valido, il comando corretto è `subplots`.
 [06:13] Questo è il risultato. Vediamo le immagini in scala di grigi e, sopra ciascuna, il titolo con l'etichetta corretta. Si può notare che la predizione per alcuni campioni potrebbe essere difficile. Ad esempio, il '6' nella prima riga ha una parte mancante, rendendolo non immediatamente riconoscibile.
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Load MNIST dataset
+data = np.genfromtxt("mnist_train_small.csv", delimiter=",")
+
+# Separate labels and images
+labels = data[:, 0]
+x_data = data[:, 1:].reshape((-1, 28, 28, 1)) / 255  # Normalize to [0,1]
+
+# Visualize first 30 samples
+fig, axs = plt.subplots(ncols=10, nrows=3, figsize=(20, 6))
+axs = axs.reshape((-1,))
+for i in range(30):
+    image_i = x_data[i]
+    axs[i].imshow(image_i[:, :, 0], cmap="gray")
+    axs[i].set_title(int(labels[i]))
+    axs[i].axis("off")
+plt.show()
+```
+
+![MNIST Dataset Samples](img/lab10_mnist_samples.png)
 ## Normalizzazione dei Dati e Codifica One-Hot
 [06:29] Un passaggio importante che è stato dimenticato è la normalizzazione dei dati. Se calcoliamo il valore massimo dei dati di input (`x\_data`), otteniamo 255, che corrisponde al valore massimo per un pixel a 8 bit.
 [06:40] Per normalizzare i dati, dividiamo ogni valore per 255. In questo modo, tutti i valori saranno compresi nell'intervallo [0, 1]. Questa operazione è analoga alla normalizzazione gaussiana che abbiamo usato in passato per altri dataset, come quelli sull'inquinamento delle auto o sui prezzi delle case.
@@ -51,6 +77,20 @@ Poiché si tratta di immagini in scala di grigi, avremo un solo canale.
 [08:43] È chiaro questo concetto?
 [08:46] Per verificare la correttezza, calcoliamo la somma per ogni riga della matrice `labels\_one\_hot`. Utilizziamo `numpy.sum` specificando `axis=1`, che indica di sommare lungo le colonne.
 [09:00] Ci aspettiamo che il valore minimo e massimo di queste somme sia 1. Il risultato conferma che la matrice è stata costruita correttamente. Ogni riga rappresenta un vettore di probabilità, e la somma dei suoi elementi deve essere 1.
+
+```python
+# One-hot encoding of labels
+labels_onehot = np.zeros((len(labels), 10))
+for i in range(10):
+    labels_onehot[labels == i, i] = 1
+
+# Verify correctness: sum should be 1 for each row
+row_sums = np.sum(labels_onehot, axis=1)
+print(f"Min sum: {row_sums.min()}, Max sum: {row_sums.max()}")
+# Output: Min sum: 1.0, Max sum: 1.0
+```
+
+![One-Hot Encoding](img/lab10_onehot_encoding.png)
 # Capitolo 2: Architettura della Rete Neurale Convoluzionale (CNN)
 ## Definizione della Struttura della Rete
 [09:16] Ora introduciamo la parte nuova: l'architettura di una rete neurale convoluzionale. Nei laboratori precedenti, scrivevamo la funzione della rete da zero, una funzione che prendeva in input i parametri, i dati `x` e restituiva una predizione.
@@ -73,6 +113,33 @@ Poiché si tratta di immagini in scala di grigi, avremo un solo canale.
 [12:51] Quando il numero di feature è sufficientemente alto e l'immagine è abbastanza piccola, i dati vengono "appiattiti" e dati in input a una rete neurale fully connected, come quelle usate nei laboratori precedenti. Questa è una rappresentazione della convoluzione: il kernel si sposta sull'immagine, producendo un output ad ogni passo.
 [13:07] L'idea è che la rete impari i parametri del kernel (la parte blu nell'animazione). Dopo la convoluzione, si applica il pooling. I due tipi più comuni sono il **max pooling** e l'**average pooling**. In entrambi i casi, una finestra si sposta sull'immagine e, per ogni posizione, si calcola il massimo o la media dei valori al suo interno.
 [13:24] Questo processo riduce le dimensioni della matrice di output. Ad esempio, un max pooling con una finestra di dimensione 2x2 dimezzerà le dimensioni spaziali della matrice.
+
+```python
+import flax.linen as nn
+
+class CNN(nn.Module):
+    @nn.compact
+    def __call__(self, x):
+        # First convolutional block
+        x = nn.Conv(features=32, kernel_size=(3, 3))(x)
+        x = nn.relu(x)
+        x = nn.avg_pool(x, window_shape=(2, 2), strides=(2, 2))
+        
+        # Second convolutional block
+        x = nn.Conv(features=64, kernel_size=(3, 3))(x)
+        x = nn.relu(x)
+        x = nn.avg_pool(x, window_shape=(2, 2), strides=(2, 2))
+        
+        # Flatten and dense layers
+        x = x.reshape((x.shape[0], -1))  # Flatten
+        x = nn.Dense(features=256)(x)
+        x = nn.relu(x)
+        x = nn.Dense(features=10)(x)  # Output layer (10 classes)
+        return x
+```
+
+![CNN Architecture](img/lab10_cnn_architecture.png)
+
 ## Struttura Completa della Rete
 [13:33] Una volta ridotta a sufficienza l'informazione, i dati vengono dati in input a una rete neurale fully connected, composta da strati lineari (o densi) seguiti da attivazioni non lineari.
 [13:43] Tornando al codice, la nostra architettura è la seguente:
@@ -134,6 +201,17 @@ Poiché si tratta di immagini in scala di grigi, avremo un solo canale.
 - **One-Hot Encoding**: Una tecnica per rappresentare dati categorici come vettori binari. In un vettore *one-hot*, solo un elemento è `1` (indicando la classe attiva), mentre tutti gli altri sono `0`.
 [02:26] In particolare, si vogliono calcolare due metriche: la *loss*, che in questo caso è la *cross-entropy*, e l'*accuracy* (accuratezza), un valore compreso tra 0 e 1.
 [02:34] La *loss* viene calcolata come la media (`gmp.mean`) della *softmax cross-entropy* su tutti i campioni del batch. La funzione `optax.softmax\_cross\_entropy` richiede due argomenti: i `logits` e le etichette `labels\_one\_hot`. I `logits` possono essere considerati come le predizioni della rete neurale (precedentemente indicate anche come `Y\_hat`), mentre `labels\_one\_hot` sono le etichette corrette (`Y`).
+
+```python
+import optax
+
+def compute_metrics(logits, labels):
+    """Compute loss and accuracy from logits and labels."""
+    loss = optax.softmax_cross_entropy(logits, labels).mean()
+    accuracy = jnp.mean(jnp.argmax(logits, -1) == jnp.argmax(labels, -1))
+    return {"loss": loss, "accuracy": accuracy}
+```
+
 [02:50] Per calcolare l'*accuracy*, è necessario prima determinare la classe predetta dalla rete neurale. Questa si ottiene trovando l'indice del valore massimo nei `logits` per ogni campione. L'operazione viene eseguita con `gmp.argmax(logits, axis=-1)`.
 - **`gmp.argmax`**: Una funzione che restituisce l'indice del valore massimo lungo un asse specificato di un array.
 [02:56] L'operazione `argmax` trova l'indice in cui si trova il valore massimo per ogni riga del tensore dei `logits`. L'argomento `axis=-1` specifica che l'operazione deve essere eseguita lungo l'ultimo asse, ovvero per ogni campione (riga) individualmente. Se si volesse il valore massimo, si userebbe `max`; poiché si desidera l'indice, si usa `argmax`.
@@ -146,6 +224,28 @@ Poiché si tratta di immagini in scala di grigi, avremo un solo canale.
 ## Funzione `loss\_fn`
 [04:04] La funzione di perdita (`loss\_fn`) è molto simile a quella vista in precedenza. Utilizza `optax.softmax\_cross\_entropy`, a cui vengono passati i `logits` e le etichette `y`. Poiché questa operazione viene eseguita per ogni campione (riga per riga), il risultato finale è la media (`gmp.mean`) delle perdite individuali.
 [04:13] Una differenza rispetto alle implementazioni precedenti è che questa funzione non restituisce solo il valore scalare della *loss*, ma anche i `logits`. Questo sarà utile in seguito. È importante ricordare che si vuole calcolare il gradiente di questa funzione, e il fatto che restituisca due output richiede l'uso di un argomento aggiuntivo in JAX per gestire correttamente la derivazione.
+
+```python
+import jax
+import jax.numpy as jnp
+from flax.training import train_state
+
+def loss_fn(params, x, y, rng_key):
+    """Loss function with auxiliary outputs (logits)."""
+    logits = state.apply_fn({"params": params}, x, rngs={"dropout": rng_key})
+    loss = optax.softmax_cross_entropy(logits, y).mean()
+    return loss, logits
+
+@jax.jit
+def train_step(state, x, y, rng_key):
+    """Single training step."""
+    grad_fn = jax.value_and_grad(loss_fn, has_aux=True)
+    (loss, logits), grads = grad_fn(state.params, x, y, rng_key)
+    state = state.apply_gradients(grads=grads)
+    metrics = compute_metrics(logits, y)
+    return state, metrics
+```
+
 ## Funzione `train\_step`
 [04:28] La funzione `train\_step` ha il compito di aggiornare i parametri della rete neurale dato lo stato corrente del modello (`state`), un batch di dati di input (`x\_batch`) e le relative etichette (`y\_batch`). In precedenza, l'aggiornamento consisteva nel calcolare il gradiente della funzione di perdita e sottrarlo dai parametri, moltiplicato per il *learning rate*.
 [04:39] Con JAX e Optax, questo processo viene gestito in modo più strutturato. Per prima cosa, si definisce la funzione per il calcolo del gradiente. Invece di usare `jax.grad`, si utilizza `jax.value\_and\_grad`.
@@ -187,6 +287,33 @@ Poiché si tratta di immagini in scala di grigi, avremo un solo canale.
 `x\_batch = train\_dataset['image'][batch\_indices]`
 `y\_batch = train\_dataset['label'][batch\_indices]`
 [08:33] Per monitorare l'andamento, le metriche calcolate per ogni batch vengono salvate. Si inizializza una lista vuota, `batch\_metrics`, e ad ogni passo vi si aggiungono le metriche restituite da `train\_step`.
+
+```python
+def train_epoch(state, x_train, y_train, batch_size, rng):
+    """Train for a single epoch."""
+    train_size = len(x_train)
+    steps_per_epoch = train_size // batch_size
+    
+    perms = jax.random.permutation(rng, train_size)
+    perms = perms[:steps_per_epoch * batch_size]
+    perms = perms.reshape((steps_per_epoch, batch_size))
+    
+    epoch_metrics = []
+    for perm in perms:
+        batch_x = x_train[perm, ...]
+        batch_y = y_train[perm, ...]
+        rng, step_rng = jax.random.split(rng)
+        state, metrics = train_step(state, batch_x, batch_y, step_rng)
+        epoch_metrics.append(metrics)
+    
+    # Average metrics over batches
+    epoch_metrics = {
+        k: jnp.mean(jnp.array([m[k] for m in epoch_metrics]))
+        for k in epoch_metrics[0]
+    }
+    return state, epoch_metrics, rng
+```
+
 # Capitolo 4: Ciclo di Addestramento e Analisi dei Risultati
 ## Correzione del Campionamento dei Dati
 [00:01] Per garantire un corretto addestramento, è necessario tenere conto della permutazione dei dati. Attualmente, l'intero dataset viene passato alla funzione senza un rimescolamento. È quindi fondamentale applicare la permutazione ai dati di input `x\_data` e alle etichette `y\_data`.
@@ -226,6 +353,41 @@ Poiché si tratta di immagini in scala di grigi, avremo un solo canale.
 [02:36] Attualmente, i dati sono array NumPy. Per sfruttare l'accelerazione hardware (GPU), è necessario convertirli in array JAX. JAX, a differenza di NumPy che opera solo su CPU, è in grado di eseguire calcoli su GPU.
 [02:43] La conversione in array JAX sposta automaticamente i dati sulla GPU. Durante questo processo, si specifica esplicitamente che il tipo di dato deve essere in virgola mobile (`floating point`), per assicurarsi che non vengano trattati come interi.
 [02:52] Vengono così creati due dataset: `train\_ds` (training) e `val\_ds` (validazione), entrambi pronti per essere utilizzati con JAX.
+
+```python
+# Data splitting and initialization
+n_samples = len(x_data)
+permutation = jax.random.permutation(rng_key, n_samples)
+
+train_ratio = 0.8
+n_train = int(train_ratio * n_samples)
+train_idx = permutation[:n_train]
+val_idx = permutation[n_train:]
+
+# Convert to JAX arrays
+x_train = jnp.array(x_data[train_idx], dtype=jnp.float32)
+y_train = jnp.array(labels_onehot[train_idx], dtype=jnp.float32)
+x_val = jnp.array(x_data[val_idx], dtype=jnp.float32)
+y_val = jnp.array(labels_onehot[val_idx], dtype=jnp.float32)
+
+# Initialize model and optimizer
+cnn = CNN()
+params = cnn.init(rng_key, jnp.ones((1, 28, 28, 1)))["params"]
+
+optimizer = optax.adam(learning_rate=0.001)
+state = train_state.TrainState.create(
+    apply_fn=cnn.apply,
+    params=params,
+    tx=optimizer
+)
+
+# Training parameters
+num_epochs = 10
+batch_size = 64
+```
+
+![Training Curves](img/lab10_training_curves.png)
+
 ## Inizializzazione delle Variabili e degli Iperparametri
 [02:56] L'ultima fase è l'addestramento vero e proprio. Si inizializzano delle liste vuote per salvare le metriche di training e validazione ad ogni epoca.
 [02:59] Vengono definiti alcuni iperparametri fondamentali per l'addestramento:
@@ -290,6 +452,30 @@ Poiché si tratta di immagini in scala di grigi, avremo un solo canale.
 [01:00] Per questa valutazione, si utilizzano le funzioni `compute\_metrics` e `eval\_model` definite in precedenza. A queste funzioni vengono passati lo stato del modello (che contiene i parametri addestrati) e l'iteratore del dataset di test.
 [01:06] Le funzioni restituiscono la perdita di test (test loss) e l'accuratezza di test (test accuracy).
 [01:08] È possibile quindi stampare a schermo la perdita e l'accuratezza ottenute sul set di test, esprimendo quest'ultima in formato percentuale.
+
+```python
+# Load test data
+test_data = np.genfromtxt("mnist_test.csv", delimiter=",")
+test_labels = test_data[:, 0]
+x_test = test_data[:, 1:].reshape((-1, 28, 28, 1)) / 255
+
+# One-hot encoding for test labels
+test_labels_onehot = np.zeros((len(test_labels), 10))
+for i in range(10):
+    test_labels_onehot[test_labels == i, i] = 1
+
+# Convert to JAX arrays
+x_test = jnp.array(x_test, dtype=jnp.float32)
+y_test = jnp.array(test_labels_onehot, dtype=jnp.float32)
+
+# Evaluate on test set
+logits = state.apply_fn({"params": state.params}, x_test)
+test_metrics = compute_metrics(logits, y_test)
+print(f"Test accuracy: {test_metrics['accuracy'] * 100:.2f}%")
+```
+
+![Predictions Grid](img/lab10_predictions_grid.png)
+
 ## Analisi dei Risultati del Test
 [01:13] L'accuratezza ottenuta sul set di test risulta leggermente inferiore a quella registrata sul set di validazione. Ad esempio, se l'ultima accuratezza di validazione era del 98.05%, quella di test potrebbe essere del 98.03%.
 [01:21] Questo valore è comunque molto vicino a quello di validazione. Generalmente, ci si aspetta che l'accuratezza sul test sia leggermente inferiore a quella sulla validazione, poiché gli iperparametri sono stati ottimizzati specificamente per minimizzare la perdita sul set di validazione.
@@ -300,6 +486,22 @@ Poiché si tratta di immagini in scala di grigi, avremo un solo canale.
 [01:48] Prendendo come esempio l'immagine di un "5", lo script visualizza un istogramma che rappresenta la probabilità che la rete neurale assegna a ciascuna cifra da 0 a 9.
 [01:58] Per l'immagine del "5", la rete è quasi certa che si tratti di un "5". Tuttavia, l'istogramma potrebbe mostrare una probabilità molto piccola, ma non nulla, associata alla cifra "6". Questo accade perché la forma del "5" in questione potrebbe avere delle lievi somiglianze con un "6".
 [02:06] Questa modalità di visualizzazione permette di comprendere come il modello distribuisce le probabilità tra le diverse classi e conferma che l'output della rete è di natura probabilistica.
+
+```python
+# Visualize softmax probabilities for 6 samples
+fig, axs = plt.subplots(ncols=3, nrows=2, figsize=(12, 8))
+for i in range(6):
+    probs = jax.nn.softmax(logits[i])
+    axs.flat[i].bar(range(10), probs)
+    axs.flat[i].set_title(f"True: {int(test_labels[i])}, Pred: {jnp.argmax(logits[i])}")
+    axs.flat[i].set_xlabel("Digit")
+    axs.flat[i].set_ylabel("Probability")
+plt.tight_layout()
+plt.show()
+```
+
+![Softmax Probabilities](img/lab10_softmax_probabilities.png)
+
 ## Introduzione agli Attacchi Avversari
 [02:12] La visualizzazione delle probabilità di output introduce il concetto successivo: gli attacchi avversari (adversarial attacks). L'obiettivo di un attacco avversario è "ingannare" una rete neurale.
 [02:18] In pratica, si vuole prendere un'immagine di input, ad esempio un'immagine che rappresenta la cifra "2", e modificarla in modo quasi impercettibile per l'occhio umano.
@@ -337,6 +539,44 @@ x_{\text{avversario}} = x_{\text{originale}} + \epsilon \cdot \text{sign}(\text{
 ```
 [04:16] Infine, per assicurarsi che l'immagine risultante sia ancora valida (cioè con valori di pixel compresi tra 0 e 1), si applica un'operazione di "clipping".
 [04:22] Si utilizza la funzione `jnp.clip` per forzare tutti i valori dei pixel a rimanere nell'intervallo `$[0, 1]$`. Se un valore è maggiore di 1, viene impostato a 1; se è minore di 0, viene impostato a 0.
+
+```python
+def fgsm_attack(params, x, y, epsilon):
+    """Fast Gradient Sign Method adversarial attack."""
+    # Define gradient function w.r.t. input x
+    def loss_wrapper(x_input):
+        logits = state.apply_fn({"params": params}, x_input)
+        loss = optax.softmax_cross_entropy(logits, y).mean()
+        return loss, logits
+    
+    grad_fn = jax.grad(loss_wrapper, has_aux=True)
+    grads, _ = grad_fn(x)
+    
+    # Create adversarial example
+    x_adv = x + epsilon * jnp.sign(grads)
+    x_adv = jnp.clip(x_adv, 0, 1)  # Ensure valid pixel values
+    return x_adv
+
+# Apply FGSM attack
+epsilon = 0.1
+x_original = x_test[0:1]
+y_original = y_test[0:1]
+
+# Original prediction
+logits_orig = state.apply_fn({"params": state.params}, x_original)
+pred_orig = jnp.argmax(logits_orig, -1)
+
+# Adversarial prediction
+x_adv = fgsm_attack(state.params, x_original, y_original, epsilon)
+logits_adv = state.apply_fn({"params": state.params}, x_adv)
+pred_adv = jnp.argmax(logits_adv, -1)
+
+print(f"Original prediction: {pred_orig[0]}")
+print(f"Adversarial prediction: {pred_adv[0]}")
+```
+
+![FGSM Adversarial Attack](img/lab10_adversarial_attack.png)
+
 ## Esecuzione e Risultati dell'Attacco
 [04:31] L'efficacia dell'attacco dipende dall'immagine scelta e dal valore di `$\epsilon$`. Per alcune immagini è più facile ingannare la rete, per altre è più difficile.
 [04:39] Per dimostrare l'attacco, sono stati selezionati alcuni esempi dal dataset in cui l'effetto è particolarmente evidente, con valori di `$\epsilon$` già sintonizzati.
@@ -371,8 +611,56 @@ x_{\text{avversario}} = x_{\text{originale}} + \epsilon \cdot \text{sign}(\text{
 [08:56] Alla funzione `apply` devono essere passati i parametri. Tuttavia, non si passano tutti i parametri del modello, ma solo quelli relativi al primo strato convoluzionale.
 [09:02] I parametri del modello sono strutturati come un dizionario (o un albero di dati), dove ogni chiave corrisponde a uno strato della rete. Questa struttura gerarchica è utile per gestire modelli complessi.
 [09:10] Ogni strato della rete è indicizzato da una stringa (il suo nome), e al suo interno si trova la struttura dei parametri specifici di quello strato.
+
+```python
+# Visualize learned convolutional filters
+conv_params = state.params["Conv_0"]["kernel"]  # Shape: (3, 3, 1, 32)
+
+fig, axs = plt.subplots(ncols=8, nrows=4, figsize=(16, 8))
+for i in range(32):
+    ax = axs.flat[i]
+    # Extract i-th filter (3x3x1)
+    filter_i = conv_params[:, :, 0, i]
+    ax.imshow(filter_i, cmap="viridis")
+    ax.set_title(f"Kernel {i}")
+    ax.axis("off")
+plt.tight_layout()
+plt.show()
+```
+
+![Convolutional Filters](img/lab10_conv_filters.png)
+
 [09:18] Pertanto, si estraggono e si passano solo i parametri del primo strato convoluzionale. La funzione restituirà l'output di questo strato.
 [09:23] Per eseguire la visualizzazione, si seleziona un'immagine dal dataset di test (ad esempio, la prima, con indice 0).
+
+```python
+def get_first_layer_output(params, x):
+    """Extract output from the first convolutional layer."""
+    # Recreate first layer
+    conv1 = nn.Conv(features=32, kernel_size=(3, 3))
+    
+    # Apply only first layer
+    first_layer_params = {"params": {"Conv_0": params["Conv_0"]}}
+    output = conv1.apply(first_layer_params, x)
+    return output
+
+# Visualize feature maps from first layer
+sample_image = x_test[0:1]  # Select one image (shape: 1, 28, 28, 1)
+feature_maps = get_first_layer_output(state.params, sample_image)
+
+# Plot all 32 feature maps
+fig, axs = plt.subplots(ncols=8, nrows=4, figsize=(16, 8))
+for i in range(32):
+    ax = axs.flat[i]
+    ax.imshow(feature_maps[0, :, :, i], cmap="gray")
+    ax.set_title(f"Filter {i}")
+    ax.axis("off")
+plt.tight_layout()
+plt.show()
+```
+
+![Feature Maps](img/lab10_feature_maps.png)
+
 [09:28] Si chiama la funzione `get\_first\_layer\_output` passando i parametri del modello e l'immagine selezionata.
 [09:35] L'output di questo strato avrà una dimensione corrispondente a 32 "immagini" o canali, poiché ogni canale rappresenta una diversa feature estratta dall'immagine originale.
 [09:42] Ogni canale è il risultato dell'applicazione di un diverso kernel convoluzionale all'immagine di input. Si può quindi iterare su questi 32 canali e visualizzare ciascuno di essi come un'immagine in scala di grigi.

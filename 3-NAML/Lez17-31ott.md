@@ -714,6 +714,10 @@ f = lambda x, y: x**2 + y**2  # semplice paraboloide
 # d2f/dxdy = 0
 # Hessiano H = [[d2f/dx2, d2f/dxdy], [d2f/dydx, d2f/dy2]]
 
+![Gradienti con JAX](img/lab04_jax_gradient.png)
+
+![Gestione del gradiente nel valore assoluto](img/lab04_jax_abs_gradient.png)
+
 def eval_hessian(f):
     return jax.jit(jax.jacfwd(jax.jacrev(f, argnums=(0, 1)), argnums=(0, 1)))
 

@@ -1,3 +1,5 @@
+# LAB09 | Convolutions
+
 # Chapter 1: Introduction to Convolutions and the Fourier Transform
 ## [00:00] Lab Overview: Convolutions and Neural Networks
 In this lab and the next, we will tackle the topic of **convolutions**. Today, we will focus on the basics: how they are calculated and, most importantly, what their practical meaning is.
@@ -46,6 +48,35 @@ Let's consider a signal composed of the sum of two sinusoids with different freq
 We define the signal and visualize it. By observing the plot, it is very difficult to distinguish the two component frequencies with the naked eye.
 ### [06:54] Applying the FFT
 We apply the FFT to our signal `f` to get the result `F`. `F` is a vector of the same size as `f` (500 elements), but its values are **complex**.
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Create signal: sum of two sinusoids
+dt = 1e-2  # [s] - sampling interval
+t = np.arange(0, 5, dt)  # 5 seconds
+f = np.sin(5 * 2 * np.pi * t) + 0.5 * np.sin(13.5 * 2 * np.pi * t)
+
+# Compute FFT
+F = np.fft.fft(f)
+freq = np.fft.fftfreq(len(t), d=dt)
+
+# Reorder frequencies (shift zero frequency to center)
+F_shift = np.fft.fftshift(F)
+freq_shift = np.fft.fftshift(freq)
+
+# Reconstruct signal with IFFT
+f_reconstructed = np.fft.ifft(F)
+f_reconstructed_real = np.real(f_reconstructed)
+# Note: imaginary part is ~0 (numerical error ~1e-15)
+```
+
+![Time Domain Signal](img/lab09_signal_time_domain.png)
+
+![Frequency Domain FFT](img/lab09_signal_frequency_domain.png)
+
+![Signal Reconstruction](img/lab09_signal_reconstruction.png)
 This happens because the DFT performs a **change of basis** for the signal, moving from the spatial/temporal domain to the **frequency domain**. Unlike PCA, which performs a rotation, the FFT decomposes the signal into a basis of sines and cosines at different frequencies. Each element of the vector `F` represents the coefficient (the importance) of a specific frequency in the composition of the original signal.
 ### [07:44] Interpreting the FFT Frequencies
 The vector `F` contains the coefficients, but we don't know which frequencies they correspond to. To find out, we use the helper function `fft.fftfreq()`, to which we pass the length of the signal (500) and the sampling interval (`dt`).
@@ -78,6 +109,30 @@ If we add a frequency component along the y-direction as well, we will see two "
 What happens if the signal is defined by `sin(10 * sqrt(x^2 + y^2))`? Since `x^2 + y^2` describes a circle, we expect to see a **circle** in the frequency domain.
 Indeed, the original signal appears as concentric waves, and its frequency spectrum is a bright ring, representing all the radially distributed frequencies.
 The `fftfreq` functions are also used here to determine the axis limits in the frequency spectrum plot by calculating the maximum frequencies along the x and y directions.
+
+```python
+# 2D FFT Examples
+
+# Example 1: Horizontal stripes
+x = np.arange(-2 * np.pi, 2 * np.pi, 0.1)
+y = np.arange(-2 * np.pi, 2 * np.pi, 0.1)
+xx, yy = np.meshgrid(x, y)
+z = np.sin(2*np.pi*1*xx)  # Frequency only along x (vertical stripes)
+
+# Compute 2D FFT
+Z = np.fft.fft2(z)
+Z_shift = np.fft.fftshift(Z)
+z_reconstructed = np.fft.ifft2(Z)
+
+# Example 2: Radial pattern
+z_radial = np.sin(10 * np.sqrt(xx**2 + yy**2))
+Z_radial = np.fft.fft2(z_radial)
+Z_radial_shift = np.fft.fftshift(Z_radial)
+```
+
+![2D FFT - Horizontal Stripes](img/lab09_2d_fft_horizontal.png)
+
+![2D FFT - Radial Pattern](img/lab09_2d_fft_radial.png)
 # Chapter 2: Implementing 1D Convolutions
 ## [14:10] Practical Implementation of 1D Convolutions
 We now move to the second notebook, dedicated to the practical implementation of 1D convolutions.
@@ -117,6 +172,49 @@ To implement this concept, we first need to define the correct dimensions for th
 1.  **Kernel Padding**: The length of the signal resulting from the convolution is `length(signal) + length(kernel) - 1`. We create a new vector for the kernel (which we call `K\_padded`) of this dimension, initially filled with zeros.
 2.  **Inserting the Kernel**: We copy the values of the original kernel to the beginning of `K\_padded`. This `K\_padded` vector will form the first column of our Toeplitz matrix.
 3.  **Creating the Toeplitz Matrix**: Using a specific function from the `scipy.linalg` library (`toeplitz`), we can generate the entire matrix `K` starting from its first column (`K\_padded`) and its first row (which will be the first element of `K\_padded` followed by zeros).
+
+```python
+import numpy as np
+from scipy.linalg import toeplitz, circulant
+
+# Example of Toeplitz and Circulant matrices
+T = toeplitz([1, 2, 3], [1, 2, 5, 6])
+# Result:
+# [[1, 2, 5, 6],
+#  [2, 1, 2, 5],
+#  [3, 2, 1, 2]]
+
+C = circulant([1, 5, 3])
+# Result:
+# [[1, 3, 5],
+#  [5, 1, 3],
+#  [3, 5, 1]]
+
+# Convolution using Toeplitz matrix
+def convolve_toeplitz(signal_vec, kernel):
+    n_signal = len(signal_vec)
+    n_kernel = len(kernel)
+    output_len = n_signal + n_kernel - 1
+    
+    # Pad kernel
+    k_padded = np.zeros(output_len)
+    k_padded[:n_kernel] = kernel
+    
+    # Create Toeplitz matrix
+    first_row = np.zeros(n_signal)
+    first_row[0] = k_padded[0]
+    K = toeplitz(k_padded, first_row)
+    
+    # Convolve
+    return K @ signal_vec
+
+# Example with square wave
+v = np.zeros(100)
+v[50:75] = 1
+
+k_boxcar = np.ones(10) / 10
+v_conv = convolve_toeplitz(v, k_boxcar)
+```
 4.  **Calculating the Convolution**: Finally, we perform the matrix-vector product between `K` and the signal `v` to get the convolution result.
 ## [02:48] Analysis of Results and Kernel Types
 By applying this technique to a step function signal, we can observe the effect of different kernels.
@@ -125,6 +223,27 @@ By applying this technique to a step function signal, we can observe the effect 
     *   *Note*: The `gaussian` function has been moved to the `scipy.signal.windows` module.
 *   **Kernel for Derivative Calculation**: A kernel like `[1, -1]` (or its variants) is particularly interesting. Mathematically, it corresponds to a first-order finite difference stencil. Applying this kernel to a signal is equivalent to calculating its **first derivative**.
     *   On the step signal, the result is zero in the constant parts and a peak (an impulse) exactly at the point where the jump occurs, which represents the derivative of the step function.
+
+```python
+from scipy import signal
+
+# Create square wave signal
+v = np.zeros(100)
+v[50:75] = 1
+
+# Define different kernels
+k_boxcar = np.ones(10) / 10
+k_gaussian = signal.windows.gaussian(20, std=3)
+k_gaussian = k_gaussian / np.sum(k_gaussian)
+k_derivative = np.array([-1, 1])
+
+# Apply convolutions
+v_conv_boxcar = convolve_toeplitz(v, k_boxcar)
+v_conv_gaussian = convolve_toeplitz(v, k_gaussian)
+v_conv_derivative = convolve_toeplitz(v, k_derivative)
+```
+
+![1D Convolution with Different Kernels](img/lab09_1d_convolution_kernels.png)
 # Chapter 4: Convolution via Direct Definition
 ## [05:21] Implementation with Nested `for` Loops
 Convolution can also be implemented by following its direct mathematical definition, which involves a summation. This translates into a nested `for` loop in code.
@@ -144,6 +263,40 @@ Nested `for` loops in Python are computationally inefficient. We can optimize th
 3.  **Element-wise Product**: The element-wise product is performed between the flipped kernel and the signal subsection.
 4.  **Sum**: All elements of the resulting vector are summed to get the final value for `output[i]`.
 This operation is equivalent to a dot product (`np.dot`) between the two vectors. Although there is still an outer `for` loop, eliminating the inner loop makes the code much faster.
+
+```python
+# Direct convolution implementation (nested loops)
+def convolve_direct(signal_vec, kernel):
+    n_signal = len(signal_vec)
+    n_kernel = len(kernel)
+    output_len = n_signal + n_kernel - 1
+    
+    result = np.zeros(output_len)
+    
+    for i in range(output_len):
+        for j in range(n_kernel):
+            if 0 <= i - j < n_signal:
+                result[i] += kernel[j] * signal_vec[i - j]
+    
+    return result
+
+# Vectorized version using np.flip()
+def convolve_vectorized(signal_vec, kernel):
+    n_signal = len(signal_vec)
+    n_kernel = len(kernel)
+    output_len = n_signal + n_kernel - 1
+    
+    result = np.zeros(output_len)
+    kernel_flipped = np.flip(kernel)
+    
+    # Pad signal for easier extraction
+    signal_padded = np.pad(signal_vec, (n_kernel-1, n_kernel-1), mode='constant')
+    
+    for i in range(output_len):
+        result[i] = np.dot(kernel_flipped, signal_padded[i:i+n_kernel])
+    
+    return result
+```
 # Chapter 5: Convolution in the Frequency Domain
 ## [09:54] The Convolution Theorem
 The **Convolution Theorem** states that the convolution of two signals in the time domain is equivalent to the **element-wise product** of their Fourier transforms in the frequency domain.
@@ -164,12 +317,58 @@ Visualizing the Fourier transforms of the signal, the kernel, and their product 
 *   **Signal and Kernel Spectrum**: Shows which frequencies compose the signal and the kernel. For example, a step signal and a moving average kernel are both composed of a strong low-frequency component (the constant part) and many high-frequency components to create the sharp edges.
 *   **Product Spectrum**: The product of the spectra shows how the kernel acts as a **filter**. For example, a blurring kernel (like a moving average or Gaussian) is a low-pass filter: its spectrum has high values for low frequencies and low values for high frequencies. Multiplying it by the signal's spectrum attenuates the high frequencies (responsible for details and sharp edges), resulting in a more blurred image.
 This approach is very useful for designing and understanding the effect of filters.
+
+```python
+# FFT-based convolution
+def convolve_fft(signal_vec, kernel):
+    # Compute FFTs with same length
+    V_fft = np.fft.fft(signal_vec)
+    K_fft = np.fft.fft(kernel, n=len(signal_vec))
+    
+    # Element-wise product in frequency domain
+    VK_fft = V_fft * K_fft
+    
+    # Inverse FFT and take real part
+    result = np.real(np.fft.ifft(VK_fft))
+    
+    return result
+
+# Example: analyze spectrum
+v = np.zeros(100)
+v[50:75] = 1
+k_boxcar = np.ones(10) / 10
+
+V_fft = np.fft.fft(v)
+K_fft = np.fft.fft(k_boxcar, n=len(v))
+VK_fft = V_fft * K_fft
+v_conv_fft = np.real(np.fft.ifft(VK_fft))
+```
+
+![FFT Convolution Spectrum Analysis](img/lab09_fft_convolution_spectrum.png)
 ## [17:00] Using Library Functions (`scipy.signal.convolve`)
 Scientific libraries like SciPy offer optimized functions such as `signal.convolve`. This function requires the signal, the kernel, and a `mode` parameter that defines the type of padding to use:
 *   `mode='full'`: Returns the complete convolution, equivalent to the Toeplitz matrix approach.
 *   `mode='valid'`: Returns only the parts where the signal and kernel completely overlap.
 *   `mode='same'`: Returns an output of the same size as the input signal, centering the result.
 Changing the `mode` does not alter the central content of the resulting signal but modifies its length by trimming or keeping the parts at the edges.
+
+```python
+from scipy import signal
+
+# Using scipy.signal.convolve with different modes
+v = np.zeros(100)
+v[50:75] = 1
+k_boxcar = np.ones(10) / 10
+
+v_conv_full = signal.convolve(v, k_boxcar, mode='full')   # length = 109
+v_conv_valid = signal.convolve(v, k_boxcar, mode='valid') # length = 91
+v_conv_same = signal.convolve(v, k_boxcar, mode='same')   # length = 100
+
+print(f"Original length: {len(v)}")
+print(f"Full mode: {len(v_conv_full)}")
+print(f"Valid mode: {len(v_conv_valid)}")
+print(f"Same mode: {len(v_conv_same)}")
+```
 # Chapter 6: 2D Convolution for Image Processing
 ## [18:45] Preparing the Image and 2D Kernels
 The concept of convolution extends naturally to two dimensions for image processing. The image is our 2D signal, and the kernel is a small matrix.
@@ -190,6 +389,34 @@ As in the 1D case, 2D convolution can be implemented in two main ways.
     *   The 2D spectra are multiplied element-wise.
     *   The inverse IFFT2 of the result is calculated.
 Analyzing the 2D spectrum of the kernel is particularly powerful for understanding how a filter acts on spatial frequencies (e.g., horizontal, vertical, or diagonal details).
+
+```python
+from matplotlib.image import imread
+from scipy import signal
+
+# Load image and convert to grayscale
+v_img = np.mean(imread("NYlibrary.png"), axis=2)
+
+# Define 2D kernels
+kernel_blur = np.array([[1, 2, 1], [2, 4, 2], [1, 2, 1]])
+kernel_blur = kernel_blur / np.sum(kernel_blur)
+
+kernel_edge_laplacian = np.array([[-1, -1, -1], [-1, 8, -1], [-1, -1, -1]])
+kernel_sharpen = np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]])
+kernel_sobel_horizontal = np.array([[1, 2, 1], [0, 0, 0], [-1, -2, -1]])
+kernel_sobel_vertical = np.array([[1, 0, -1], [2, 0, -2], [1, 0, -1]])
+
+# Apply 2D convolutions
+v_blur = signal.convolve(v_img, kernel_blur, mode='same')
+v_edge = signal.convolve(v_img, kernel_edge_laplacian, mode='same')
+v_sharpen = signal.convolve(v_img, kernel_sharpen, mode='same')
+v_sobel_h = signal.convolve(v_img, kernel_sobel_horizontal, mode='same')
+v_sobel_v = signal.convolve(v_img, kernel_sobel_vertical, mode='same')
+```
+
+![2D Convolution - Image Filters](img/lab09_2d_convolution_filters.png)
+
+![Kernel Frequency Analysis](img/lab09_kernel_frequency_analysis.png)
 # Chapter 7: Manual 2D Convolution in Python
 ## [00:00] Introduction to the Manual Solution
 Let's start by analyzing a possible solution for 2D convolution, beginning with a manual one, written from scratch. For simplicity, we define the dimensions of the image `B` and the kernel `K` as NumPy arrays. This allows us to perform arithmetic operations (addition, subtraction) on the dimensions very easily, applying them to both height and width simultaneously.
@@ -242,6 +469,43 @@ flipped\_k = np.flip(k)
 v\_conv1[i, j] = np.sum(flipped\_k * sub\_image)
 ```
 This approach is much more concise and performant, as NumPy's vector operations are implemented in C and optimized. The final result is a blurred image, where the kernel has acted as an averaging filter.
+
+```python
+# Manual 2D convolution implementation
+
+# Method 1: Four nested loops (slow but educational)
+def convolve2d_manual(image, kernel):
+    s1 = np.array(image.shape)
+    s2 = np.array(kernel.shape)
+    output_shape = s1 - s2 + 1
+    
+    result = np.zeros(output_shape)
+    
+    for i in range(output_shape[0]):
+        for j in range(output_shape[1]):
+            for ki in range(s2[0]):
+                for kj in range(s2[1]):
+                    # Flip kernel with negative indexing
+                    result[i, j] += kernel[-ki-1, -kj-1] * image[i+ki, j+kj]
+    
+    return result
+
+# Method 2: Optimized with np.flip() (only 2 loops)
+def convolve2d_optimized(image, kernel):
+    s1 = np.array(image.shape)
+    s2 = np.array(kernel.shape)
+    output_shape = s1 - s2 + 1
+    
+    result = np.zeros(output_shape)
+    flipped_k = np.flip(kernel)
+    
+    for i in range(output_shape[0]):
+        for j in range(output_shape[1]):
+            sub_image = image[i:i+s2[0], j:j+s2[1]]
+            result[i, j] = np.sum(flipped_k * sub_image)
+    
+    return result
+```
 # Chapter 8: 2D Convolution in the Frequency Domain
 ## [04:08] The Convolution Theorem in 2D
 An alternative and often more efficient method for calculating convolution is to use the Discrete Fourier Transform (DFT). The convolution theorem states that convolution in the spatial domain is equivalent to an element-wise multiplication in the frequency domain.
@@ -268,6 +532,34 @@ Visualizing the frequency spectrum of the kernel provides valuable information a
 **High-Pass Filter:**
 - **Kernel:** A kernel for edge detection (like the Laplacian filter) has an opposite spectrum: low values at the center and high values towards the outside.
 - **Effect:** This filter removes low frequencies and preserves only high ones. The result is an image where only edges and details are highlighted, while uniform areas become dark.
+
+```python
+# 2D Convolution using FFT
+
+def convolve2d_fft(image, kernel):
+    # Compute 2D FFTs (pad kernel to image size)
+    v_fft = np.fft.fft2(image)
+    k_fft = np.fft.fft2(kernel, s=image.shape)
+    
+    # Element-wise product in frequency domain
+    vk_fft = v_fft * k_fft
+    
+    # Inverse FFT and take real part
+    result = np.real(np.fft.ifft2(vk_fft))
+    
+    return result
+
+# Analyze kernel spectrum (log scale for visualization)
+k_blur_fft = np.fft.fft2(kernel_blur, s=v_img.shape)
+k_blur_fft_shift = np.fft.fftshift(k_blur_fft)
+
+k_edge_fft = np.fft.fft2(kernel_edge_laplacian, s=v_img.shape)
+k_edge_fft_shift = np.fft.fftshift(k_edge_fft)
+
+# Log scale for better visualization
+spectrum_blur = np.log10(np.abs(k_blur_fft_shift) + 1e-10)
+spectrum_edge = np.log10(np.abs(k_edge_fft_shift) + 1e-10)
+```
 ## [08:18] Examples of Kernels and Their Effects
 Let's look at some specific kernels and their impact:
 1.  **Averaging Kernel (Blur):**

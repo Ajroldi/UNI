@@ -1,3 +1,5 @@
+# Lab06 | ANN from scratch in JAX
+
 # Capitolo 1: Introduzione e Correzione di Errori Precedenti
 ## Panoramica della Lezione
 [00:00] Il piano per la lezione di oggi prevede due parti principali. Inizieremo dedicando circa dieci minuti all'analisi di un problema riscontrato alla fine del laboratorio precedente. Durante una sessione di codifica dal vivo, si è verificata una difficoltà nel replicare il risultato della soluzione proposta, che ha richiesto di copiare e incollare una porzione di codice. Dopo un'analisi successiva, è stato identificato un errore che potrebbe verificarsi comunemente. Si tratta di un bug difficile da individuare, ed è quindi utile esaminare cosa è successo e perché.
@@ -10,7 +12,7 @@
 [02:07] L'operazione da eseguire per ogni campione $ i $ consiste nel calcolare il prodotto scalare tra il campione $ x_i $ e la parte $ w $ dei parametri, aggiungere il bias $ b $ (che è uno scalare) e moltiplicare il tutto per l'etichetta $ y_i $ (anch'essa uno scalare). Il risultato è lo scalare $ \zeta_i $.
 ## Vettorizzazione e il Problema del Broadcasting
 [02:24] Come di consueto, queste operazioni vengono eseguite in modalità *batched*, ovvero tramite un'unica espressione che opera su tutti i campioni contemporaneamente. Invece di un singolo vettore $ x_i $, si utilizza una matrice $ X $, dove ogni riga corrisponde a un campione. Allo stesso modo, si usa un vettore $ y $ che contiene tutte le etichette $ y_i $.
-[02:41] Per isolare il problema, importiamo NumPy e impostiamo un seme per la riproducibilità. Definiamo un piccolo set di dati con 10 campioni e 2 feature. Vengono generati una matrice $ X $, un vettore di etichette $ y $ e un vettore di parametri `params` in modo casuale, solo per avere dei valori concreti su cui lavorare.
+[02:41] Per isolare il problema, importiamo NumPy e impostiamo un seme p er la riproducibilità. Definiamo un piccolo set di dati con 10 campioni e 2 feature. Vengono generati una matrice $ X $, un vettore di etichette $ y $ e un vettore di parametri `params` in modo casuale, solo per avere dei valori concreti su cui lavorare.
 [03:02] La matrice `x` ha 10 righe (i campioni) e 2 colonne (le feature $ x_1 $ e $ x_2 $), come previsto per un problema di classificazione bidimensionale.
 [03:17] Il vettore `y` contiene 10 componenti. Anche se in un problema di classificazione reale le etichette potrebbero essere 0 e 1, ciò che conta qui è la sua forma: un vettore monodimensionale con 10 elementi. Infine, `params` è un vettore con 3 componenti: le prime due costituiscono la parte $ W $ e l'ultima è il bias $ b $. L'obiettivo è moltiplicare ogni riga di $ X $ per la parte $ W $ dei parametri e aggiungere il bias.
 [03:41] L'implementazione corretta prevede di prendere la matrice $ X $, calcolare il prodotto con i primi due parametri (la parte $ W $) e sommare il bias. Successivamente, si calcola il massimo tra questo risultato e $ 1 - y $, e infine si moltiplica ogni elemento di questo vettore (chiamato `decision`) per il corrispondente elemento di $ y $. Il valore medio corretto di questa operazione è 0.44.
@@ -27,9 +29,31 @@
 ## Obiettivo: Apprendere la Funzione XOR
 [06:40] Il notebook è disponibile su Wibip. Dopo averlo aperto in Google Colab e caricato, l'obiettivo è costruire da zero una rete neurale in grado di apprendere la funzione XOR.
 [06:58] Per sfruttare appieno la potenza di JAX, è necessario modificare il runtime per utilizzare la GPU. Iniziamo con la connessione e l'importazione delle librerie necessarie, principalmente NumPy, JAX e Matplotlib per la visualizzazione. L'obiettivo è apprendere la funzione XOR.
+
+```python
+# Import delle librerie necessarie
+import numpy as np
+import jax.numpy as jnp
+import jax
+import matplotlib.pyplot as plt
+from sklearn.datasets import make_circles
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix
+```
+
 [07:18] Il dataset per questo problema è molto piccolo, composto da soli quattro campioni. Per questo motivo, implementeremo un *full gradient descent*, ovvero un algoritmo di discesa del gradiente che utilizza l'intero dataset a ogni passo. L'uso di mini-batch non avrebbe senso con un dataset così ridotto. Gli input hanno due feature (i due bit di input della XOR) e l'output è un singolo valore che rappresenta il risultato della funzione logica.
 [07:42] La rete neurale che intendiamo costruire ha la seguente architettura: due neuroni di input, seguiti da due strati nascosti (*hidden layers*), uno con quattro neuroni e l'altro con tre. Infine, lo strato di output ha un singolo neurone. L'output della rete rappresenta una probabilità o una verosimiglianza che il risultato sia vero o falso, quindi il suo valore deve essere compreso tra 0 e 1.
 [08:09] Per garantire che l'output sia confinato in questo intervallo, utilizzeremo la funzione sigmoide.
+
+```python
+# Dataset XOR completo
+inputs = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+outputs = np.array([[0], [1], [1], [0]])
+
+# Iperparametri dell'architettura: [input, hidden1, hidden2, output]
+n1, n2, n3, n4 = 2, 4, 3, 1
+```
+
 ## Definizione degli Iperparametri e Inizializzazione dei Parametri
 [08:15] Il primo passo consiste nel definire gli iperparametri.
 - **Definizione di Iperparametri**: Sono i parametri che non vengono appresi direttamente durante l'addestramento della rete (come pesi e bias), ma che ne definiscono l'architettura e il processo di training.
@@ -54,6 +78,27 @@ In questo caso, definiamo il numero di strati nascosti e la loro dimensione. Le 
 - $ B_3 $: avrà dimensione `(n4,)`, ovvero (1,).
 [12:47] Tutti i parametri ($ W_1, B_1, W_2, B_2, W_3, B_3 $) vengono raggruppati in una lista e convertiti in formato JAX.
 [12:58] Questo approccio dovrebbe essere chiaro. Ora, il prossimo passo è l'implementazione della funzione della rete neurale.
+
+```python
+# Inizializzazione parametri XOR
+np.random.seed(42)
+
+# Layer 1: 2 -> 4
+W1 = jnp.array(np.random.randn(n1, n2))
+b1 = jnp.zeros((n2, 1))
+
+# Layer 2: 4 -> 3
+W2 = jnp.array(np.random.randn(n2, n3))
+b2 = jnp.zeros((n3, 1))
+
+# Layer 3: 3 -> 1
+W3 = jnp.array(np.random.randn(n3, n4))
+b3 = jnp.zeros((n4, 1))
+
+# Lista completa dei parametri
+params = [W1, b1, W2, b2, W3, b3]
+```
+
 ## Implementazione della Funzione della Rete Neurale
 [13:04] La funzione da implementare, che rappresenta la rete neurale, accetta come input la matrice dei dati $ x $ e la lista dei parametri `params` (pesi e bias). Deve restituire la predizione della rete.
 [13:21] Come funzione di attivazione per gli strati nascosti, si utilizzerà la tangente iperbolica, disponibile in JAX come `jmp.tanh`. Per lo strato di output, si userà la funzione sigmoide.
@@ -154,6 +199,22 @@ dove $p(x_i; \theta)$ è la predizione della rete. L'implementazione in codice t
 [02:21] L'errore risiede nel fatto che la funzione `jacks.grad` calcola di default il gradiente rispetto al primo argomento della funzione. La nostra funzione di perdita, `loss\_quadratic(x, y, params)`, ha tre argomenti, e noi siamo interessati al gradiente rispetto al terzo, ovvero `params`. Per specificare ciò, si utilizza l'argomento `argnums` nella chiamata a `jacks.grad`.
 [02:34] L'argomento `argnums` può essere un intero o una sequenza di interi. In questo caso, si imposta `argnums=2` per indicare che il gradiente deve essere calcolato rispetto al terzo argomento (indicizzato con 2).
 [02:45] La stessa procedura viene applicata per calcolare il gradiente della funzione di perdita basata sull'entropia incrociata.
+
+```python
+# JIT compilation delle loss functions
+loss_quadratic_jit = jax.jit(loss_quadratic)
+loss_crossentropy_jit = jax.jit(loss_crossentropy)
+
+# Gradiente rispetto ai parametri (argnums=2, terzo argomento)
+grad_quad_jit = jax.jit(jax.grad(loss_quadratic, argnums=2))
+grad_xent_jit = jax.jit(jax.grad(loss_crossentropy, argnums=2))
+
+# Test del calcolo del gradiente
+test_grad = grad_quad_jit(inputs, outputs, params)
+print(f"Gradiente calcolato: lista di {len(test_grad)} array")
+print(f"Forma del gradiente W1: {test_grad[0].shape}")
+```
+
 ## Addestramento della Rete Neurale con Discesa del Gradiente
 [02:54] A questo punto, si dispone di tutti gli elementi necessari per addestrare la rete neurale. Il caso in esame è semplificato: il set di addestramento (training set) e il set di test (test set) coincidono, e non si utilizzano mini-batch, ma si esegue l'addestramento su batch completi (full batch).
 [03:07] L'addestramento avviene implementando l'algoritmo della discesa del gradiente (gradient descent), utilizzando una delle due funzioni di perdita definite (MSE o entropia incrociata).
@@ -161,6 +222,75 @@ dove $p(x_i; \theta)$ è la predizione della rete. L'implementazione in codice t
 [03:23] Successivamente, per ogni componente dei parametri del modello (matrici di pesi e vettori di bias), si aggiorna il suo valore muovendosi nella direzione opposta a quella del gradiente, con un passo di aggiornamento (step size) pari al tasso di apprendimento (learning rate).
 [03:34] Alla fine di ogni epoca, si salva il valore corrente della funzione di perdita per monitorarne l'andamento. Infine, si visualizza (plot) l'evoluzione della perdita nel tempo. Il gradiente viene calcolato per ogni parametro, ovvero per ogni matrice di pesi `W` e ogni bias `B`.
 [03:49] L'aggiornamento dei parametri avviene quindi sottraendo il gradiente moltiplicato per il learning rate. Dopo l'aggiornamento, si calcola e si salva il valore corrente di entrambe le funzioni di perdita (MSE e entropia incrociata) per monitorare il processo. Infine, si verifica che la perdita sia effettivamente diminuita. Se l'implementazione è corretta, la rete dovrebbe imparare a classificare correttamente tutti gli esempi, dato che il dataset è molto semplice.
+
+```python
+# Training loop con gradient descent per XOR
+grad_function = grad_xent_jit  # Usare cross-entropy
+learning_rate = 0.1
+epochs = 2000
+
+history_mse = []
+history_xent = []
+
+for epoch in range(epochs):
+    # Calcola il gradiente
+    grads = grad_function(inputs, outputs, params)
+    
+    # Aggiorna i parametri
+    for i in range(len(params)):
+        params[i] = params[i] - learning_rate * grads[i]
+    
+    # Salva le loss per monitoraggio
+    history_mse.append(float(loss_quadratic_jit(inputs, outputs, params)))
+    history_xent.append(float(loss_crossentropy_jit(inputs, outputs, params)))
+
+# Visualizzazione andamento loss
+plt.figure(figsize=(12, 4))
+plt.subplot(1, 2, 1)
+plt.plot(history_mse, label='MSE', linewidth=2)
+plt.plot(history_xent, label='Cross-Entropy', linewidth=2)
+plt.xlabel('Epoch', fontsize=12)
+plt.ylabel('Loss', fontsize=12)
+plt.legend(fontsize=11)
+plt.title('Andamento Loss (scala lineare)', fontsize=13)
+plt.grid(True, alpha=0.3)
+
+plt.subplot(1, 2, 2)
+plt.plot(history_mse, label='MSE', linewidth=2)
+plt.plot(history_xent, label='Cross-Entropy', linewidth=2)
+plt.yscale('log')
+plt.xlabel('Epoch', fontsize=12)
+plt.ylabel('Loss (log scale)', fontsize=12)
+plt.legend(fontsize=11)
+plt.title('Andamento Loss (scala logaritmica)', fontsize=13)
+plt.grid(True, alpha=0.3, which='both')
+plt.tight_layout()
+plt.show()
+```
+
+![Andamento training XOR - confronto loss](img/lab06_training_loss.png)
+
+```python
+# Calcolo accuratezza XOR
+predictions = ANN(inputs, params)
+pred_binary = (predictions > 0.5).astype(int)
+accuracy = jnp.mean(pred_binary == outputs)
+print(f"Accuratezza XOR: {accuracy * 100:.2f}%")
+
+# Matrice di confusione
+conf_matrix = confusion_matrix(outputs.flatten(), pred_binary.flatten())
+print("\nMatrice di confusione:")
+print(conf_matrix)
+
+# Verifica predizioni finali
+print("\nTruth table dopo addestramento:")
+for input_row in inputs:
+    pred = ANN(input_row.reshape((1, -1)), params)
+    print(f"{input_row[0]} XOR {input_row[1]} --> {pred[0,0]:.4f}")
+```
+
+![Andamento training XOR](img/lab06_xor_training.png)
+
 # Capitolo 6: Implementazione del Ciclo di Addestramento e Analisi dei Risultati
 ## Debug e Sviluppo del Codice
 [04:26] Per implementare la soluzione, si parte dallo pseudo-codice e si procede passo dopo passo. Inizialmente, il ciclo di addestramento viene eseguito per una sola epoca (`for epoch in range(1)`) per finalità di debug, assicurandosi che ogni parte del codice funzioni correttamente prima di aumentare il numero di iterazioni.
@@ -190,6 +320,32 @@ dove $p(x_i; \theta)$ è la predizione della rete. L'implementazione in codice t
 [08:55] Anche partendo da un valore di perdita iniziale molto più alto, l'addestramento con l'entropia incrociata converge a un valore di MSE estremamente basso, confermando la sua efficacia.
 ## Calcolo dell'Accuratezza e della Matrice di Confusione
 [09:10] Il passo finale è calcolare l'accuratezza (accuracy) del modello. Per fare ciò, le probabilità continue prodotte dalla rete devono essere convertite in predizioni binarie (0 o 1).
+
+```python
+# Generazione dataset make_circles
+X, y = make_circles(n_samples=300, factor=0.5, noise=0.1, random_state=42)
+y = y.reshape(-1, 1)
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# Visualizzazione dataset
+plt.figure(figsize=(6, 6))
+plt.scatter(X_train[:, 0], X_train[:, 1], c=y_train.flatten(), 
+            cmap='coolwarm', s=30, edgecolor='k', label='Train', alpha=0.7)
+plt.scatter(X_test[:, 0], X_test[:, 1], c=y_test.flatten(), 
+            cmap='coolwarm', s=50, marker='x', linewidths=2, label='Test')
+plt.title('Dataset Make Circles', fontsize=14)
+plt.xlabel('x₁', fontsize=12)
+plt.ylabel('x₂', fontsize=12)
+plt.legend(fontsize=11)
+plt.grid(True, alpha=0.3)
+plt.show()
+```
+
+![Dataset make_circles](img/lab06_dataset_circles.png)
+
 [09:17] Si calcolano le predizioni finali applicando una soglia di 0.5: se la probabilità predetta è maggiore di 0.5, la classe predetta è 1 (True), altrimenti è 0 (False).
 [09:29] Confrontando le predizioni binarie (`pred`) con i valori target reali (`y`), si osserva che sono sempre uguali. L'accuratezza, calcolata come il numero di predizioni corrette diviso per il numero totale di campioni, risulta quindi del 100%.
 [09:44] Nei problemi di classificazione, un altro strumento di valutazione molto utile è la matrice di confusione. Questa matrice mostra il numero di veri positivi, veri negativi, falsi positivi e falsi negativi.
@@ -200,6 +356,78 @@ dove $p(x_i; \theta)$ è la predizione della rete. L'implementazione in codice t
 ## Introduzione a un Nuovo Dataset
 [10:24] Il passo successivo consiste nel rendere il problema più complesso e realistico. Sebbene non sia ancora uno scenario di utilizzo del tutto realistico, si aggiungono gradualmente elementi di complessità.
 [10:34] Si utilizza un dataset generato da Scikit-learn noto come "make\_circles". Questo dataset è composto da due cerchi concentrici: uno più piccolo al centro e uno più grande che lo circonda.
+
+```python
+# Implementazione MLP generalizzato
+
+def init_layer_params(key, in_dim, out_dim):
+    """Inizializza parametri di un layer"""
+    w_key, b_key = jax.random.split(key)
+    w = jax.random.normal(w_key, (in_dim, out_dim))
+    b = jnp.zeros((out_dim,))
+    return w, b
+
+def init_mlp_params(key, layer_sizes):
+    """Inizializza parametri MLP completo"""
+    keys = jax.random.split(key, len(layer_sizes) - 1)
+    params = []
+    
+    for i in range(len(layer_sizes) - 1):
+        w, b = init_layer_params(keys[i], layer_sizes[i], layer_sizes[i+1])
+        params.append((w, b))
+    
+    return params
+
+def sigmoid(x):
+    """Funzione sigmoide"""
+    return 1.0 / (1.0 + jnp.exp(-x))
+
+def forward(params, x):
+    """Forward pass generalizzato
+    
+    Args:
+        params: lista di tuple (w, b)
+        x: input (num_samples, input_dim)
+    
+    Returns:
+        output (num_samples, output_dim)
+    """
+    # Strati nascosti con tanh
+    for w, b in params[:-1]:
+        x = jnp.tanh(x @ w + b)
+    
+    # Ultimo strato con sigmoid
+    W, B = params[-1]
+    return sigmoid(x @ W + B)
+
+def binary_cross_entropy(params, X, Y):
+    """Binary cross-entropy loss"""
+    y_pred = forward(params, X)
+    return -jnp.mean(Y * jnp.log(y_pred + 1e-10) + (1 - Y) * jnp.log(1 - y_pred + 1e-10))
+
+@jax.jit
+def update(params, x, y, learning_rate):
+    """Update parametri con gradient descent
+    
+    Args:
+        params: parametri correnti
+        x, y: minibatch di dati
+        learning_rate: tasso di apprendimento
+    
+    Returns:
+        params aggiornati
+    """
+    grad_fn = jax.grad(binary_cross_entropy)
+    grads = grad_fn(params, x, y)
+    
+    # tree_map per aggiornare tutti i parametri
+    updated_params = jax.tree_util.tree_map(
+        lambda p, g: p - learning_rate * g, params, grads
+    )
+    
+    return updated_params
+```
+
 [10:44] Si tratta di un problema di classificazione binaria in cui l'obiettivo è distinguere i punti appartenenti al cerchio interno da quelli appartenenti all'anello esterno. L'input per la rete neurale sarà costituito dalle coordinate (x, y) di ogni punto, mentre l'output sarà 0 o 1 a seconda dell'anello di appartenenza.
 [10:57] Il codice per generare i dati è già fornito. Vengono generate le coordinate X e Y, assicurandosi che abbiano le dimensioni corrette.
 [11:04] Successivamente, si utilizza la funzione `train\_test\_split` per suddividere il dataset in un 80% per l'addestramento e un 20% per il test. Questa suddivisione rende lo scenario più realistico. I dati vengono poi visualizzati: un grafico a dispersione (`scatter plot`) mostra i punti, colorati in base alla loro classe (Y). I punti di test sono contrassegnati con una 'X', mentre quelli di addestramento con un cerchio.
@@ -227,7 +455,86 @@ dove $p(x_i; \theta)$ è la predizione della rete. L'implementazione in codice t
 [00:57] Il vettore dei bias `b` viene inizializzato a zero utilizzando la funzione `jnp.zeros`. La sua dimensione deve corrispondere alla dimensione di output (`out\_dimension`).
 [01:02] La forma del vettore dei bias sarà `(out\_dimension,)`. Non è `(out\_dimension, 1)` perché, con la nuova convenzione, il *broadcasting* (l'adattamento automatico delle dimensioni durante le operazioni) non avviene più sulle colonne, ma sulle righe.
 [01:08] Infine, la funzione restituisce i pesi `w` e i bias `b`. La corretta gestione delle dimensioni sarà cruciale nella funzione di `forward propagation`.
-[01:14] Successivamente, si definisce la funzione `init\_mlp\_params` per inizializzare i parametri di un intero Multi-Layer Perceptron (MLP). Questa funzione accetta una chiave (`key`) di JAX e una lista `layer\_sizes` che specifica il numero di neuroni per ogni strato, inclusi quello di input e di output.
+[01:14] Successivamente, si definisce la funzione `init\_mlp\_params` per inizializzare i parametri di un intero Multi-Layer Perceptron (MLP). Questa funzione accetta una chiave (`key`) di JAX e una lista `layer\_sizes` che specifica il numero di neur
+
+```python
+# Training MLP su make_circles
+key = jax.random.PRNGKey(42)
+layer_sizes = [2, 16, 1]  # Input 2D, hidden 16, output 1
+params = init_mlp_params(key, layer_sizes)
+learning_rate = 0.01
+epochs = 5000
+batch_size = 64
+
+num_batches = X_train.shape[0] // batch_size
+
+for epoch in range(epochs):
+    # Shuffle dati ad ogni epoca
+    key, subkey = jax.random.split(key)
+    permutation = jax.random.permutation(subkey, X_train.shape[0])
+    X_shuffled = X_train[permutation]
+    y_shuffled = y_train[permutation]
+    
+    # Training su minibatch
+    for i in range(num_batches):
+        start = i * batch_size
+        end = start + batch_size
+        x_batch = X_shuffled[start:end]
+        y_batch = y_shuffled[start:end]
+        
+        params = update(params, x_batch, y_batch, learning_rate)
+    
+    # Log ogni 100 epoche
+    if epoch % 100 == 0:
+        test_loss = binary_cross_entropy(params, X_test, y_test)
+        print(f"Epoch {epoch}, Test Loss: {test_loss:.4f}")
+
+# Calcolo accuratezza
+predictions = forward(params, X_test)
+pred_binary = (predictions > 0.5).astype(int)
+accuracy = jnp.mean(pred_binary == y_test)
+print(f"\nAccuratezza test: {accuracy * 100:.2f}%")
+
+# Matrice di confusione
+conf_mat = confusion_matrix(y_test.flatten(), pred_binary.flatten())
+print("\nMatrice di confusione:")
+print(conf_mat)
+
+# Visualizzazione decision boundary
+x_min, x_max = X[:, 0].min() - 0.5, X[:, 0].max() + 0.5
+y_min, y_max = X[:, 1].min() - 0.5, X[:, 1].max() + 0.5
+xx, yy = np.meshgrid(np.linspace(x_min, x_max, 300),
+                      np.linspace(y_min, y_max, 300))
+grid = np.column_stack([xx.ravel(), yy.ravel()])
+
+Z = np.array(forward(params, grid))
+Z = Z.reshape(xx.shape)
+
+plt.figure(figsize=(8, 8))
+# Contour riempito per decision boundary
+contour = plt.contourf(xx, yy, Z, levels=20, alpha=0.6, cmap='coolwarm')
+plt.colorbar(contour, label='Probabilità classe 1')
+
+# Dati training
+plt.scatter(X_train[:, 0], X_train[:, 1], c=y_train.flatten(), 
+            cmap='coolwarm', s=30, edgecolor='k', linewidth=0.5, alpha=0.8)
+
+# Dati test
+plt.scatter(X_test[:, 0], X_test[:, 1], c=y_test.flatten(), 
+            cmap='coolwarm', s=80, marker='x', linewidths=2.5)
+
+# Linea di decisione
+plt.contour(xx, yy, Z, levels=[0.5], colors='black', linewidths=2.5, linestyles='--')
+
+plt.title(f'Confine Decisionale (Accuratezza Test = {accuracy:.3f})', fontsize=14)
+plt.xlabel('x₁', fontsize=12)
+plt.ylabel('x₂', fontsize=12)
+plt.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.show()
+```
+
+![Decision boundary make_circles](img/lab06_decision_boundary.png)oni per ogni strato, inclusi quello di input e di output.
 [01:20] Per garantire che ogni strato abbia pesi e bias inizializzati in modo indipendente, è necessario generare una chiave casuale diversa per ciascuno di essi. Questo si ottiene con `jax.random.split(key, num\_keys)`.
 [01:27] Il numero di chiavi necessarie (`num\_keys`) è pari al numero di strati della rete, che corrisponde a `len(layer\_sizes) - 1`.
 [01:33] Ad esempio, se `layer\_sizes` è una lista di 4 elementi (es. `[input, hidden1, hidden2, output]`), la rete avrà 3 strati di connessioni (input -> hidden1, hidden1 -> hidden2, hidden2 -> output), e quindi richiederà 3 coppie di pesi e bias.

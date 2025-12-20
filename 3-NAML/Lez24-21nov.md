@@ -1,4 +1,20 @@
+# Lab07 | ANN for regression
+
 ## Capitolo 1 – Introduzione, dataset e preparazione dei dati
+---
+
+### Import delle librerie necessarie
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+import time
+import jax.numpy as jnp
+import jax
+```
+
 ---
 ## [00:00] Introduzione e obiettivo
 **Contesto:**  
@@ -12,6 +28,21 @@ Si tratta di dati del censimento del 1990 per la California, con informazioni su
 Prevedere il **valore mediano di una casa** a partire dalle altre caratteristiche (feature).
 ---
 ## [00:45] Esplorazione iniziale del dataset
+
+```python
+# Caricamento del dataset
+data = pd.read_csv("california_housing_train.csv")
+
+# Prime righe
+data.head()
+
+# Informazioni sul dataset
+data.info()
+
+# Statistiche descrittive
+data.describe()
+```
+
 Prima di costruire un modello è essenziale esaminare il dataset:
 - verificare **valori mancanti** o righe vuote;
 - capire il **tipo di variabili** presenti;
@@ -45,6 +76,18 @@ Queste statistiche servono a:
 ## [03:10] Analisi della variabile target: `median\_house\_value`
 Per la regressione useremo come target `median\_house\_value`.  
 Tracciamo un **istogramma** con stima di densità (KDE).
+
+```python
+# Visualizzazione distribuzione del target
+sns.histplot(data["median_house_value"], kde=True)
+plt.title("Distribuzione median_house_value (con outlier a 500k)")
+plt.xlabel("Median House Value ($)")
+plt.ylabel("Frequency")
+plt.show()
+```
+
+![Distribuzione target con outlier](img/lab07_distribution_before_filter.png)
+
 Osservazioni:
 - c’è una coda verso valori alti;
 - c’è un **picco molto netto** all’estremo superiore, intorno a **500 000**.
@@ -61,8 +104,16 @@ Una scelta semplice è rimuovere queste righe:
 - teniamo solo le righe con `median\_house\_value < 500000`.
 In Pandas:
 ```python
-data = data[data["median\_house\_value"] < 500000]
+# Filtro valori troncati
+data = data[data["median_house_value"] < 500000]
+
+# Nuova visualizzazione dopo il filtro
+sns.histplot(data["median_house_value"], kde=True)
+plt.title("Distribuzione median_house_value (senza outlier)")
+plt.show()
 ```
+
+![Distribuzione target senza outlier](img/lab07_distribution_after_filter.png)
 Spiegazione:
 1. `data["median\_house\_value"] < 500000`  
    restituisce una `Series` di booleani (`True`/`False`):
@@ -78,8 +129,17 @@ Dopo il filtraggio:
 ## [07:05] Matrice di correlazione e sua interpretazione
 Per capire i rapporti tra le feature calcoliamo la **matrice di correlazione**:
 ```python
+# Calcolo matrice di correlazione
 corr = data.corr()
+
+# Visualizzazione con heatmap
+sns.heatmap(corr, annot=True, cmap="vlag_r", vmin=-1, vmax=1, 
+            fmt=".2f", square=True)
+plt.title("Matrice di Correlazione delle Feature")
+plt.show()
 ```
+
+![Matrice di correlazione](img/lab07_correlation_heatmap.png)
 Per ogni coppia di variabili otteniamo un coefficiente (es. Pearson):
 - valori tra **−1** e **1**;
 - vicino a **1** → forte correlazione positiva;
@@ -119,9 +179,14 @@ sns.scatterplot(
     data=data,
     x="longitude",
     y="latitude",
-    hue="median\_house\_value"
+    hue="median_house_value",
+    alpha=0.5
 )
+plt.title("Distribuzione geografica delle case in California")
+plt.show()
 ```
+
+![Distribuzione geografica](img/lab07_geographic_scatter.png)
 Interpretazione:
 - la nuvola di punti disegna la **forma della California**;
 - le case più costose (colore associato a valori alti) sono:
@@ -160,6 +225,16 @@ Normalizzando:
 ### Analisi preliminare con violin plot
 Prima di normalizzare, tracciamo un **violin plot** per ogni feature:
 - mostra il box plot e la densità di probabilità stimata (simile alla KDE).
+```python
+# Violin plot prima della normalizzazione
+fig, ax = plt.subplots(figsize=(16, 6))
+sns.violinplot(data=data, ax=ax)
+ax.set_title("Distribuzione feature (prima della normalizzazione)")
+plt.xticks(rotation=45)
+plt.show()
+```
+
+![Violin plot pre-normalizzazione](img/lab07_violin_before_norm.png)
 Risultato:
 - le feature hanno scale molto diverse (alcune 10⁵, altre 10¹);
 - `median\_house\_value` ha un ordine di grandezza diverso da molte altre.
@@ -174,10 +249,23 @@ dove:
 - \(\sigma\) = deviazione standard.
 In Pandas:
 ```python
-mean = data.mean()
-std = data.std()
-data\_normalized = (data - mean) / std
+# Normalizzazione
+data_mean = data.mean()
+data_std = data.std()
+data_normalized = (data - data_mean) / data_std
+
+# Verifica statistiche dopo normalizzazione
+data_normalized.describe()
+
+# Violin plot dopo normalizzazione
+fig, ax = plt.subplots(figsize=(16, 6))
+sns.violinplot(data=data_normalized, ax=ax)
+ax.set_title("Distribuzione feature (dopo normalizzazione)")
+plt.xticks(rotation=45)
+plt.show()
 ```
+
+![Violin plot post-normalizzazione](img/lab07_violin_after_norm.png)
 Pandas lavora per colonne:
 - `mean()` e `std()` calcolano media e deviazione standard di ogni colonna;
 - l’operazione si applica indipendentemente a ciascuna feature.
@@ -331,28 +419,39 @@ Anche questa scelta mira a mantenere le attivazioni in un range ragionevole.
 ## [28:00] Implementazione di `initialize\_params(layer\_sizes)`
 Vogliamo una funzione:
 ```python
-def initialize\_params(layer\_sizes):
-    ...
+def initialize_params(layers_size):
+    """Inizializza parametri con Xavier/Glorot Normal
+    
+    Args:
+        layers_size: lista [n_input, n_hidden1, ..., n_output]
+    
+    Returns:
+        params: lista di coppie [W, b] per ogni layer
+    """
+    params = []
+    np.random.seed(42)  # per riproducibilità
+    
+    for i in range(len(layers_size) - 1):
+        n_in = layers_size[i]
+        n_out = layers_size[i + 1]
+        
+        # Xavier/Glorot Normal initialization
+        coef = np.sqrt(2.0 / (n_in + n_out))
+        W = coef * np.random.randn(n_out, n_in)
+        b = np.zeros((n_out, 1))
+        
+        params.append([W, b])
+    
     return params
+
+# Test
+params = initialize_params([8, 5, 1])
+print(f"Numero layer: {len(params)}")
+print(f"W0 shape: {params[0][0].shape}")  # (5, 8)
+print(f"b0 shape: {params[0][1].shape}")  # (5, 1)
+print(f"W1 shape: {params[1][0].shape}")  # (1, 5)
+print(f"b1 shape: {params[1][1].shape}")  # (1, 1)
 ```
-- `layer\_sizes`: lista con le dimensioni dei layer (es. `[8, 5, 1]`);
-- `params`: lista di coppie `(W, b)` per ogni layer.
-Schema:
-1. inizializziamo una lista vuota:
-   ```python
-   params = []
-   ```
-2. cicliamo sui layer consecutivi:
-   ```python
-   for i in range(len(layer\_sizes) - 1):
-       n\_in = layer\_sizes[i]
-       n\_out = layer\_sizes[i + 1]
-       limit = np.sqrt(6.0 / (n\_in + n\_out))  # Xavier uniform
-       W = np.random.uniform(-limit, limit, size=(n\_out, n\_in))
-       b = np.zeros((n\_out, 1))
-       params.append((W, b))
-   ```
-3. ritorniamo `params`.
 Possiamo implementare l’inizializzazione con NumPy e, se necessario, convertire poi a JAX.
 ### Struttura di `params`
 Conviene usare una lista di coppie `[W, b]` per ciascun layer:
@@ -383,11 +482,34 @@ Per una rete `[8, 5, 1]` avremo due coppie `(W, b)`:
 Definiamo:
 ```python
 def ann(x, params):
-    ...
+    """Forward pass della ANN
+    
+    Args:
+        x: input shape (num_samples, num_features)
+        params: lista di [W, b] per ogni layer
+    
+    Returns:
+        output: predizioni shape (num_samples, output_dim)
+    """
+    # Trasponiamo per lavorare con vettori colonna
+    layer = x.T  # shape: (num_features, num_samples)
+    
+    for i, (W, b) in enumerate(params):
+        # Trasformazione lineare
+        layer = W @ layer + b
+        
+        # Attivazione solo sui layer nascosti (non sull'ultimo)
+        if i < len(params) - 1:
+            layer = jnp.tanh(layer)
+    
+    # Ritorna al formato (num_samples, output_dim)
+    return layer.T
+
+# Test forward pass
+y_pred = ann(x_train, params)
+print(f"Input shape: {x_train.shape}")
+print(f"Output shape: {y_pred.shape}")
 ```
-- `x`: matrice degli input, shape `(num\_samples, num\_features)`;
-- `params`: lista di coppie `(W, b)`;
-- output: predizione del modello sugli input.
 ### Convenzione per righe e colonne
 Per coerenza con `W`:
 - consideriamo `x` come `(num\_samples, num\_features)` (righe = campioni, colonne = feature);
@@ -466,9 +588,24 @@ Per regressione si usa spesso la **MSE**:
 In codice:
 ```python
 def loss(x, y, params):
-    y\_pred = ann(x, params)
-    error = y\_pred - y
+    """Mean Squared Error loss
+    
+    Args:
+        x: input features
+        y: target values
+        params: network parameters
+    
+    Returns:
+        scalar MSE loss
+    """
+    y_pred = ann(x, params)
+    error = y_pred - y
     return jnp.mean(error * error)
+
+# Test loss
+params_test = initialize_params([8, 20, 20, 1])
+L = loss(x_train, y_train, params_test)
+print(f"Loss iniziale: {L:.4f}")
 ```
 Il risultato è uno scalare.
 ### L1 loss (alternativa)
@@ -515,19 +652,60 @@ Inoltre teniamo traccia delle curve di loss:
 - `train\_loss\_history`;
 - `val\_loss\_history`.
 ### Struttura del loop di training (full batch)
-Pseudo‑codice:
+
 ```python
-for epoch in range(epochs):
-    # 1. Calcolo gradiente della loss rispetto ai parametri
-    grads = grad\_loss(X\_train, y\_train, params)
-    # 2. Aggiornamento dei parametri (gradient descent)
-    params = update(params, grads, learning\_rate)
-    # 3. Calcolo delle loss
-    L\_train = loss(X\_train, y\_train, params)
-    L\_val = loss(X\_val, y\_val, params)
-    train\_loss\_history.append(L\_train)
-    val\_loss\_history.append(L\_val)
+# Hyperparameters
+layers_size = [8, 20, 20, 1]
+num_epochs = 2000
+learning_rate = 1e-1
+
+# Inizializzazione
+params = initialize_params(layers_size)
+
+# Funzioni JIT-compiled per performance
+grad_loss = jax.jit(jax.grad(loss, argnums=2))
+loss_jit = jax.jit(loss)
+
+history_train = []
+history_valid = []
+
+# Training loop
+t0 = time.time()
+for epoch in range(num_epochs):
+    # 1. Calcolo gradiente
+    grads = grad_loss(x_train, y_train, params)
+    
+    # 2. Aggiornamento parametri con tree_map
+    params = jax.tree_util.tree_map(
+        lambda p, g: p - learning_rate * g,
+        params, grads
+    )
+    
+    # 3. Salvataggio loss
+    history_train.append(float(loss_jit(x_train, y_train, params)))
+    history_valid.append(float(loss_jit(x_valid, y_valid, params)))
+    
+    if epoch % 200 == 0:
+        print(f"Epoch {epoch}: train={history_train[-1]:.4f}, "
+              f"val={history_valid[-1]:.4f}")
+
+elapsed = time.time() - t0
+print(f"\nTempo: {elapsed:.2f}s")
+print(f"Loss train: {history_train[-1]:.4e}")
+print(f"Loss validation: {history_valid[-1]:.4e}")
+
+# Visualizzazione
+fig, ax = plt.subplots(figsize=(12, 8))
+ax.loglog(history_train, label="Train", linewidth=2)
+ax.loglog(history_valid, label="Validation", linewidth=2)
+ax.set_xlabel("Epoch")
+ax.set_ylabel("MSE Loss (log scale)")
+ax.legend()
+ax.grid(True, alpha=0.3)
+plt.show()
 ```
+
+![Andamento loss full batch](img/lab07_loss_full_batch.png)
 dove:
 - `grad\_loss` è ottenuta da `jax.grad(loss, argnum=2)` (o equivalente);
 - `update` applica:
@@ -647,31 +825,86 @@ Interpretazione:
 - vicino al minimo: passi più piccoli per evitare overshooting e oscillazioni eccessive.
 ---
 ## [15:00] Struttura del loop per il mini‑batch SGD
-Per ogni epoca:
-1. **Aggiornare il learning rate** secondo la schedule decrescente.
-2. **Permutare i dati**:
-   ```python
-   n\_samples = x\_train.shape[0]
-   perm\_indices = np.random.permutation(n\_samples)
-   ```
-3. **Scorrere sui mini‑batch**:
-   ```python
-   for i in range(0, n\_samples, batch\_size):
-       batch\_indices = perm\_indices[i : i + batch\_size]
-       x\_batch = x\_train[batch\_indices]
-       y\_batch = y\_train[batch\_indices]
-       grads = gradjit(x\_batch, y\_batch, params)
-       params = jax.tree\_util.tree\_map(
-           lambda p, g: p - learning\_rate * g,
-           params, grads
-       )
-   ```
-   Usiamo la stessa lista di indici sia su `x\_train` sia su `y\_train` per mantenere allineati input e target.
-4. **Fine epoca: calcolo delle loss** su tutto il dataset:
-   ```python
-   train\_loss\_history.append(loss(x\_train, y\_train, params))
-   val\_loss\_history.append(loss(x\_val, y\_val, params))
-   ```
+
+```python
+# Hyperparameters SGD
+layers_size = [8, 20, 20, 1]
+num_epochs = 2000
+learning_rate_max = 1e-1
+learning_rate_min = 5e-2
+learning_rate_decay = num_epochs
+batch_size = 1000
+
+# Inizializzazione
+params = initialize_params(layers_size)
+
+history_train_sgd = []
+history_valid_sgd = []
+
+t0 = time.time()
+for epoch in range(num_epochs):
+    # 1. Learning rate decrescente
+    lr = max(learning_rate_min, 
+             learning_rate_max * (1 - epoch / learning_rate_decay))
+    
+    # 2. Shuffle dati
+    n_samples = x_train.shape[0]
+    perm_indices = np.random.permutation(n_samples)
+    
+    # 3. Mini-batch updates
+    for i in range(0, n_samples, batch_size):
+        batch_indices = perm_indices[i : i + batch_size]
+        x_batch = x_train[batch_indices]
+        y_batch = y_train[batch_indices]
+        
+        grads = grad_loss(x_batch, y_batch, params)
+        params = jax.tree_util.tree_map(
+            lambda p, g: p - lr * g, params, grads
+        )
+    
+    # 4. Fine epoca: calcolo loss
+    history_train_sgd.append(float(loss_jit(x_train, y_train, params)))
+    history_valid_sgd.append(float(loss_jit(x_valid, y_valid, params)))
+    
+    if epoch % 200 == 0:
+        print(f"Epoch {epoch}: train={history_train_sgd[-1]:.4f}, "
+              f"val={history_valid_sgd[-1]:.4f}, lr={lr:.4f}")
+
+elapsed = time.time() - t0
+print(f"\nTempo: {elapsed:.2f}s")
+print(f"Loss train: {history_train_sgd[-1]:.4e}")
+print(f"Loss validation: {history_valid_sgd[-1]:.4e}")
+
+# Visualizzazione SGD
+fig, ax = plt.subplots(figsize=(12, 8))
+ax.loglog(history_train_sgd, label="Train", linewidth=2)
+ax.loglog(history_valid_sgd, label="Validation", linewidth=2)
+ax.set_xlabel("Epoch")
+ax.set_ylabel("MSE Loss (log scale)")
+ax.legend()
+ax.grid(True, alpha=0.3)
+plt.show()
+```
+
+![Andamento loss SGD](img/lab07_loss_sgd.png)
+
+### Confronto Full Batch vs SGD
+
+```python
+# Confronto diretto
+fig, ax = plt.subplots(figsize=(12, 8))
+ax.loglog(history_train, label="Full Batch - Train", linestyle='--', linewidth=2)
+ax.loglog(history_valid, label="Full Batch - Validation", linestyle='--', linewidth=2)
+ax.loglog(history_train_sgd, label="SGD - Train", linewidth=2, alpha=0.7)
+ax.loglog(history_valid_sgd, label="SGD - Validation", linewidth=2, alpha=0.7)
+ax.set_xlabel("Epoch")
+ax.set_ylabel("MSE Loss (log scale)")
+ax.legend()
+ax.grid(True, alpha=0.3)
+plt.show()
+```
+
+![Confronto Full Batch vs SGD](img/lab07_comparison_fb_sgd.png)
 Ricordiamo che per salvare i valori nella history bisogna usare `.append()`.
 ---
 ## [19:00] Full batch vs mini‑batch: ruolo del rumore
@@ -751,34 +984,31 @@ Abbiamo quindi:
 Ora vogliamo testarlo su un dataset di **test** mai utilizzato in precedenza.
 ---
 ## [17:00] Caricamento e pulizia del dataset di test
-Carichiamo il dataset di test:
+
 ```python
-data\_test = pandas.read\_csv("california\_housing\_test.csv")
-```
-`data\_test` è un DataFrame con le stesse colonne del training.
-Per coerenza con la pulizia effettuata prima, applichiamo lo stesso filtro sui valori estremi del prezzo:
-```python
-data\_test = data\_test[data\_test["median\_house\_value"] < 500000.1]
+# Caricamento test set
+data_test = pd.read_csv("california_housing_test.csv")
+
+# Stesso filtro outlier del training
+data_test = data_test[data_test["median_house_value"] < 500000]
+
+print(f"Test samples: {len(data_test)}")
 ```
 In questo modo eliminiamo i valori troncati a 500 000 anche nel test.
 ---
 ## [19:00] Normalizzazione coerente tra training e test
-È fondamentale normalizzare il test con **le stesse statistiche** usate per il training:
-- il modello è stato addestrato su dati normalizzati;
-- se forniamo dati non normalizzati o normalizzati diversamente, le previsioni saranno errate.
-Per il test:
+
 ```python
-data\_test\_norm = (data\_test - mean\_train) / std\_train
-```
-dove:
-- `mean\_train`: media calcolata sul **training**;
-- `std\_train`: deviazione standard calcolata sul **training**.
-Non dobbiamo mai usare media e deviazione standard calcolate sul test, altrimenti introduciamo una incoerenza nel pre‑processing.
-Convertiamo in NumPy:
-```python
-data\_test\_np = data\_test\_norm.to\_numpy()
-x\_test = data\_test\_np[:, :-1]  # feature
-y\_test = data\_test\_np[:, -1]   # target normalizzato
+# IMPORTANTE: usare statistiche del TRAINING
+data_test_norm = (data_test - data_mean) / data_std
+
+# Conversione a NumPy
+data_test_np = data_test_norm.to_numpy()
+x_test = data_test_np[:, :-1]
+y_test_norm = data_test_np[:, -1:]
+
+print(f"x_test shape: {x_test.shape}")
+print(f"y_test_norm shape: {y_test_norm.shape}")
 ```
 Controlliamo le shape:
 - `x\_test` → `(n\_test\_samples, 8)`;
@@ -786,45 +1016,55 @@ Controlliamo le shape:
 Devono essere compatibili con quelle usate in training.
 ---
 ## [22:00] Predizione sui dati di test
-Calcoliamo le predizioni:
+
 ```python
-y\_pred = ann(x\_test, params)
+# Predizione normalizzata
+y_pred_norm = ann(x_test, params)
+
+print(f"Predizioni (normalizzate): {y_pred_norm.shape}")
 ```
-`y\_pred` contiene le predizioni **normalizzate** del modello sul test.
+
 ---
 ## [23:00] Denormalizzazione delle predizioni
-Per avere predizioni interpretabili (prezzo in dollari) dobbiamo **invertire la normalizzazione** del target.
-Se:
-- `mean\_target\_train` è la media di `median\_house\_value` sul training;
-- `std\_target\_train` è la deviazione standard di `median\_house\_value` sul training;
-allora:
+
 ```python
-Y\_pred = y\_pred * std\_target\_train + mean\_target\_train
-```
-`Y\_pred` è ora in dollari.
-In pratica:
-```python
-std\_target\_train = data\_train["median\_house\_value"].std()
-mean\_target\_train = data\_train["median\_house\_value"].mean()
-Y\_pred = y\_pred * std\_target\_train + mean\_target\_train
+# Statistiche target dal training
+mean_target = data_mean["median_house_value"]
+std_target = data_std["median_house_value"]
+
+# Denormalizzazione predizioni
+y_pred = y_pred_norm * std_target + mean_target
+
+# Valori reali (non normalizzati)
+y_test_actual = data_test["median_house_value"].values.reshape(-1, 1)
+
+print(f"y_pred range: [{y_pred.min():.0f}, {y_pred.max():.0f}]")
+print(f"y_test range: [{y_test_actual.min():.0f}, {y_test_actual.max():.0f}]")
 ```
 ---
 ## [26:00] Confronto grafico tra valori veri e predetti
-Per confrontare valori veri e predetti quando l’output è scalare, un grafico molto utile è lo **scatter plot**:
-- asse x: valori veri (`Y\_test`);
-- asse y: valori predetti (`Y\_pred`).
-In un modello perfetto:
-- tutti i punti starebbero sulla bisettrice `y = x`.
-Per disegnare la bisettrice:
+
 ```python
-min\_val = min(Y\_test.min(), Y\_pred.min())
-max\_val = max(Y\_test.max(), Y\_pred.max())
-plt.scatter(Y\_test, Y\_pred)
-plt.plot([min\_val, max\_val], [min\_val, max\_val], 'k-')
-plt.axis('equal')
+# Scatter plot predetto vs vero
+fig, ax = plt.subplots(figsize=(10, 10))
+ax.scatter(y_test_actual, y_pred, alpha=0.3, s=10)
+
+# Bisettrice (predizione perfetta)
+min_val = min(y_test_actual.min(), y_pred.min())
+max_val = max(y_test_actual.max(), y_pred.max())
+ax.plot([min_val, max_val], [min_val, max_val], 'r--', 
+        linewidth=2, label="Perfect Prediction")
+
+ax.set_xlabel("Actual Median House Value ($)")
+ax.set_ylabel("Predicted Median House Value ($)")
+ax.set_title("Test Set: Predicted vs Actual")
+ax.legend()
+ax.grid(True, alpha=0.3)
+ax.axis('equal')
+plt.show()
 ```
-- `'k-'` traccia una linea nera;
-- `axis('equal')` imposta scale identiche per i due assi.
+
+![Scatter predictions vs actual](img/lab07_test_scatter.png)
 Così possiamo vedere:
 - quanto le predizioni si discostano dalla perfetta corrispondenza;
 - se gli errori sono simmetrici rispetto alla bisettrice o se c’è una distorsione sistematica.
@@ -844,44 +1084,49 @@ Conclusioni:
 - il comportamento è globalmente ragionevole per un primo modello di regressione con una ANN semplice.
 ---
 ## [33:00] Visualizzazione con pandas e Seaborn
-Un modo pratico per costruire questi grafici è usare pandas + Seaborn.
-Creiamo un DataFrame:
+
 ```python
-test\_df = pandas.DataFrame({
-    "predicted": Y\_pred\_flat,
-    "target": Y\_test\_flat
+# Creazione DataFrame per Seaborn
+test_df = pd.DataFrame({
+    "Actual": y_test_actual.flatten(),
+    "Predicted": y_pred.flatten()
 })
+
+# Joint plot con distribuzioni marginali
+g = sns.jointplot(data=test_df, x="Actual", y="Predicted", 
+                  kind="scatter", alpha=0.3, height=10)
+g.ax_joint.plot([min_val, max_val], [min_val, max_val], 
+                'r--', linewidth=2)
+g.fig.suptitle("Test Set: Joint Distribution", y=1.02)
+plt.show()
 ```
-dove:
-- `Y\_pred\_flat` e `Y\_test\_flat` sono versioni 1D (flatten) di predetti e target.
-Ora possiamo usare:
-```python
-sns.jointplot(data=test\_df, x="target", y="predicted")
-```
-Questo comando produce:
-- uno scatter plot di `target` vs `predicted`;
-- istogrammi marginali sulle due assi (distribuzione dei veri e dei predetti).
-La bisettrice non è disegnata automaticamente, ma possiamo aggiungerla ottenendo gli assi di Seaborn e tracciando una linea.
+
+![Joint plot con distribuzioni](img/lab07_test_jointplot.png)
 L’idea generale:
 - Seaborn è molto potente per la visualizzazione;
 - funziona molto bene in combinazione con DataFrame pandas;
 - la documentazione offre molti esempi utili.
 ---
 ## [38:00] Calcolo dell’errore: RMSE in dollari
-Infine calcoliamo il **Root Mean Squared Error (RMSE)** in dollari sul test.
-Definiamo:
+
 ```python
-Y\_test\_np = data\_test["median\_house\_value"].to\_numpy().flatten()
-Y\_pred\_np = Y\_pred.flatten()
-error = Y\_pred\_np - Y\_test\_np
-rmse = np.sqrt(np.mean(error * error))
-print(f"RMSE = {rmse/1000:.2f} (migliaia di dollari)")
+# Calcolo RMSE in dollari
+error = y_pred.flatten() - y_test_actual.flatten()
+rmse = np.sqrt(np.mean(error ** 2))
+
+print(f"\n=== Risultati Test Set ===")
+print(f"RMSE: ${rmse:,.2f}")
+print(f"RMSE (migliaia): ${rmse/1000:.2f}k")
+print(f"Media prezzi test: ${y_test_actual.mean():,.2f}")
+print(f"Errore relativo: {100 * rmse / y_test_actual.mean():.2f}%")
 ```
+
 Qui:
 - `error` è il vettore degli errori (predizione − valore vero);
-- `error * error` è il quadrato elemento per elemento;
+- `error ** 2` è il quadrato elemento per elemento;
 - la media dei quadrati è la MSE;
-- la radice quadrata è l’RMSE.
+- la radice quadrata è l'RMSE.
+
 Il risultato può essere, ad esempio, intorno a **49 000 dollari** di RMSE, che ci dà un’idea dell’errore medio (in termini quadratici) sulle stime del valore delle case.
 ### Attenzione a tipi e dimensioni
 Prima c’era un errore perché:

@@ -1,3 +1,5 @@
+# Lab08 | 1st and 2nd order optimizer, regularization
+
 # Optimizers for Neural Networks and Regularization
 ## [00:00] Introduction to the Lab
 ### Overview of the Lessons
@@ -9,19 +11,103 @@ In the next two labs, we will focus on **convolutional neural networks (CNNs)**,
 ### Preparing the Environment
 You will find the notebook for the lesson in the `wibit` folder, as usual. We will start with the notebook dedicated to first-order optimization.
 ## [01:03] Chapter 1: Setting Up the Regression Problem
+
+### Imports
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+import jax.numpy as jnp
+import jax
+```
+
 ### The Goal: Approximating a 1D Function
 Our goal is to use a neural network to approximate a one-dimensional function defined as the sum of an exponential, a sine, and a cosine. Using a 1D function allows us to easily visualize the optimizer's behavior at each training epoch.
+
+The function is defined as:
+
+$$
+f(x) = e^{-\frac{x}{10}}\sin(x) + \frac{1}{10} \cos(\pi x)
+$$
+
+over the interval $[0, 10]$.
+
+```python
+f = lambda x: np.sin(x) * np.exp(-0.1 * x) + 0.1 * np.cos(np.pi * x)
+a, b = 0, 10
+```
 ### Data Visualization
 First, we define and visualize the function.
 *   The **blue line** represents the original function we want to approximate.
 *   The **orange dots** represent the real data, obtained by adding Gaussian noise to the original function to simulate realistic conditions.
+
+```python
+def get_training_data(N, noise):
+    np.random.seed(0)  # for reproducibility
+    x = np.linspace(a, b, N)[:, None]
+    y = f(x) + noise * np.random.randn(N, 1)
+    return x, y
+
+# Generate 100 training points with noise magnitude 0.05
+n_training_points = 100
+noise = 0.05
+xx, yy = get_training_data(n_training_points, noise)
+
+# Visualize
+x_fine = np.linspace(a, b, 1000)[:, None]
+plt.plot(x_fine, f(x_fine), label='True function')
+plt.plot(xx, yy, 'o', label='Training data')
+plt.legend()
+plt.show()
+```
 ### Neural Network Implementation
 To focus on today's key aspects, many of the basic functions are already provided.
 *   **Parameter Initialization:** Unlike previous times, all network parameters (weights `w` and biases `b`) are "flattened" and stored in a single list. This simplifies management.
 *   **Network Architecture:** The neural network is designed for a regression task. It uses the **hyperbolic tangent (tanh)** as the activation function for all layers except the last one.
 *   **Cost Function (Loss Function):** Since this is a regression problem, we use the **Mean Squared Error (MSE)**. The error is calculated as the difference between the network's prediction and the real value; the loss is the average of the square of this error.
+
+```python
+def initialize_params(layers_size):
+    np.random.seed(0)  # for reproducibility
+    params = list()
+    for i in range(len(layers_size) - 1):
+        W = np.random.randn(layers_size[i + 1], layers_size[i])
+        b = np.zeros((layers_size[i + 1], 1))
+        params.append(W)
+        params.append(b)
+    return params
+
+def ANN(x, params):
+    # Normalize input to [-1, 1]
+    layer = (2 * x.T - (a + b)) / (b - a)
+    num_layers = int(len(params) / 2 + 1)
+    weights = params[0::2]
+    biases = params[1::2]
+    for i in range(num_layers - 1):
+        layer = jnp.dot(weights[i], layer) - biases[i]
+        if i < num_layers - 2:
+            layer = jnp.tanh(layer)
+    return layer.T
+
+def loss(x, y, params):
+    error = ANN(x, params) - y
+    return jnp.mean(error * error)
+```
 ### Startup and Dynamic Visualization
 We initialize a network with a `[1, 5, 5, 1]` structure (one input, two hidden layers with 5 neurons, one output). A specific code cell allows us to dynamically visualize the training, showing the evolution of the approximated function and the loss.
+
+```python
+# Initialize network
+layers_size = [1, 5, 5, 1]
+params = initialize_params(layers_size)
+
+# JIT compilation for speed
+loss_jit = jax.jit(loss)
+grad_jit = jax.jit(jax.grad(loss, argnums=2))
+
+# Test initial loss
+print(f"Initial loss: {loss_jit(xx, yy, params):.3e}")
+```
 ## [03:20] Chapter 2: Gradient Descent and its Variants
 ### The Task: Implementing Optimizers
 Our task will be to manually implement different variants of *gradient descent* to observe their differences during training.
@@ -38,6 +124,25 @@ for i in range(len(params)):
 Running the code, we observe two plots:
 *   **On the right:** The approximated function (orange) trying to fit the training data (green), with the original function as a reference (blue).
 *   **On the left:** The trend of the cost function.
+
+```python
+# Full-Batch Gradient Descent
+params_gd = initialize_params(layers_size)
+num_epochs = 2000
+learning_rate = 1e-1
+history_gd = [loss_jit(xx, yy, params_gd)]
+
+for epoch in range(num_epochs):
+    grads = grad_jit(xx, yy, params_gd)
+    for i in range(len(params_gd)):
+        params_gd[i] = params_gd[i] - learning_rate * grads[i]
+    history_gd.append(loss_jit(xx, yy, params_gd))
+
+print(f"Final loss: {history_gd[-1]:.3e}")
+```
+
+![Full-Batch GD Loss](img/lab08_gd_loss.png)
+
 **Observations:**
 *   The loss can temporarily increase. This is normal for non-convex cost functions, where a first-order optimizer can move between different "valleys."
 *   The loss oscillations are minimal, as the gradient calculated on the entire dataset provides a very stable descent direction.
@@ -46,10 +151,56 @@ Running the code, we observe two plots:
 Now it's your turn to implement the variants.
 *   **Stochastic Gradient Descent (SGD):** Instead of using the entire dataset, a small random subset of data, called a **mini-batch**, is drawn at each step. The gradient is calculated only on this mini-batch.
 *   **Learning Rate Decay:** The `learning\_rate` is not fixed but decreases over time. The idea is to take large steps at the beginning of training and smaller steps as we get closer to the minimum, to avoid "jumping" over the optimal solution.
+
+```python
+# SGD with learning rate decay
+params_sgd = initialize_params(layers_size)
+num_epochs_sgd = 20000
+learning_rate_max = 1e-1
+learning_rate_min = 2e-2
+learning_rate_decay = 10000
+batch_size = 10
+history_sgd = [loss_jit(xx, yy, params_sgd)]
+
+for epoch in range(num_epochs_sgd):
+    learning_rate = max(learning_rate_min, 
+                       learning_rate_max * (1 - epoch / learning_rate_decay))
+    idxs = np.random.choice(n_training_points, batch_size, replace=True)
+    grads = grad_jit(xx[idxs, :], yy[idxs, :], params_sgd)
+    for i in range(len(params_sgd)):
+        params_sgd[i] = params_sgd[i] - learning_rate * grads[i]
+    history_sgd.append(loss_jit(xx, yy, params_sgd))
+
+print(f"Final loss: {history_sgd[-1]:.3e}")
+```
+
+![SGD Loss](img/lab08_sgd_loss.png)
 ### 2.3. Gradient Descent with Momentum
 *Momentum* is a technique that adds "inertia" to the parameter update.
 *   **Key Idea:** The update depends not only on the current gradient but also on the direction taken in previous steps. It's like a ball rolling down a hill: it maintains a certain velocity (momentum) in the direction it was already moving.
 *   **Formula:** The update `v` (velocity) is a combination of the previous velocity and the current gradient. The parameters are then updated using this new velocity.
+
+```python
+# Momentum
+params_momentum = initialize_params(layers_size)
+alpha = 0.9
+velocity = [0.0 for _ in range(len(params_momentum))]
+history_momentum = [loss_jit(xx, yy, params_momentum)]
+
+for epoch in range(num_epochs_sgd):
+    learning_rate = max(learning_rate_min, 
+                       learning_rate_max * (1 - epoch / learning_rate_decay))
+    idxs = np.random.choice(n_training_points, batch_size, replace=True)
+    grads = grad_jit(xx[idxs, :], yy[idxs, :], params_momentum)
+    for i in range(len(params_momentum)):
+        velocity[i] = alpha * velocity[i] - learning_rate * grads[i]
+        params_momentum[i] = params_momentum[i] + velocity[i]
+    history_momentum.append(loss_jit(xx, yy, params_momentum))
+
+print(f"Final loss: {history_momentum[-1]:.3e}")
+```
+
+![Momentum Loss](img/lab08_momentum_loss.png)
 ### 2.4. AdaGrad (Adaptive Gradient)
 AdaGrad adapts the learning rate for each individual parameter.
 *   **Key Idea:** It maintains a memory of past gradients for each parameter. Parameters that have received large gradients in the past will have a smaller learning rate, while those with small gradients will have a larger learning rate.
@@ -57,7 +208,20 @@ AdaGrad adapts the learning rate for each individual parameter.
 ### 2.5. RMSProp (Root Mean Square Propagation)
 RMSProp is an improvement on AdaGrad that introduces a decay factor (`decay\_rate`) for the gradient memory.
 *   **Key Idea:** Instead of accumulating all past gradients, RMSProp gives more weight to recent ones, gradually "forgetting" older ones. This prevents the learning rate from becoming too small and stalling the learning process.
+
 Your task is to implement these three variants and observe their behavior, also trying to modify parameters (e.g., `batch\_size`, `momentum`) to understand their effect.
+
+### Comparison of All First-Order Optimizers
+
+![Optimizer Comparison](img/lab08_optimizer_comparison.png)
+
+The comparison shows:
+- **Full-batch GD**: Smooth convergence but requires many epochs
+- **SGD**: Noisy but effective with proper learning rate decay  
+- **Momentum**: Accelerates convergence and reduces oscillations
+- **AdaGrad**: Adaptive learning rates, good initial progress but can stall
+- **RMSProp**: Better than AdaGrad, prevents learning rate decay
+
 ## [08:58] Chapter 3: Analysis of the Results
 ### 3.1. SGD Implementation and Results
 Let's look at the implementation of *Stochastic Gradient Descent* together.
@@ -181,9 +345,71 @@ For a convex problem like ours, Newton's method is extremely efficient, like a "
 I'll give you five minutes to complete this part. If you have time, you can also try to implement the *matrix-free* version.
 ### Solution: Newton's Method with Explicit Matrix
 Let's go through the solution together.
+
 1.  **Calculation of Hessian and Gradient**:
     - `H = hessian\_jit(x)`: We calculate the Hessian at point `x`.
     - `G = grad\_jit(x)`: We calculate the gradient at point `x`.
+
+2.  **Solving the Linear System**:
+    - To find the increment, we solve the linear system `H * increment = -G`. The easiest way is to use the `solve` function from linear algebra libraries.
+    - `increment = solve(H, -G)`
+    - The `solve` function typically uses an LU decomposition to find the solution.
+
+3.  **Parameter Update**:
+    - `x = x + increment`
+
+By running this code, we reach machine precision (machine epsilon, about 10⁻¹⁴) in just **two epochs**.
+
+```python
+# Enable double precision for Newton's method
+jax.config.update("jax_enable_x64", True)
+
+# Setup problem: minimize ||Ax - b||^2
+n = 100
+np.random.seed(0)
+A = np.random.randn(n, n)
+x_ex = np.random.randn(n)
+b = A @ x_ex
+
+def loss_newton(x):
+    return jnp.sum(jnp.square(A @ x - b))
+
+grad_newton = jax.grad(loss_newton)
+hess_newton = jax.jacfwd(jax.jacrev(loss_newton))
+
+loss_newton_jit = jax.jit(loss_newton)
+grad_newton_jit = jax.jit(grad_newton)
+hess_newton_jit = jax.jit(hess_newton)
+
+# Newton's method
+x_guess = np.random.randn(n)
+x = x_guess.copy()
+num_epochs_newton = 100
+eps = 1e-8
+history_newton = [loss_newton_jit(x)]
+
+for epoch in range(num_epochs_newton):
+    H = hess_newton_jit(x)
+    G = grad_newton_jit(x)
+    incr = np.linalg.solve(H, -G)
+    x = x + incr
+    history_newton.append(loss_newton_jit(x))
+    
+    print(f"Epoch {epoch}: loss={loss_newton_jit(x):.3e}, "
+          f"grad_norm={np.linalg.norm(G):.3e}, "
+          f"incr_norm={np.linalg.norm(incr):.3e}")
+    
+    if np.linalg.norm(incr) < eps:
+        print("Convergence reached!")
+        break
+
+rel_err = np.linalg.norm(x - x_ex) / np.linalg.norm(x_ex)
+print(f"Relative error: {rel_err:.3e}")
+```
+
+![Newton Convergence](img/lab08_newton_convergence.png)
+
+The main problem with this approach is the computational and memory cost associated with constructing and managing the Hessian matrix `H`.
 2.  **Solving the Linear System**:
     - To find the increment, we solve the linear system `H * increment = -G`. The easiest way is to use the `solve` function from linear algebra libraries.
     - `increment = solve(H, -G)`
@@ -242,6 +468,25 @@ For this example, we will use a famous dataset that relates the fuel consumption
 - Weight
 - Acceleration
 - Year of production
+
+```python
+import pandas as pd
+import seaborn as sns
+
+# Load Auto MPG dataset
+url = "http://archive.ics.uci.edu/ml/machine-learning-databases/auto-mpg/auto-mpg.data"
+column_names = ["MPG", "Cylinders", "Displacement", "Horsepower", 
+                "Weight", "Acceleration", "Model Year", "Origin"]
+data = pd.read_csv(url, names=column_names, na_values="?", 
+                  comment="\t", sep=" ", skipinitialspace=True)
+
+# Check for missing values
+print(data.isna().sum())
+
+# Remove missing entries
+data = data.dropna()
+print(f"Dataset size after cleaning: {len(data)} samples")
+```
 ## Chapter 9: Data Management and Analysis with Pandas
 ### Data Cleaning: Handling Missing Values
 As we have done in the past, we manage our data using the Pandas library, which should become one of your favorite tools for data manipulation. The representation we get is in tabular form.
@@ -253,13 +498,36 @@ After cleaning, we move to the inspection phase. We analyze a few rows of the da
 Next, we use the `describe()` method to get a statistical overview of the data, which includes mean, standard deviation, quantiles, and other useful indicators.
 #### Distribution of the Target Variable
 Our target variable, the value we want to predict, is "mpg" (miles per gallon), an index that measures a vehicle's fuel efficiency (how many miles can be driven on one gallon of fuel).
+
 We analyze its distribution to ensure it is reasonable. Unlike the housing dataset analyzed previously, where we had to remove outliers, here the graph shows an acceptable distribution and requires no intervention.
+
+```python
+# Plot MPG distribution
+sns.histplot(data["MPG"], kde=True)
+plt.xlabel('Miles Per Gallon (MPG)')
+plt.ylabel('Count')
+plt.title('Distribution of Fuel Efficiency (MPG)')
+plt.show()
+```
+
+![MPG Distribution](img/lab08_mpg_distribution.png)
 #### Correlation Between Variables
 To explore the relationships between the different variables, we use a heatmap generated with Seaborn, a powerful library for data visualization. This allows us to gain valuable insights.
+
+```python
+# Correlation heatmap
+sns.heatmap(data.corr(), annot=True, cmap="vlag_r", vmin=-1, vmax=1, fmt='.2f')
+plt.title('Correlation Matrix of Auto MPG Features')
+plt.show()
+```
+
+![Correlation Heatmap](img/lab08_correlation_heatmap.png)
+
 For example, we observe that:
 *   The **number of cylinders** is strongly correlated with **horsepower**: the more cylinders a car has, the more powerful it is.
 *   The **weight** of the vehicle is correlated with both the number of cylinders and horsepower.
 *   All these variables, which measure the "power" of the vehicle, are **negatively correlated** with fuel efficiency (mpg). In other words, a heavier and more powerful car tends to consume more fuel.
+
 Other variables like acceleration and model year can provide further insights, but we will not dwell on them for now.
 #### Pair Plot: Pairwise Relationships
 Another very useful plot that we didn't see last time is the `pairplot`. This tool visualizes the relationships between every pair of variables in the dataset.
@@ -272,10 +540,42 @@ These plots are extremely useful for understanding the interconnections in the d
 ### Model Preparation
 #### Data Normalization
 It is crucial to normalize the data before feeding it to the neural network. This process scales the values into a similar range, ensuring that the model works correctly and converges more easily. We use a "violin plot" to verify that the distributions are well-behaved, without long tails (log tails), and that the data are more or less in the same range of values.
+
+```python
+# Normalize data (zero mean, unit variance)
+data_mean = data.mean()
+data_std = data.std()
+data_normalized = (data - data_mean) / data_std
+
+# Violin plot to verify normalization
+sns.violinplot(data=data_normalized)
+plt.ylabel('Normalized Values')
+plt.title('Distribution of Normalized Features')
+plt.show()
+```
+
+![Normalized Features](img/lab08_normalized_violin.png)
 #### Splitting into Training and Validation Sets
 We divide our dataset into two parts:
 *   **80% for training**: the data on which the neural network will be trained.
 *   **20% for validation**: the data we will use to evaluate the model's performance on never-before-seen data.
+
+```python
+# Train-validation split
+data_normalized_np = data_normalized.to_numpy()
+np.random.seed(0)
+np.random.shuffle(data_normalized_np)
+
+fraction_validation = 0.2
+num_train = int(data_normalized_np.shape[0] * (1 - fraction_validation))
+x_train = data_normalized_np[:num_train, 1:]
+y_train = data_normalized_np[:num_train, :1]
+x_valid = data_normalized_np[num_train:, 1:]
+y_valid = data_normalized_np[num_train:, :1]
+
+print(f"Train set size: {x_train.shape[0]}")
+print(f"Validation set size: {x_valid.shape[0]}")
+```
 ## Chapter 10: Implementing the Neural Network with Regularization
 ### Network Structure and Loss Function
 At this point, we define our neural network. We reuse the functions we've seen in the past:
@@ -295,42 +595,78 @@ Empirically, we know that adding this regularization term should reduce the loss
 Now let's implement the new components of the loss function.
 #### MSW (Mean Squared Weights) Function
 We define the `MSW` function that calculates the mean of the squared weights.
+
 ```python
+def initialize_params_reg(layers_size):
+    """Initialize with Glorot Normal initialization."""
+    np.random.seed(0)
+    params = list()
+    for i in range(len(layers_size) - 1):
+        W = np.random.randn(layers_size[i + 1], layers_size[i]) * np.sqrt(
+            2 / (layers_size[i + 1] + layers_size[i])
+        )
+        b = np.zeros((layers_size[i + 1], 1))
+        params.append(W)
+        params.append(b)
+    return params
+
+activation = jax.nn.relu
+
+def ANN_reg(x, params):
+    """Feedforward ANN with ReLU activation."""
+    layer = x.T
+    num_layers = int(len(params) / 2 + 1)
+    weights = params[0::2]
+    biases = params[1::2]
+    for i in range(num_layers - 1):
+        layer = weights[i] @ layer - biases[i]
+        if i < num_layers - 2:
+            layer = activation(layer)
+    return layer.T
+
+def MSE(x, y, params):
+    """Mean Squared Error loss."""
+    error = ANN_reg(x, params) - y
+    return jnp.mean(error * error)
+
 def MSW(params):
-    # (The original code included X and Y, but they are not needed for this calculation)
-    
-    # We extract only the weights (W), not the biases (b).
-    # The parameters are in a list [W1, b1, W2, b2, ...], so we take every other element.
+    """Mean Squared Weights (L2 regularization term)."""
+    # Extract only weights (W), not biases (b)
     weights = params[0::2]
     
-    weight\_sum = 0
-    num\_weights = 0
+    weight_sum = 0
+    num_weights = 0
     
     for w in weights:
         # Sum the square of each weight
-        weight\_sum += jnp.sum(w * w)
+        weight_sum += jnp.sum(w * w)
         # Count the total number of weights
-        num\_weights += w.shape[0] * w.shape[1]
+        num_weights += w.shape[0] * w.shape[1]
         
     # Return the average
-    return weight\_sum / num\_weights
+    return weight_sum / num_weights
 ```
+
 In practice, for each weight matrix in the network, we square it to get its "magnitude" and then calculate the average over all weights.
 #### Complete Loss Function
 Now we define the complete loss function that combines MSE and MSW.
+
 ```python
-def loss(x, y, params, beta):
+def loss_reg(x, y, params, beta):
+    """Combined loss: MSE + beta * MSW."""
     # Calculate the MSE
-    mse\_val = MSE(x, y, params)
+    mse_val = MSE(x, y, params)
     # Calculate the MSW
-    msw\_val = MSW(params)
+    msw_val = MSW(params)
     
     # Return the weighted sum
-    return mse\_val + beta * msw\_val
+    return mse_val + beta * msw_val
 ```
+
 The idea is that the loss function now has two objectives:
 1.  **Minimize the error** with respect to the target values (via MSE).
 2.  **Regularize the network**, penalizing high-value weights to avoid overfitting (via MSW).
+
 We expect the training loss to be slightly higher due to this additional term, but the validation loss to decrease, indicating better generalization. The correct choice of `beta` is crucial to balance these two objectives.
 ### Training and Initial Results
 Let's proceed with training. The plot of the loss function during the epochs shows:
@@ -359,7 +695,20 @@ This is the most interesting result.
 This empirically demonstrates that **regularization works**: by sacrificing a bit of performance on the training data, we improve the model's ability to generalize to new data.
 There is an optimal point (in this case, a range of `beta` values) after which, if `beta` becomes too large, the regularization becomes excessive and validation performance starts to worsen again.
 **Note:** The stochastic nature of neural network training can cause small fluctuations and local maxima in the plot, which is completely normal.
+
+![Hyperparameter Tuning](img/lab08_hyperparameter_tuning.png)
+
+The three plots show:
+1. **Training MSE increases** with β (sacrifice accuracy for regularization)
+2. **Validation MSE improves** initially, then worsens (optimal β exists)
+3. **MSW decreases** monotonically with β (weights are penalized)
 ### The Tikhonov L-Curve
 As a final exercise, we visualize the so-called **Tikhonov L-curve**. This plot relates the training MSE (y-axis) to the MSW (x-axis).
+
 The plot shows a **trade-off** between the two quantities. The shape resembles a `1/x` type curve, where the product of the two values tends to remain constant. This visually highlights that when trying to reduce one of the two metrics (e.g., MSW), the other inevitably tends to increase. This curve is similar to a "Pareto frontier," which represents the optimal solutions in a problem with multiple conflicting objectives.
+
+![Tikhonov L-Curve](img/lab08_tikhonov_lcurve.png)
+
+Each point on the curve corresponds to a different β value, showing the Pareto-optimal trade-off between model accuracy (MSE) and regularization (MSW).
+
 That's all for today. We have covered many topics. If you have any questions, I'm here to answer, or you can email me. Have a great weekend.
