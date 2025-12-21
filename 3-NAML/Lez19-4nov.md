@@ -23,7 +23,7 @@ Questa relazione costituisce il punto di partenza per derivare risultati più sp
 #### Ipotesi e Tesi del Teorema
 [00:30] Il primo risultato si ottiene introducendo l'ipotesi che il gradiente della funzione sia limitato. Questa proprietà è anche nota come Lipschitzianità della funzione rispetto al gradiente.
 - **Definizione di Gradiente Limitatato**: Una funzione $f$ si dice a gradiente limitato se esiste una costante positiva $B$ tale che la norma del suo gradiente è sempre inferiore o uguale a tale costante per ogni punto del dominio. Matematicamente:
-  ```math
+```math
 ||\nabla f(x)|| \le B \quad \forall x
 ```
 [00:40] Si introduce un'ulteriore ipotesi riguardante il punto di partenza dell'algoritmo, $x_1$. Si assume che la distanza tra $x_1$ e la soluzione ottima $x^*$ sia limitata da una costante $R$:
@@ -85,11 +85,13 @@ Q(\gamma) = \frac{\gamma B^2}{2} + \frac{R^2}{2\gamma T}
 #### La Condizione di Decrescita Sufficiente
 [03:10] Si analizza ora il caso in cui si aggiunge l'ipotesi di L-smoothness della funzione.
 - **Definizione di Funzione L-smooth**: Una funzione $f$ è detta L-smooth, o a gradiente L-Lipschitziano, se esiste una costante $L > 0$ tale che il suo gradiente soddisfa la seguente condizione per ogni coppia di punti $x, y$:
-  ```math
+```math
 ||\nabla f(x) - \nabla f(y)|| \le L ||x - y|| \quad \forall x, y
 ```
+<img width="1174" height="721" alt="image" src="https://github.com/user-attachments/assets/313499cb-e5a4-4780-8c40-4aa598203be7" />
+
   Una conseguenza diretta di questa proprietà è la seguente disuguaglianza, che fornisce un limite superiore quadratico alla funzione:
-  ```math
+```math
 f(y) \le f(x) + \nabla f(x)^T(y-x) + \frac{L}{2}||y-x||^2
 ```
 [03:15] In questo scenario, si sceglie un passo di apprendimento costante pari a $\gamma = 1/L$. Con questa scelta, è possibile dimostrare una proprietà fondamentale nota come "condizione di decrescita sufficiente" (*sufficient decrease*).
@@ -104,6 +106,8 @@ Poiché il termine $||\nabla f(x_t)||^2$ è sempre non negativo, si ha $f(x_{t+1
 ```math
 x_{t+1} = x_t - \frac{1}{L} \nabla f(x_t)
 ```
+<img width="960" height="610" alt="image" src="https://github.com/user-attachments/assets/cc4188ce-41e5-466a-81c5-3cc2bc7383a4" />
+
 Ponendo $y = x_{t+1}$ e $x = x_t$, la disuguaglianza di L-smoothness diventa:
 ```math
 f(x_{t+1}) \le f(x_t) + \nabla f(x_t)^T(x_{t+1}-x_t) + \frac{L}{2}||x_{t+1}-x_t||^2
@@ -174,7 +178,7 @@ Questo limite mostra come l'errore all'ultima iterazione dipenda dalla distanza 
 #### Ipotesi e Risultati Principali
 [07:00] Si introduce un'ulteriore e più stringente condizione sulla funzione: la $\mu$-forte convessità.
 - **Definizione di Funzione $\mu$-fortemente Convessa**: Una funzione $f$ si dice $\mu$-fortemente convessa se esiste una costante $\mu > 0$ tale che la seguente disuguaglianza è valida per ogni coppia di punti $x, y$:
-  ```math
+```math
 f(y) \ge f(x) + \nabla f(x)^T(y-x) + \frac{\mu}{2}||y-x||^2
 ```
   Questa condizione implica che la funzione è limitata inferiormente da una parabola quadratica.
@@ -256,10 +260,15 @@ Sostituendo in questa disuguaglianza il risultato ottenuto per la convergenza de
 | Convessa, Gradiente Limitatato | $O(1/\epsilon^2)$ |
 | Convessa, L-smooth | $O(1/\epsilon)$ |
 | $\mu$-fortemente Convessa, L-smooth | $O(\kappa \log(1/\epsilon))$ |
+
+<img width="1229" height="295" alt="image" src="https://github.com/user-attachments/assets/a38f0104-f984-4ac6-8591-aece62b473b1" />
+
 [12:10] Come si evince dalla tabella, l'aggiunta di ipotesi che rendono la funzione "meglio comportata" (più regolare e strutturata) si traduce in un miglioramento significativo del tasso di convergenza dell'algoritmo.
 ## Capitolo 2: Scelta del Passo di Apprendimento e Ottimizzazione Vincolata
 ### La Scelta Pratica del Passo di Apprendimento (Learning Rate)
 [12:20] Tutte le dimostrazioni di convergenza analizzate si basano sull'assunzione che il passo di apprendimento $\gamma$ abbia un valore specifico, calcolato in funzione di costanti come $L$ (costante di Lipschitz), $B$ (limite del gradiente) o $R$ (limite sulla distanza iniziale).
+<img width="1052" height="686" alt="image" src="https://github.com/user-attachments/assets/0ccb680d-93e6-4450-8795-4d9b04e672eb" />
+
 [12:35] Nella pratica, queste costanti sono quasi sempre sconosciute. Di conseguenza, sorge il problema di come scegliere un valore ragionevole per $\gamma$.
 [12:44] Il passo di apprendimento è un iperparametro cruciale del modello, che viene tipicamente ottimizzato attraverso un processo di "tentativi ed errori" (*trial and error*), guidato dall'osservazione dell'andamento della funzione di costo su un insieme di dati di validazione.
 [12:58] Esistono, tuttavia, metodi più strutturati per la scelta di $\gamma$, come il metodo della "ricerca lineare" (*line search*).
@@ -293,16 +302,18 @@ Sostituendo in questa disuguaglianza il risultato ottenuto per la convergenza de
     - $\tau$ è un fattore di riduzione (*shrink factor*) utilizzato per diminuire il passo.
 2.  Si inizializza il passo di apprendimento con la stima iniziale: $\gamma = \bar{\gamma}$.
 3.  Si verifica la seguente condizione, nota come **condizione di Armijo**:
-    ```math
+
+```math
 f(x_k + \gamma d_k) > f(x_k) + c \gamma \nabla f(x_k)^T d_k
 ```
     Poiché la direzione di discesa è $d_k = -\nabla f(x_k)$, la condizione può essere riscritta come:
-    ```math
+```math
 f(x_k - \gamma \nabla f(x_k)) > f(x_k) - c \gamma ||\nabla f(x_k)||^2
 ```
     Questa condizione verifica se il passo $\gamma$ produce una diminuzione "sufficiente" del valore della funzione. Il lato destro rappresenta una retta con pendenza inferiore a quella della funzione nel punto $x_k$.
 4.  **Ciclo**: Finché la condizione di Armijo è vera, significa che il passo $\gamma$ è troppo grande e non garantisce una decrescita adeguata. Si riduce quindi $\gamma$ moltiplicandolo per il fattore di riduzione $\tau$:
-    ```math
+   
+```math
 \gamma \leftarrow \tau \gamma
 ```
 5.  **Uscita**: Quando la condizione di Armijo diventa falsa, si è trovato un valore di $\gamma$ adeguato. Si imposta il passo per l'iterazione corrente del gradiente, $\gamma_k$, a questo valore di $\gamma$ e si procede con l'aggiornamento di $x_k$ a $x_{k+1}$.
@@ -485,6 +496,8 @@ Questa proprietà garantisce che, in media, la direzione di aggiornamento dell'S
 f_i(x) = \frac{1}{2} (a_i x - b_i)^2
 ```
 dove $x$ è il parametro scalare da ottimizzare, mentre $a_i$ e $b_i$ sono costanti specifiche del campione.
+<img width="467" height="391" alt="image" src="https://github.com/user-attachments/assets/ba8fe0d5-1118-4834-8df4-07dc4d120163" />
+
 [00:36] Il punto di minimo di una singola parabola $f_i(x)$ si trova annullando il termine quadratico, ovvero per $x_i = \frac{b_i}{a_i}$.
 [00:43] Il minimo globale della funzione di costo complessiva $F(x) = \sum_{i=1}^n f_i(x)$ si trova nel punto $x^*$ che corrisponde a una media pesata dei minimi individuali:
 ```math
@@ -504,6 +517,8 @@ Questo valore si ottiene calcolando il gradiente della funzione $F(x)$ e ponendo
 [02:11] In questa zona, le pendenze delle singole parabole elementari possono avere segni discordanti. A seconda del campione scelto casualmente (ad esempio, quello associato alla parabola blu o a quella verde), il segno del gradiente può essere opposto.
 [02:17] Ciò implica che, all'interno di questa regione, la direzione del passo di aggiornamento dipende in modo critico dal campione specifico selezionato, e il comportamento dell'algoritmo diventa molto più rumoroso e imprevedibile.
 [02:28] Una simulazione del percorso seguito dal gradiente stocastico mostra questo comportamento. Partendo da un punto lontano, si osserva una fase iniziale in cui, sebbene la traiettoria non sia liscia, il metodo si muove progressivamente verso la regione del minimo.
+<img width="576" height="464" alt="image" src="https://github.com/user-attachments/assets/127cc8f3-d08e-4f31-91c4-53ffde7878da" />
+
 [02:51] Successivamente, l'algoritmo entra in una fase in cui il suo comportamento diventa apparentemente caotico, con oscillazioni attorno al minimo. Questo effetto è amplificato se si utilizza un passo di apprendimento (*learning rate*) più grande.
 [03:01] Questa è la manifestazione pratica della regione di confusione: l'uso di un singolo campione per calcolare il gradiente non garantisce più che la direzione scelta sia corretta, nemmeno per quanto riguarda il segno.
 [03:14] Questo comportamento è tipico dell'SGD: una fase iniziale di rapida discesa, seguita da un movimento rumoroso e oscillatorio attorno al punto di minimo.
