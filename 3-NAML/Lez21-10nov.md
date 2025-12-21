@@ -89,6 +89,8 @@ w_{t+1} = w_t - v_{t+1}
 [07:25] L'idea è di avere un'informazione sul gradiente che non sia legata solo al passato, ma che sia più "informata" su ciò che sta per accadere. È una sorta di *look-ahead*, un tentativo di guardare nel futuro.
 [07:36] In pratica, il NAG è più robusto del metodo del momento classico. È importante notare che non introduce nuovi iperparametri, quindi la sua complessità è identica a quella del momento, ma le sue prestazioni sono significativamente migliori.
 ### Rappresentazione Grafica: Momentum vs. NAG
+<img width="718" height="258" alt="image" src="https://github.com/user-attachments/assets/e51b1bd0-6205-496e-a197-a70be5e80a7a" />
+
 [07:49] Una visualizzazione grafica può chiarire la differenza. A sinistra è rappresentato il metodo del momento classico.
 [07:54] Il calcolo del gradiente (freccia rossa) avviene nella posizione corrente. Il vettore di aggiornamento del momento (freccia verde) viene sommato a questo gradiente per determinare il passo effettivo (freccia blu).
 [08:03] Nel metodo di Nesterov, invece:
@@ -228,6 +230,8 @@ dove $G_t$ è la matrice diagonale contenente le somme dei quadrati dei gradient
 ## Il Metodo di Newton per la Ricerca di Zeri (Root Finding)
 [00:28] Il metodo di Newton è comunemente introdotto nel contesto della ricerca di zeri (o radici) di una funzione. Data una funzione non lineare $f$, l'obiettivo è trovare uno dei suoi zeri, ovvero un punto $x$ tale che $f(x) = 0$.
 [00:43] L'idea fondamentale del metodo consiste nell'utilizzare le rette tangenti alla funzione di cui si cercano gli zeri. Si calcola la tangente in un punto dato e si determina l'intersezione di tale retta con l'asse delle ascisse (l'asse x).
+<img width="623" height="414" alt="image" src="https://github.com/user-attachments/assets/4f36a178-1250-48d0-a77b-7aae27711a2f" />
+
 [00:54] Questo punto di intersezione diventa la nuova iterazione del metodo. Da qui, si proietta il punto sulla funzione, si calcola una nuova tangente e si ripete il processo. In sostanza, per trovare lo zero, il metodo si basa su un'approssimazione lineare locale della funzione.
 ### Formulazione Matematica del Metodo di Newton per il Root Finding
 [01:02] L'equazione della retta tangente al punto $x_k$ può essere espressa come l'espansione di Taylor del primo ordine della funzione $f$ attorno a $x_k$:
@@ -276,6 +280,8 @@ q(x) = f(x_k) + f'(x_k)(x - x_k) + \frac{1}{2}f''(x_k)(x - x_k)^2
 ```math
 q'(x) = f'(x_k) + f''(x_k)(x - x_k) = 0
 ```
+<img width="604" height="389" alt="image" src="https://github.com/user-attachments/assets/bc27990b-35c9-4985-b03b-17e9a6d95ba2" />
+
 [03:05] Esattamente come nel caso precedente, valutando questa espressione per $x = x_{k+1}$, si ottiene la regola di aggiornamento:
 ```math
 f'(x_k) + f''(x_k)(x_{k+1} - x_k) = 0
@@ -353,6 +359,8 @@ q(x) = f(x_k) + \nabla f(x_k)^T (x - x_k) + \frac{1}{2} (x - x_k)^T H_f(x_k) (x 
 [07:04] Tra i problemi pratici, il più rilevante è l'elevato costo computazionale legato alla formazione e alla soluzione del sistema lineare.
 ## Riepilogo Comparativo: Caso 1D vs. Caso N-D
 [07:12] La tabella seguente riassume il parallelismo tra il caso monodimensionale e quello multidimensionale.
+<img width="697" height="249" alt="image" src="https://github.com/user-attachments/assets/49d3c27a-e14c-4cbc-a517-5c242328c287" />
+
 | Concetto | Caso 1D (Monodimensionale) | Caso N-D (Multidimensionale) |
 | :--- | :--- | :--- |
 | **Regola di Aggiornamento** | $x_{k+1} = x_k - \frac{f'(x_k)}{f''(x_k)}$ | $x_{k+1} = x_k - H_f(x_k)^{-1} \nabla f(x_k)$ |
